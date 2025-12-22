@@ -1,0 +1,26 @@
+[
+  {
+    "label": "CMake Configure",
+    "command": "C:/msys64/mingw64/bin/cmake.exe",
+    "args": [
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DCMAKE_MAKE_PROGRAM=C:/msys64/mingw64/bin/ninja.exe",
+      "-G",
+      "Ninja",
+      "-B",
+      "cmake-build-debug",
+    ],
+    "use_new_terminal": false,
+  },
+  {
+    "label": "Build",
+    "command": "C:/msys64/mingw64/bin/cmake.exe",
+    "args": ["--build", "cmake-build-debug", "--target", "WebDogfight"],
+    "use_new_terminal": false,
+  },
+  {
+    "label": "Run",
+    "command": "./cmake-build-debug/src/WebDogfight.exe",
+    "use_new_terminal": false,
+  },
+]
