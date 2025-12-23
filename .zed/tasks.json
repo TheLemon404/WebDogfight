@@ -20,7 +20,7 @@
   },
   {
     "label": "Run",
-    "command": "./cmake-build-debug/src/WebDogfight.exe",
+    "command": "./cmake-build-debug/WebDogfight.exe",
     "use_new_terminal": false,
   },
 ]
