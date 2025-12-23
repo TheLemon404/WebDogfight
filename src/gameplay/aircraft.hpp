@@ -1,10 +1,17 @@
 #pragma once
 
+#include "../graphics/types.hpp"
+#include "../graphics/backend.hpp"
+
 #include <memory>
 #include <future>
+#include <iostream>
 
 class Fuselage {
-public:
+    protected:
+    Mesh mesh;
+
+    public:
     virtual void LoadAssets();
     virtual void Initialize();
     virtual void Update();
@@ -13,7 +20,10 @@ public:
 };
 
 class FU13 : public Fuselage {
-public:
+    protected:
+    Mesh mesh;
+
+    public:
     void LoadAssets() override;
     void Initialize() override {};
     void Update() override {};
@@ -22,7 +32,10 @@ public:
 };
 
 class Wings {
-public:
+    protected:
+    Mesh mesh;
+
+    public:
     virtual void LoadAssets();
     virtual void Initialize();
     virtual void Update();
@@ -31,7 +44,7 @@ public:
 };
 
 class Engine {
-public:
+    public:
     virtual void LoadAssets();
     virtual void Initialize();
     virtual void Update();
@@ -40,14 +53,48 @@ public:
 };
 
 class Aircraft {
-public:
-    std::shared_ptr<Fuselage> fuselage;
-    std::shared_ptr<Wings> wings;
-    std::shared_ptr<Engine> engine;
+    public:
+    std::unique_ptr<Fuselage> fuselage;
+    std::unique_ptr<Wings> wings;
+    std::unique_ptr<Engine> engine;
 
-    void LoadAssets();
-    void Initialize();
-    void Update();
-    void Draw();
-    void UnloadAssets();
+    Mesh testCube = Mesh(0,0,0,0);
+
+    void LoadAssets() {
+        /*
+        fuselage->LoadAssets();
+        wings->LoadAssets();
+        engine->LoadAssets();
+        */
+
+        testCube = GraphicsBackend::CreateCube();
+    }
+    void Initialize() {
+        /*
+        fuselage->Initialize();
+        wings->Initialize();
+        engine->Initialize();
+        */
+    }
+    void Update() {
+        /*
+        fuselage->Update();
+        wings->Update();
+        engine->Update();
+        */
+    }
+    void Draw() {
+        /*
+        fuselage->Draw();
+        wings->Draw();
+        engine->Draw();
+        */
+    }
+    void UnloadAssets() {
+        /*
+        fuselage->UnloadAssets();
+        wings->UnloadAssets();
+        engine->UnloadAssets();
+        */
+    }
 };

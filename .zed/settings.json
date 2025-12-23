@@ -1,0 +1,12 @@
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "path": "clangd",
+      },
+      "initialization_options": {
+        "compilationDatabasePath": "cmake-build-debug",
+      },
+    },
+  },
+}

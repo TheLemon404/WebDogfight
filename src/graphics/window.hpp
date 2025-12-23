@@ -2,12 +2,12 @@
 #include <stdexcept>
 
 class Window {
-private:
+    private:
     int width, height;
     const char* title;
     GLFWwindow* window;
 
-public:
+    public:
     Window(int width, int height, const char* const title) {
         this->width = width;
         this->height = height;
@@ -21,6 +21,11 @@ public:
         }
 
         window = glfwCreateWindow(width, height, title, NULL, NULL);
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
         if (!window) {
             glfwTerminate();
             throw std::runtime_error("Failed to create GLFW window");
@@ -33,9 +38,9 @@ public:
         return glfwWindowShouldClose(window);
     }
 
-    void PollAndSwap() {
-        glfwSwapBuffers(window);
+    void PollAndSwapBuffers() {
         glfwPollEvents();
+        glfwSwapBuffers(window);
     }
 
     void Close() {
