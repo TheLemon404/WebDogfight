@@ -1,15 +1,23 @@
 #vertex
 #version 300 es
-precision mediump float;
+precision lowp int;
 layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aUV;
+
+uniform mat4 uTransform;
+uniform mat4 uView;
+uniform mat4 uProjection;
+
 void main()
 {
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    vec4 worldPosition = uTransform * vec4(aPos, 1.0f);
+    gl_Position = uProjection * uView * worldPosition;
 }
 
 #fragment
 #version 300 es
-precision mediump float;
+precision lowp int;
 out vec4 FragColor;
 void main()
 {

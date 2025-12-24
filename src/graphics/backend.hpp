@@ -1,5 +1,9 @@
 #pragma once
 
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "types.hpp"
 #include "../io/files.hpp"
 
@@ -68,9 +72,6 @@ class GraphicsBackend {
         std::string vertexSource = "";
         std::string fragmentSource = "";
         SplitShaderSource(shaderSource, vertexSource, fragmentSource);
-
-        std::cout << "Vertex Source:\n" << vertexSource << std::endl;
-        std::cout << "Fragment Source:\n" << fragmentSource << std::endl;
 
         unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         unsigned int fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -205,10 +206,35 @@ class GraphicsBackend {
 
         glBindVertexArray(0);
 
-        return Mesh(vao, vbo, ebo, vertices.size());
+        return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
     }
 
-    static void DrawMesh(Mesh& mesh, Shader& shader) {
+    static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const char* var) {
+        GLint location = glGetUniformLocation(shader.programID, var);
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+    }
+
+    static void UploadShaderUniformVec3(Shader& shader, const glm::vec3& vector, const char* var) {
+        GLint location = glGetUniformLocation(shader.programID, var);
+        glUniform3fv(location, 1, glm::value_ptr(vector));
+    }
+
+    static void UploadShaderUniformVec2(Shader& shader, const glm::vec2& vector, const char* var) {
+        GLint location = glGetUniformLocation(shader.programID, var);
+        glUniform2fv(location, 1, glm::value_ptr(vector));
+    }
+
+    static void UploadShaderUniformFloat(Shader& shader, const float val, const char* var) {
+        GLint location = glGetUniformLocation(shader.programID, var);
+        glUniform1f(location, val);
+    }
+
+    static void UploadShaderUniformInt(Shader& shader, const int val, const char* var) {
+        GLint location = glGetUniformLocation(shader.programID, var);
+        glUniform1i(location, val);
+    }
+
+    static void DrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
         glUseProgram(shader.programID);
         glBindVertexArray(mesh.vao);
 
@@ -216,7 +242,11 @@ class GraphicsBackend {
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
+        UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
+        UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
+        UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);

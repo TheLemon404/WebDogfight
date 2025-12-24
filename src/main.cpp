@@ -12,23 +12,6 @@
 #include "graphics/window.hpp"
 #include <memory>
 
-//Vertex shader source code
-const char* vertexShaderSource = "#version 300 es\n"
-"precision mediump float;\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"  // Fixed: added semicolon and closing paren
-"}\0";
-
-const char* fragmentShaderSource = "#version 300 es\n"
-"precision mediump float;\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(0.8, 0.3, 0.02, 1.0);\n"  // Fixed: added semicolon
-"}\n\0";
-
 #ifdef __EMSCRIPTEN__
 EM_JS(int, html_get_width, (), {
     return window.innerWidth;
@@ -52,6 +35,9 @@ public:
     ApplicationSettings settings;
     Window window;
     Shader* shader;
+    Mesh* mesh;
+    Camera* camera;
+    Transform transform;
     std::unique_ptr<Scene> currentScene;
 
     bool Initialize() {
@@ -90,9 +76,9 @@ void main_loop(void* arg) {
     glClearColor(val, val, val, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(app->shader->programID);
-	glBindVertexArray(app->vao);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+    app->transform.rotation.y += 0.1f;
+
+    GraphicsBackend::DrawMesh(*app->mesh, *app->shader, *app->camera, app->transform);
 
     app->window.PollAndSwapBuffers();
 }
@@ -117,31 +103,19 @@ int main() {
     }
 
     Shader shader = GraphicsBackend::CreateShader("resources/shaders/test.glsl");
+    Mesh mesh = GraphicsBackend::CreateCube();
+    Camera camera = Camera();
+    camera.position = glm::vec3(3.0f, 3.0f, 3.0f);
+    camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
+#ifdef __EMSCRIPTEN__
+    camera.aspect = (float)html_get_width() / html_get_height();
+#else
+    camera.aspect = (float)app.window.width / app.window.height;
+#endif
 
     app.shader = &shader;
-
-    GLfloat vertices[] =
-	{
-		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f,
-	};
-
-	//Create VBO(Vertex Buffer Object)
-	GLuint VBO;
-	glGenVertexArrays(1, &app.vao);
-	glBindVertexArray(app.vao);
-
-	//Create VAO(Vertex Array Object)
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+    app.mesh = &mesh;
+    app.camera = &camera;
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(main_loop, &app, 0, 1);
@@ -152,7 +126,7 @@ int main() {
 #endif
 
     glDeleteVertexArrays(1, &app.vao);
-	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &app.mesh->vbo);
 	glDeleteProgram(app.shaderProgram);
 
     app.UnloadAssets();

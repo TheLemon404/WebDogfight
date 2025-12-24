@@ -2,3 +2,4 @@ cmake-build-desktop
 cmake-build-web/CMakeFiles
 cmake-build-web/resources
 cmake-build-web/vendor
+cmake-build-web/.cache

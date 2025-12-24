@@ -9,7 +9,7 @@
 
 class Aircraft {
     public:
-    Mesh testCube = Mesh(0,0,0,0);
+    Mesh testCube = Mesh(0,0,0,0,0);
 
     void LoadAssets() {
         testCube = GraphicsBackend::CreateCube();
