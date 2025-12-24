@@ -1,4 +1,5 @@
 #include "gameplay/scene.hpp"
+#include "graphics/types.hpp"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -28,6 +29,16 @@ const char* fragmentShaderSource = "#version 300 es\n"
 "   FragColor = vec4(0.8, 0.3, 0.02, 1.0);\n"  // Fixed: added semicolon
 "}\n\0";
 
+#ifdef __EMSCRIPTEN__
+EM_JS(int, html_get_width, (), {
+    return window.innerWidth;
+})
+
+EM_JS(int, html_get_height, (), {
+    return window.innerHeight;
+})
+#endif
+
 struct ApplicationSettings {
     int screenWidth = 800;
     int screenHeight = 600;
@@ -40,6 +51,7 @@ public:
 
     ApplicationSettings settings;
     Window window;
+    Shader* shader;
     std::unique_ptr<Scene> currentScene;
 
     bool Initialize() {
@@ -78,10 +90,9 @@ void main_loop(void* arg) {
     glClearColor(val, val, val, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(app->shaderProgram);
+    glUseProgram(app->shader->programID);
 	glBindVertexArray(app->vao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-
 
     app->window.PollAndSwapBuffers();
 }
@@ -89,8 +100,13 @@ void main_loop(void* arg) {
 int main() {
     Application app = Application();
     app.window = Window();
+#ifdef __EMSCRIPTEN__
+    app.window.width = html_get_width();
+    app.window.height = html_get_height();
+#else
     app.window.width = app.settings.screenWidth;
     app.window.height = app.settings.screenHeight;
+#endif
     app.window.title = "Fox2";
 
     app.currentScene = std::make_unique<TestScene>();
@@ -100,31 +116,16 @@ int main() {
         app.LoadAssets();
     }
 
+    Shader shader = GraphicsBackend::CreateShader("resources/shaders/test.glsl");
+
+    app.shader = &shader;
+
     GLfloat vertices[] =
 	{
 		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
 		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
 		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f,
 	};
-
-	//Create vertex shader
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	//Create fragment shader
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	//Create shader program
-	app.shaderProgram = glCreateProgram();
-	glAttachShader(app.shaderProgram, vertexShader);
-	glAttachShader(app.shaderProgram, fragmentShader);
-	glLinkProgram(app.shaderProgram);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
 
 	//Create VBO(Vertex Buffer Object)
 	GLuint VBO;

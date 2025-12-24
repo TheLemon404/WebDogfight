@@ -4,6 +4,7 @@
 #include "../io/files.hpp"
 
 #include <cstring>
+#include <sstream>
 
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
@@ -15,44 +16,96 @@
 #include <string>
 #include <iostream>
 
+enum ShaderReadMode {
+    VERTEX,
+    FRAGMENT
+};
+
 class GraphicsBackend {
-    static void SplitShaderSource(const char* shaderSource, const char* vertexSource, const char* fragmentSource) {
-        bool setVertex = false, setFragment = false;
+    static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
+            enum class Mode { NONE, VERTEX, FRAGMENT };
+            std::istringstream stream(shaderSource);
+            std::string line;
+            Mode mode = Mode::NONE;
 
-        for(int i = 0; i < strlen(shaderSource); i++) {
-            if(strcmp(&shaderSource[i], "#vertex") == 0) {
-                vertexSource = &shaderSource[i];
-                setVertex = true;
-            }
-            if(strcmp(&shaderSource[i], "#fragment") == 0) {
-                fragmentSource = &shaderSource[i];
-                setFragment = true;
-            }
-        }
+            while (std::getline(stream, line)) {
+                // Strip CR (Windows)
+                if (!line.empty() && line.back() == '\r')
+                    line.pop_back();
 
-        if(!setVertex || !setFragment) {
-            throw std::runtime_error("Invalid shader source, missing #vertex and #fragment");
-        }
+                // Strip UTF-8 BOM
+                if (line.size() >= 3 &&
+                    (unsigned char)line[0] == 0xEF &&
+                    (unsigned char)line[1] == 0xBB &&
+                    (unsigned char)line[2] == 0xBF) {
+                    line.erase(0, 3);
+                }
+
+                if (line == "#vertex") {
+                    mode = Mode::VERTEX;
+                    continue;
+                }
+                if (line == "#fragment") {
+                    mode = Mode::FRAGMENT;
+                    continue;
+                }
+
+                if (mode == Mode::VERTEX)
+                    vertexSource += line + '\n';
+                else if (mode == Mode::FRAGMENT)
+                    fragmentSource += line + '\n';
+            }
+
+            if (vertexSource.empty() || fragmentSource.empty()) {
+                throw std::runtime_error(
+                    "Invalid shader source, missing #vertex or #fragment");
+            }
     }
 
     public:
-    static Shader CreateShader(std::string& resourcePath) {
-        std::string shaderSourceStr = Files::ReadResource(resourcePath);
-        const char* shaderSource = shaderSourceStr.c_str();
-        const char* vertexSource = nullptr;
-        const char* fragmentSource = nullptr;
+    static Shader CreateShader(const std::string resourcePath) {
+        std::string shaderSource = Files::ReadResource(resourcePath);
+        std::string vertexSource = "";
+        std::string fragmentSource = "";
         SplitShaderSource(shaderSource, vertexSource, fragmentSource);
+
+        std::cout << "Vertex Source:\n" << vertexSource << std::endl;
+        std::cout << "Fragment Source:\n" << fragmentSource << std::endl;
 
         unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         unsigned int fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
         unsigned int programID = glCreateProgram();
-        glShaderSource(vertexShaderID, 1, &vertexSource, NULL);
+        char* vSource = vertexSource.data();
+        char* fSource = fragmentSource.data();
+
+        int success;
+        char infoLog[512];
+        glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
+        glShaderSource(vertexShaderID, 1, &vSource, NULL);
         glCompileShader(vertexShaderID);
-        glShaderSource(fragmentShaderID, 1, &fragmentSource, NULL);
+        glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            glGetShaderInfoLog(vertexShaderID, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        }
+
+        glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
+        glShaderSource(fragmentShaderID, 1, &fSource, NULL);
         glCompileShader(fragmentShaderID);
+        glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            glGetShaderInfoLog(fragmentShaderID, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        }
+
         glAttachShader(programID, vertexShaderID);
         glAttachShader(programID, fragmentShaderID);
         glLinkProgram(programID);
+        glGetProgramiv(programID, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(programID, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        }
 
         glDeleteShader(vertexShaderID);
         glDeleteShader(fragmentShaderID);
@@ -133,34 +186,22 @@ class GraphicsBackend {
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);
 
-        std::cout << "0" << std::endl;
-
         glBindVertexArray(vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-        std::cout << "1" << std::endl;
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-        std::cout << "2" << std::endl;
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
         glEnableVertexAttribArray(0);
 
-        std::cout << "3" << std::endl;
-
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
         glEnableVertexAttribArray(1);
 
-        std::cout << "4" << std::endl;
-
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
         glEnableVertexAttribArray(2);
-
-        std::cout << "5" << std::endl;
 
         glBindVertexArray(0);
 

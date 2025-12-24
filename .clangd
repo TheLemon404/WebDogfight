@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: cmake-build-debug
+  CompilationDatabase: cmake-build-web
   Add:
     - -D__EMSCRIPTEN__
     - -IC:/Users/Osprey/Downloads/emsdk/upstream/emscripten/system/include

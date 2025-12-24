@@ -1,22 +1,23 @@
 #pragma once
 
 #include <cstdio>
+#include <fstream>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 class Files {
     public:
-    static std::string ReadResource(const std::string& resourcePath) {
-        FILE* file = std::fopen(resourcePath.c_str(), "r");
+    static std::string ReadResource(const std::string resourcePath) {
+        std::ifstream file(resourcePath);
         if (!file) {
-            throw std::runtime_error("Failed to open file at resource path: " + resourcePath);
+            throw std::runtime_error("Cannot open file: " + resourcePath);
         }
-        std::string content;
-        char c;
-        while((c = fgetc(file)) != EOF) {
-            content += c;
-        }
-        std::fclose(file);
-        return content;
+        std::string result = std::string(
+            (std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>()
+        );
+
+        return result;
     }
 };
