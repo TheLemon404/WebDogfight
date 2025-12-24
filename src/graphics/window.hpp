@@ -1,6 +1,8 @@
 #pragma once
 
+#include "backend.hpp"
 #include <stdexcept>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 class Window {

@@ -71,7 +71,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\Osprey\AppData\Local\Temp\tmpz8h2kgwc.js
+// include: C:\Users\Osprey\AppData\Local\Temp\tmpveuv4_ym.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -201,25 +201,25 @@ Module['FS_createPath']("/resources", "shaders", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/resources/shaders/test.glsl", "start": 0, "end": 508}], "remote_package_size": 508});
+    loadPackage({"files": [{"filename": "/resources/shaders/test.glsl", "start": 0, "end": 512}], "remote_package_size": 512});
 
   })();
 
-// end include: C:\Users\Osprey\AppData\Local\Temp\tmpz8h2kgwc.js
-// include: C:\Users\Osprey\AppData\Local\Temp\tmpl3wwl53w.js
+// end include: C:\Users\Osprey\AppData\Local\Temp\tmpveuv4_ym.js
+// include: C:\Users\Osprey\AppData\Local\Temp\tmpzeiivcez.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\Osprey\AppData\Local\Temp\tmpl3wwl53w.js
-// include: C:\Users\Osprey\AppData\Local\Temp\tmpe1n2b1s5.js
+  // end include: C:\Users\Osprey\AppData\Local\Temp\tmpzeiivcez.js
+// include: C:\Users\Osprey\AppData\Local\Temp\tmp4_chclt7.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\Osprey\AppData\Local\Temp\tmpe1n2b1s5.js
+  // end include: C:\Users\Osprey\AppData\Local\Temp\tmp4_chclt7.js
 
 
 var arguments_ = [];
