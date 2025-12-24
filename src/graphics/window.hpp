@@ -2,17 +2,10 @@
 #include <stdexcept>
 
 class Window {
-    private:
+    public:
     int width, height;
     const char* title;
     GLFWwindow* window;
-
-    public:
-    Window(int width, int height, const char* const title) {
-        this->width = width;
-        this->height = height;
-        this->title = title;
-    }
 
     void Open() {
         if(!glfwInit()) {
@@ -32,6 +25,10 @@ class Window {
         }
 
         glfwMakeContextCurrent(window);
+
+#ifndef __EMSCRIPTEN__
+        gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress);
+#endif
     }
 
     bool ShouldClose() {
