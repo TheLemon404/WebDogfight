@@ -7,8 +7,8 @@
   },
   {
     "label": "Build Web",
-    "command": "emmake",
-    "args": ["make", "-C", "cmake-build-web"],
+    "command": "cmake",
+    "args": ["--build", "cmake-build-web"],
     "use_new_terminal": false,
   },
   {
@@ -19,19 +19,13 @@
   },
   {
     "label": "CMake Configure Desktop",
-    "command": "C:/msys64/mingw64/bin/cmake.exe",
-    "args": [
-      "-DCMAKE_MAKE_PROGRAM=C:/msys64/mingw64/bin/ninja.exe",
-      "-G",
-      "Ninja",
-      "-B",
-      "cmake-build-desktop",
-    ],
+    "command": "cmake",
+    "args": ["-G", "Ninja", "-B", "cmake-build-desktop"],
     "use_new_terminal": false,
   },
   {
     "label": "Build Desktop",
-    "command": "C:/msys64/mingw64/bin/cmake.exe",
+    "command": "cmake",
     "args": ["--build", "cmake-build-desktop", "--target", "WebDogfight"],
     "use_new_terminal": false,
   },
