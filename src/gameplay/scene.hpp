@@ -19,6 +19,7 @@ class Scene {
             aircraft.Initialize();
         }
     }
+
     virtual void Update() {
         for(Aircraft& aircraft : aircrafts) {
             aircraft.Update();

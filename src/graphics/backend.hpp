@@ -234,8 +234,17 @@ class GraphicsBackend {
         glUniform1i(location, val);
     }
 
-    static void DrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
+    static void SetBackfaceCulling(bool value) {
+        value ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    }
+
+    static void SetDepthTest(bool value) {
+        value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    }
+
+    static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
         glUseProgram(shader.programID);
+
         glBindVertexArray(mesh.vao);
 
         glEnableVertexAttribArray(0);
@@ -245,7 +254,9 @@ class GraphicsBackend {
         UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
         UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
         UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+    }
 
+    static void EndDrawMesh(Mesh& mesh) {
         glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
 
         glDisableVertexAttribArray(0);
@@ -254,5 +265,12 @@ class GraphicsBackend {
 
         glBindVertexArray(0);
         glUseProgram(0);
+    }
+
+    static void ResetState(int viewportWidth, int viewportHeight) {
+       	glViewport(0, 0, viewportWidth, viewportHeight);
+        float val = 25.5 / 255.0;
+        glClearColor(val, val, val, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 };

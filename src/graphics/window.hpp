@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/html5.h>
+#endif
+
+#include "../io/input.hpp"
 #include "backend.hpp"
 #include <stdexcept>
 #define GLFW_INCLUDE_NONE
@@ -10,6 +15,30 @@ class Window {
     int width, height;
     const char* title;
     GLFWwindow* window;
+
+#ifdef __EMSCRIPTEN__
+    static EM_BOOL EmscriptenResizeCallback(int event_type, const EmscriptenUiEvent *event, void *user_data) {
+        std::cout << user_data << std::endl;
+        Window* window = static_cast<Window*>(user_data);
+        if(window){
+            window->width = event->windowInnerWidth;
+            window->height = event->windowInnerHeight;
+            return 1;
+        }
+        return 0;
+    }
+#else
+    static void GLFWResizeCallback(GLFWwindow* window, int width, int height) {
+        Window* userWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if(userWindow){
+            userWindow->width = width;
+            userWindow->height = height;
+        }
+        else {
+            throw std::runtime_error("Failed to get user pointer from window");
+        }
+    }
+#endif
 
     void Open() {
         if(!glfwInit()) {
@@ -22,7 +51,17 @@ class Window {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        glfwSetWindowUserPointer(window, this);
 
+#ifdef __EMSCRIPTEN__
+        emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, false, Window::EmscriptenResizeCallback);
+#else
+        glfwSetFramebufferSizeCallback(window, Window::GLFWResizeCallback);
+#endif
+
+        glfwSetCursorPosCallback(window, InputManager::GLFWMouseCursorPosCallback);
+        glfwSetMouseButtonCallback(window, InputManager::GLFWMouseButtonCallback);
+        glfwSetKeyCallback(window, InputManager::GLFWKeyCallback);
 
         if (!window) {
             glfwTerminate();
@@ -40,8 +79,11 @@ class Window {
         return glfwWindowShouldClose(window);
     }
 
-    void PollAndSwapBuffers() {
+    void Poll() {
         glfwPollEvents();
+    }
+
+    void SwapBuffers() {
         glfwSwapBuffers(window);
     }
 

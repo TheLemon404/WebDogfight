@@ -1,16 +1,21 @@
+#include "gameplay/environment.hpp"
 #include "gameplay/scene.hpp"
+#include "glm/geometric.hpp"
 #include "graphics/types.hpp"
+#include "io/input.hpp"
+#include "io/time.hpp"
 
 #ifdef __EMSCRIPTEN__
-#include <GLES3/gl3.h>
 #include <emscripten.h>
-#else
-#include <glad/glad.h>
 #endif
 
 #include "graphics/backend.hpp"
 #include "graphics/window.hpp"
 #include <memory>
+
+#define GLFW_INCLUDE_NONE
+#include "GLFW/glfw3.h"
+
 
 #ifdef __EMSCRIPTEN__
 EM_JS(int, html_get_width, (), {
@@ -34,10 +39,14 @@ public:
 
     ApplicationSettings settings;
     Window window;
+
+    //this all needs to be moved into the scene later
     Shader* shader;
     Mesh* mesh;
     Camera* camera;
     Transform transform;
+    Environment environment;
+
     std::unique_ptr<Scene> currentScene;
 
     bool Initialize() {
@@ -63,24 +72,55 @@ public:
     }
 };
 
+glm::vec3 rotatePointAroundPoint(
+    const glm::vec3& pointToRotate,
+    const glm::vec3& center,
+    float angleRadians,
+    const glm::vec3& axis)
+{
+    // 1. Translate the point to the origin (relative to the center)
+    glm::vec3 translatedPoint = pointToRotate - center;
+
+    // 2. Create the rotation quaternion
+    glm::quat rotationQuat = glm::angleAxis(angleRadians, axis);
+
+    // 3. Apply the rotation using quaternion multiplication
+    glm::vec3 rotatedPoint = rotationQuat * translatedPoint;
+
+    // 4. Translate the point back to its original position (relative to the center)
+    glm::vec3 finalPoint = rotatedPoint + center;
+
+    return finalPoint;
+}
+
 void main_loop(void* arg) {
     Application* app = static_cast<Application*>(arg);
+    app->window.Poll();
+
+    //this is probably not the best way to do this but who cares atm...
+    app->camera->aspect = (float)app->window.width / app->window.height;
+    if(InputManager::mouseButtonStates[GLFW_MOUSE_BUTTON_1] == GLFW_PRESS) {
+        glm::vec3 cameraForward = glm::normalize(app->camera->target - app->camera->position);
+        glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
+        glm::vec3 horizontalAxis = rotatePointAroundPoint(app->camera->position, app->camera->target, InputManager::mouseDeltaY * Time::deltaTime, cameraRight);
+        app->camera->position = rotatePointAroundPoint(horizontalAxis, app->camera->target, -InputManager::mouseDeltaX * Time::deltaTime, glm::vec3(0.0, 1.0, 0.0));
+    }
 
     app->Update();
     app->Draw();
 
-    float val = 25.0 / 255.0;
-
-   	glViewport(0, 0, app->window.width, app->window.height);
-
-    glClearColor(val, val, val, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
     app->transform.rotation.y += 0.1f;
 
-    GraphicsBackend::DrawMesh(*app->mesh, *app->shader, *app->camera, app->transform);
+    GraphicsBackend::ResetState(app->window.width, app->window.height);
+    GraphicsBackend::SetDepthTest(true);
+    GraphicsBackend::BeginDrawMesh(*app->mesh, *app->shader, *app->camera, app->transform);
+    GraphicsBackend::UploadShaderUniformVec3(*app->shader, app->environment.sunDirection, "uSunDirection");
+    GraphicsBackend::UploadShaderUniformVec3(*app->shader, app->environment.sunColor, "uSunColor");
+    GraphicsBackend::EndDrawMesh(*app->mesh);
 
-    app->window.PollAndSwapBuffers();
+    app->window.SwapBuffers();
+    InputManager::ResetInputState();
+    Time::Tick();
 }
 
 int main() {
@@ -107,15 +147,13 @@ int main() {
     Camera camera = Camera();
     camera.position = glm::vec3(3.0f, 3.0f, 3.0f);
     camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
-#ifdef __EMSCRIPTEN__
-    camera.aspect = (float)html_get_width() / html_get_height();
-#else
-    camera.aspect = (float)app.window.width / app.window.height;
-#endif
 
     app.shader = &shader;
     app.mesh = &mesh;
     app.camera = &camera;
+
+    GraphicsBackend::SetBackfaceCulling(true);
+
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(main_loop, &app, 0, 1);
