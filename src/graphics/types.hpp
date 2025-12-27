@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../io/files.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include <cstddef>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -41,6 +42,11 @@ class Camera {
     }
 };
 
+struct Material {
+    glm::vec3 albedo = glm::vec3(1.0f);
+    glm::vec3 shadowColor = glm::vec3(0.3f);
+};
+
 class Shader {
     public:
     unsigned int programID;
@@ -63,6 +69,8 @@ class Texture {
 
 class Mesh {
     public:
+    Material material;
+
     unsigned int vao;
     unsigned int vbo;
     unsigned int ebo;

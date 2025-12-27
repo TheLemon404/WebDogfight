@@ -143,16 +143,15 @@ int main() {
         app.LoadAssets();
     }
 
-    Shader shader = GraphicsBackend::CreateShader("resources/shaders/test.glsl");
-    Mesh mesh = Loader::LoadMeshFromGLTF("resources/meshes/iso.gltf");
+    Shader shader = GraphicsBackend::CreateShader("resources/shaders/flat.glsl");
+    Mesh mesh = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
     Camera camera = Camera();
-    camera.position = glm::vec3(3.0f, 3.0f, 3.0f);
+    camera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
 
     app.shader = &shader;
     app.mesh = &mesh;
     app.camera = &camera;
-
     GraphicsBackend::SetBackfaceCulling(true);
 
 

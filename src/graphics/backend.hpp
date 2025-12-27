@@ -264,6 +264,7 @@ class GraphicsBackend {
     }
 
     static void SetDepthTest(bool value) {
+        glDepthFunc(GL_LESS);
         value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
     }
 
@@ -276,9 +277,14 @@ class GraphicsBackend {
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
+        //vertex uniforms
         UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
         UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
         UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+
+        //fragment uniforms
+        UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
+        UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
     }
 
     static void EndDrawMesh(Mesh& mesh) {
