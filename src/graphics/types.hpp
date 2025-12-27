@@ -1,7 +1,9 @@
 #pragma once
 
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
+#include "../io/files.hpp"
+#include <cstddef>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
 class Transform {
@@ -50,6 +52,13 @@ struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
+};
+
+class Texture {
+    public:
+    unsigned int id;
+    int widht;
+    int height;
 };
 
 class Mesh {

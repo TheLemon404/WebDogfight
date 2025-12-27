@@ -1,6 +1,7 @@
 #include "gameplay/environment.hpp"
 #include "gameplay/scene.hpp"
 #include "glm/geometric.hpp"
+#include "graphics/loader.hpp"
 #include "graphics/types.hpp"
 #include "io/input.hpp"
 #include "io/time.hpp"
@@ -143,7 +144,7 @@ int main() {
     }
 
     Shader shader = GraphicsBackend::CreateShader("resources/shaders/test.glsl");
-    Mesh mesh = GraphicsBackend::CreateCube();
+    Mesh mesh = Loader::LoadMeshFromGLTF("resources/meshes/iso.gltf");
     Camera camera = Camera();
     camera.position = glm::vec3(3.0f, 3.0f, 3.0f);
     camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
