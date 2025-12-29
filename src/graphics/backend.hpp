@@ -231,31 +231,34 @@ class GraphicsBackend {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
         glEnableVertexAttribArray(2);
 
+        glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneID));
+        glEnableVertexAttribArray(3);
+
         glBindVertexArray(0);
     }
 
-    static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const char* var) {
-        GLint location = glGetUniformLocation(shader.programID, var);
+    static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
-    static void UploadShaderUniformVec3(Shader& shader, const glm::vec3& vector, const char* var) {
-        GLint location = glGetUniformLocation(shader.programID, var);
+    static void UploadShaderUniformVec3(Shader& shader, const glm::vec3& vector, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniform3fv(location, 1, glm::value_ptr(vector));
     }
 
-    static void UploadShaderUniformVec2(Shader& shader, const glm::vec2& vector, const char* var) {
-        GLint location = glGetUniformLocation(shader.programID, var);
+    static void UploadShaderUniformVec2(Shader& shader, const glm::vec2& vector, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniform2fv(location, 1, glm::value_ptr(vector));
     }
 
-    static void UploadShaderUniformFloat(Shader& shader, const float val, const char* var) {
-        GLint location = glGetUniformLocation(shader.programID, var);
+    static void UploadShaderUniformFloat(Shader& shader, const float val, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniform1f(location, val);
     }
 
-    static void UploadShaderUniformInt(Shader& shader, const int val, const char* var) {
-        GLint location = glGetUniformLocation(shader.programID, var);
+    static void UploadShaderUniformInt(Shader& shader, const int val, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniform1i(location, val);
     }
 
@@ -266,6 +269,42 @@ class GraphicsBackend {
     static void SetDepthTest(bool value) {
         glDepthFunc(GL_LESS);
         value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    }
+
+    static void BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
+        glUseProgram(shader.programID);
+
+        glBindVertexArray(mesh.vao);
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+
+        //vertex uniforms
+        UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
+        UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
+        UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+
+        for(size_t i = 0; i < mesh.skeleton.bones.size(); i++) {
+            UploadShaderUniformMat4(shader, mesh.skeleton.bones[i].GetGlobalTransform(mesh.skeleton.bones) * mesh.skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(mesh.skeleton.bones[i].id) + "]");
+        }
+
+        //fragment uniforms
+        UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
+        UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
+    }
+
+    static void EndDrawSkeletalMesh(Mesh& mesh) {
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+        glDisableVertexAttribArray(3);
+
+        glBindVertexArray(0);
+        glUseProgram(0);
     }
 
     static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform) {

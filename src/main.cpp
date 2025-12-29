@@ -1,6 +1,7 @@
 #include "gameplay/environment.hpp"
 #include "gameplay/scene.hpp"
 #include "glm/geometric.hpp"
+#include "glm/trigonometric.hpp"
 #include "graphics/loader.hpp"
 #include "graphics/types.hpp"
 #include "io/input.hpp"
@@ -43,7 +44,7 @@ public:
 
     //this all needs to be moved into the scene later
     Shader* shader;
-    Mesh* mesh;
+    SkeletalMesh* skeletalMesh;
     Camera* camera;
     Transform transform;
     Environment environment;
@@ -114,10 +115,10 @@ void main_loop(void* arg) {
 
     GraphicsBackend::ResetState(app->window.width, app->window.height);
     GraphicsBackend::SetDepthTest(true);
-    GraphicsBackend::BeginDrawMesh(*app->mesh, *app->shader, *app->camera, app->transform);
+    GraphicsBackend::BeginDrawSkeletalMesh(*app->skeletalMesh, *app->shader, *app->camera, app->transform);
     GraphicsBackend::UploadShaderUniformVec3(*app->shader, app->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(*app->shader, app->environment.sunColor, "uSunColor");
-    GraphicsBackend::EndDrawMesh(*app->mesh);
+    GraphicsBackend::EndDrawSkeletalMesh(*app->skeletalMesh);
 
     app->window.SwapBuffers();
     InputManager::ResetInputState();
@@ -143,14 +144,14 @@ int main() {
         app.LoadAssets();
     }
 
-    Shader shader = GraphicsBackend::CreateShader("resources/shaders/flat.glsl");
-    Mesh mesh = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
+    Shader shader = GraphicsBackend::CreateShader("resources/shaders/skeletal.glsl");
+    SkeletalMesh mesh = Loader::LoadSkeletalMeshFromGLTF("resources/meshes/demo_jet.gltf");
     Camera camera = Camera();
     camera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
 
     app.shader = &shader;
-    app.mesh = &mesh;
+    app.skeletalMesh = &mesh;
     app.camera = &camera;
     GraphicsBackend::SetBackfaceCulling(true);
 
@@ -164,7 +165,7 @@ int main() {
 #endif
 
     glDeleteVertexArrays(1, &app.vao);
-	glDeleteBuffers(1, &app.mesh->vbo);
+	glDeleteBuffers(1, &app.skeletalMesh->vbo);
 	glDeleteProgram(app.shaderProgram);
 
     app.UnloadAssets();

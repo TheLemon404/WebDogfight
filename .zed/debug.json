@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Debug Desktop",
+    "type": "gdb",
+    "request": "launch",
+    "program": "${workspaceFolder}/cmake-build-desktop/WebDogfight.exe",
+    "args": [],
+    "cwd": "${workspaceFolder}/cmake-build-desktop",
+    "stopOnEntry": false,
+  },
+]

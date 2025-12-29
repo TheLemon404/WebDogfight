@@ -1,11 +1,16 @@
 #pragma once
 
 #include "../io/files.hpp"
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include <cstddef>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include <string>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 class Transform {
     public:
@@ -16,9 +21,9 @@ class Transform {
     glm::mat4 GetMatrix() const {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, position);
-        model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, scale);
         return model;
     }
@@ -58,6 +63,8 @@ struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
+    //we only need to allow vertices to be effected by a single bone
+    unsigned int boneID;
 };
 
 class Texture {
@@ -65,6 +72,38 @@ class Texture {
     unsigned int id;
     int widht;
     int height;
+};
+
+class Bone {
+    public:
+    unsigned int id;
+    std::string name;
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::quat rotation;
+    glm::vec3 scale = glm::vec3(1.0f);
+    glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>();
+    int parentID = -1;
+
+    glm::mat4 GetGlobalTransform(std::vector<Bone>& skeletalArray) {
+
+        glm::mat4 localTransform = glm::mat4(1.0f);
+        localTransform = glm::translate(localTransform, position) * glm::toMat4(rotation) * glm::scale(localTransform, scale);
+
+        if(parentID != -1) {
+            for(size_t i = 0; i < skeletalArray.size(); i++){
+                if(skeletalArray[i].id == parentID){
+                    return skeletalArray[i].GetGlobalTransform(skeletalArray) * localTransform;
+                }
+            }
+        }
+
+        return localTransform;
+    }
+};
+
+class Skeleton {
+    public:
+    std::vector<Bone> bones;
 };
 
 class Mesh {
@@ -78,4 +117,11 @@ class Mesh {
     unsigned int indexCount;
 
     Mesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : vao(vao), vbo(vbo), ebo(ebo), vertexCount(vertexCount), indexCount(indexCount) {}
+};
+
+class SkeletalMesh : public Mesh {
+    public:
+    Skeleton skeleton;
+
+    SkeletalMesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : Mesh(vao, vbo, ebo, vertexCount, indexCount) {}
 };

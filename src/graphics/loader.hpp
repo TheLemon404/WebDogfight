@@ -1,16 +1,22 @@
 #pragma once
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
 #include "backend.hpp"
+#include "glm/fwd.hpp"
+#include "types.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/quaternion.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 using json = nlohmann::json;
 
 class Loader{
-    static std::vector<unsigned int> GetIndicesFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
+    static std::vector<unsigned int> GetIntsFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
         std::vector<unsigned int> result;
 
         unsigned int buffViewInd = accessor.value("bufferView", 1);
@@ -44,6 +50,13 @@ class Loader{
                 result.push_back((unsigned int)value);
             }
         }
+        else if(componentType == 5121) {
+            for(unsigned int i = beginningOfData; i < byteOffset + accByteOffset + count * 4; i += 1) {
+                uint8_t value;
+                std::memcpy(&value, &data[i], sizeof(uint8_t));
+                result.push_back((unsigned int)value);
+            }
+        }
 
         return result;
     }
@@ -64,6 +77,7 @@ class Loader{
         else if (type == "VEC2") numPerVert = 2;
         else if (type == "VEC3") numPerVert = 3;
         else if (type == "VEC4") numPerVert = 4;
+        else if (type == "MAT4") numPerVert = 16;
         else throw std::invalid_argument("Type is invalid (not SCALAR, VEC2, VEC3, or VEC4");
 
         unsigned int beginningOfData = byteOffset + accByteOffset;
@@ -75,6 +89,57 @@ class Loader{
             result.push_back(value);
         }
 
+        return result;
+    }
+
+    static std::vector<glm::mat4> AssembleFloatsToMat4(std::vector<float> data) {
+        std::vector<glm::mat4> result;
+        for(size_t i = 0; i < data.size(); i) {
+            result.push_back({
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++],
+            });
+        }
+        return result;
+    }
+
+    static std::vector<glm::vec4> AssembleFloatsToVec4(std::vector<float> data) {
+        std::vector<glm::vec4> result;
+        for(size_t i = 0; i < data.size(); i) {
+            result.push_back({
+                data[i++],
+                data[i++],
+                data[i++],
+                data[i++]
+            });
+        }
+        return result;
+    }
+
+    static std::vector<glm::ivec4> AssembleIntsToIVec4(std::vector<unsigned int> data) {
+        std::vector<glm::ivec4> result;
+        for(size_t i = 0; i < data.size(); i += 4) {
+            result.push_back({
+                data[i],
+                data[i + 1],
+                data[i + 2],
+                data[i + 3]
+            });
+        }
         return result;
     }
 
@@ -113,8 +178,6 @@ class Loader{
         std::cout << "attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
         std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
-        std::cout << "File Length: " << data.size() << std::endl;
-
         //get accessors
         unsigned int posAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["POSITION"];
         unsigned int normalAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["NORMAL"];
@@ -124,7 +187,7 @@ class Loader{
         std::vector<float> posVector = GetFloatsFromJSON(JSON["accessors"][posAccInd], JSON, data);
         std::vector<float> normVector = GetFloatsFromJSON(JSON["accessors"][normalAccInd], JSON, data);
         std::vector<float> texVector = GetFloatsFromJSON(JSON["accessors"][texAccInd], JSON, data);
-        std::vector<unsigned int> indices = GetIndicesFromJSON(JSON["accessors"][indAccInd], JSON, data);
+        std::vector<unsigned int> indices = GetIntsFromJSON(JSON["accessors"][indAccInd], JSON, data);
 
         std::vector<glm::vec3> positions = AssembleFloatsToVec3(posVector);
         std::vector<glm::vec3> normals = AssembleFloatsToVec3(normVector);
@@ -140,6 +203,110 @@ class Loader{
         }
 
         Mesh mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
+        GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+        return mesh;
+    }
+
+    static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath) {
+        std::string text = Files::ReadResource(resourcePath);
+        json JSON = json::parse(text);
+
+        //load the gltf file binary
+        std::string uri = JSON["buffers"][0]["uri"];
+        std::string fileStr = std::string(resourcePath);
+        std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
+        std::cout << "attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
+        std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
+
+        //construct skeleton
+        Skeleton skeleton;
+
+        //construct the bones
+        int numBones = JSON["skins"][0]["joints"].size();
+        for(size_t i = 0; i < numBones; i++){
+            Bone bone = Bone();
+            bone.name = JSON["nodes"][i]["name"];
+            if(JSON["nodes"][i].contains("translation"))
+            {
+                bone.position = {JSON["nodes"][i]["translation"][0], JSON["nodes"][i]["translation"][1], JSON["nodes"][i]["translation"][2]};
+            }
+            if(JSON["nodes"][i].contains("rotation")){
+                bone.rotation = glm::quat(
+                    JSON["nodes"][i]["rotation"][3],
+                    JSON["nodes"][i]["rotation"][0],
+                    JSON["nodes"][i]["rotation"][1],
+                    JSON["nodes"][i]["rotation"][2]
+                );
+            }
+            if(JSON["nodes"][i].contains("scale"))
+            {
+                bone.scale = {JSON["nodes"][i]["scale"][0], JSON["nodes"][i]["scale"][1], JSON["nodes"][i]["scale"][2]};
+            }
+            skeleton.bones.push_back(bone);
+        }
+
+        //assign bone ids
+        for(size_t i = 0; i < numBones; i++){
+            skeleton.bones[i].id = JSON["skins"][0]["joints"][i];
+        }
+
+        //parent the bones properly
+        for(size_t i = 0; i < numBones; i++){
+            if(JSON["nodes"][i].contains("children")) {
+                for(size_t j = 0; j < JSON["nodes"][i]["children"].size(); j++) {
+                    int childIndex = JSON["nodes"][i]["children"][j];
+                    skeleton.bones[childIndex].parentID = skeleton.bones[i].id;
+                }
+            }
+        }
+
+        for(size_t i = 0; i < numBones; i++){
+            std::cout << "NAME: " << skeleton.bones[i].name << std::endl;
+            std::cout << "ID: " << skeleton.bones[i].id << std::endl;
+            std::cout << "PARENT_ID: " << skeleton.bones[i].parentID << std::endl;
+        }
+
+        //get accessors
+        unsigned int posAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["POSITION"];
+        unsigned int normalAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["NORMAL"];
+        unsigned int texAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["TEXCOORD_0"];
+        unsigned int invViewMatInd = JSON["skins"][0]["inverseBindMatrices"];
+        unsigned int jointsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["JOINTS_0"];
+        unsigned int weightsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["WEIGHTS_0"];
+        unsigned int indAccInd = JSON["meshes"][0]["primitives"][0]["indices"];
+
+        std::vector<float> posVector = GetFloatsFromJSON(JSON["accessors"][posAccInd], JSON, data);
+        std::vector<float> normVector = GetFloatsFromJSON(JSON["accessors"][normalAccInd], JSON, data);
+        std::vector<float> texVector = GetFloatsFromJSON(JSON["accessors"][texAccInd], JSON, data);
+        std::vector<float> invBindMatVector = GetFloatsFromJSON(JSON["accessors"][invViewMatInd], JSON, data);
+        std::vector<unsigned int> jointsVector = GetIntsFromJSON(JSON["accessors"][jointsAccInd], JSON, data);
+        std::vector<float> weightsVector = GetFloatsFromJSON(JSON["accessors"][weightsAccInd], JSON, data);
+        std::vector<unsigned int> indices = GetIntsFromJSON(JSON["accessors"][indAccInd], JSON, data);
+
+        std::vector<glm::vec3> positions = AssembleFloatsToVec3(posVector);
+        std::vector<glm::vec3> normals = AssembleFloatsToVec3(normVector);
+        std::vector<glm::vec2> uvs = AssembleFloatsToVec2(texVector);
+        std::vector<glm::mat4> invBindMatrices = AssembleFloatsToMat4(invBindMatVector);
+        std::vector<glm::ivec4> joints = AssembleIntsToIVec4(jointsVector);
+        std::vector<glm::vec4> weights = AssembleFloatsToVec4(weightsVector);
+
+        for(size_t i = 0; i < numBones; i++) {
+            skeleton.bones[JSON["skins"][0]["joints"][i]].inverseBindMatrix = invBindMatrices[i];
+        }
+
+        std::vector<Vertex> vertices;
+        for(size_t i = 0; i < positions.size(); i++) {
+            vertices.push_back({
+                positions[i],
+                normals[i],
+                uvs[i],
+                //we only need the first index, since each vertex is only effected by one bone
+                (unsigned int)joints[i].x
+            });
+        }
+
+        SkeletalMesh mesh = SkeletalMesh(0, 0, 0, vertices.size(), indices.size());
+        mesh.skeleton = skeleton;
         GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
         return mesh;
     }

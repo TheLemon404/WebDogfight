@@ -8,14 +8,123 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0
+				7
 			]
 		}
 	],
 	"nodes":[
 		{
+			"name":"wing.l",
+			"rotation":[
+				-0.9974666237831116,
+				-0.07113589346408844,
+				7.735584262036355e-08,
+				5.37045030668537e-09
+			],
+			"scale":[
+				1.000011920928955,
+				1.000000238418579,
+				1
+			],
+			"translation":[
+				3.9733362197875977,
+				-3.9833009243011475,
+				-0.0045890845358371735
+			]
+		},
+		{
+			"name":"tail.l",
+			"rotation":[
+				0.3726423382759094,
+				0.6009474396705627,
+				-0.6009472608566284,
+				0.37264224886894226
+			],
+			"scale":[
+				1,
+				1.0000001192092896,
+				1
+			],
+			"translation":[
+				0.6751769185066223,
+				-5.8217668533325195,
+				-0.17001058161258698
+			]
+		},
+		{
+			"name":"wing.r",
+			"rotation":[
+				0.9974666237831116,
+				-0.07113589346408844,
+				-7.735584262036355e-08,
+				5.37045030668537e-09
+			],
+			"scale":[
+				1.000011920928955,
+				1.000000238418579,
+				1
+			],
+			"translation":[
+				-3.9733362197875977,
+				-3.9833009243011475,
+				-0.004587884992361069
+			]
+		},
+		{
+			"name":"tail.r",
+			"rotation":[
+				0.3726423978805542,
+				-0.6009473204612732,
+				0.6009472608566284,
+				0.3726423978805542
+			],
+			"scale":[
+				1.0000001192092896,
+				1.000000238418579,
+				1
+			],
+			"translation":[
+				-0.6751769185066223,
+				-5.8217668533325195,
+				-0.17001037299633026
+			]
+		},
+		{
+			"children":[
+				0,
+				1,
+				2,
+				3
+			],
+			"name":"Bone",
+			"rotation":[
+				0.7071067690849304,
+				-5.338507591545749e-08,
+				-5.338507591545749e-08,
+				0.7071067690849304
+			]
+		},
+		{
+			"name":"neutral_bone",
+			"rotation":[
+				-0.7071067690849304,
+				0,
+				0,
+				0.7071067690849304
+			]
+		},
+		{
 			"mesh":0,
-			"name":"Cube"
+			"name":"Cube",
+			"skin":0
+		},
+		{
+			"children":[
+				6,
+				4,
+				5
+			],
+			"name":"Armature"
 		}
 	],
 	"meshes":[
@@ -26,18 +135,34 @@
 					"attributes":{
 						"POSITION":0,
 						"NORMAL":1,
-						"TEXCOORD_0":2
+						"TEXCOORD_0":2,
+						"JOINTS_0":3,
+						"WEIGHTS_0":4
 					},
-					"indices":3
+					"indices":5
 				}
 			]
+		}
+	],
+	"skins":[
+		{
+			"inverseBindMatrices":6,
+			"joints":[
+				4,
+				0,
+				1,
+				2,
+				3,
+				5
+			],
+			"name":"Armature"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":551,
+			"count":775,
 			"max":[
 				6.706422805786133,
 				1.1560333967208862,
@@ -46,58 +171,93 @@
 			"min":[
 				-6.706422805786133,
 				-0.9455153942108154,
-				-7.673697471618652
+				-7.373697280883789
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":551,
+			"count":775,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":551,
+			"count":775,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
+			"componentType":5121,
+			"count":775,
+			"type":"VEC4"
+		},
+		{
+			"bufferView":4,
+			"componentType":5126,
+			"count":775,
+			"type":"VEC4"
+		},
+		{
+			"bufferView":5,
 			"componentType":5123,
-			"count":1710,
+			"count":2322,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":6,
+			"componentType":5126,
+			"count":6,
+			"type":"MAT4"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":6612,
+			"byteLength":9300,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6612,
-			"byteOffset":6612,
+			"byteLength":9300,
+			"byteOffset":9300,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4408,
-			"byteOffset":13224,
+			"byteLength":6200,
+			"byteOffset":18600,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3420,
-			"byteOffset":17632,
+			"byteLength":3100,
+			"byteOffset":24800,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":12400,
+			"byteOffset":27900,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":4644,
+			"byteOffset":40300,
 			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":384,
+			"byteOffset":44944
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":21052,
+			"byteLength":45328,
 			"uri":"demo_jet.bin"
 		}
 	]
