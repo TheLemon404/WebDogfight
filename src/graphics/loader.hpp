@@ -222,36 +222,34 @@ class Loader{
         Skeleton skeleton;
 
         //construct the bones
-        int numBones = JSON["skins"][0]["joints"].size();
-        for(size_t i = 0; i < numBones; i++){
+        int numJoints = JSON["skins"][0]["joints"].size();
+        skeleton.bones.resize(numJoints);
+        for(size_t i = 0; i < numJoints; i++){
+            int jointIndex = JSON["skins"][0]["joints"][i];
             Bone bone = Bone();
-            bone.name = JSON["nodes"][i]["name"];
-            if(JSON["nodes"][i].contains("translation"))
+            bone.name = JSON["nodes"][jointIndex]["name"];
+            if(JSON["nodes"][jointIndex].contains("translation"))
             {
-                bone.position = {JSON["nodes"][i]["translation"][0], JSON["nodes"][i]["translation"][1], JSON["nodes"][i]["translation"][2]};
+                bone.position = {JSON["nodes"][jointIndex]["translation"][0], JSON["nodes"][jointIndex]["translation"][1], JSON["nodes"][jointIndex]["translation"][2]};
             }
-            if(JSON["nodes"][i].contains("rotation")){
+            if(JSON["nodes"][jointIndex].contains("rotation")){
                 bone.rotation = glm::quat(
-                    JSON["nodes"][i]["rotation"][3],
-                    JSON["nodes"][i]["rotation"][0],
-                    JSON["nodes"][i]["rotation"][1],
-                    JSON["nodes"][i]["rotation"][2]
+                    JSON["nodes"][jointIndex]["rotation"][3],
+                    JSON["nodes"][jointIndex]["rotation"][0],
+                    JSON["nodes"][jointIndex]["rotation"][1],
+                    JSON["nodes"][jointIndex]["rotation"][2]
                 );
             }
-            if(JSON["nodes"][i].contains("scale"))
+            if(JSON["nodes"][jointIndex].contains("scale"))
             {
-                bone.scale = {JSON["nodes"][i]["scale"][0], JSON["nodes"][i]["scale"][1], JSON["nodes"][i]["scale"][2]};
+                bone.scale = {JSON["nodes"][jointIndex]["scale"][0], JSON["nodes"][jointIndex]["scale"][1], JSON["nodes"][jointIndex]["scale"][2]};
             }
-            skeleton.bones.push_back(bone);
-        }
-
-        //assign bone ids
-        for(size_t i = 0; i < numBones; i++){
-            skeleton.bones[i].id = JSON["skins"][0]["joints"][i];
+            bone.id = jointIndex;
+            skeleton.bones[jointIndex] = bone;
         }
 
         //parent the bones properly
-        for(size_t i = 0; i < numBones; i++){
+        for(size_t i = 0; i < numJoints; i++){
             if(JSON["nodes"][i].contains("children")) {
                 for(size_t j = 0; j < JSON["nodes"][i]["children"].size(); j++) {
                     int childIndex = JSON["nodes"][i]["children"][j];
@@ -260,7 +258,7 @@ class Loader{
             }
         }
 
-        for(size_t i = 0; i < numBones; i++){
+        for(size_t i = 0; i < numJoints; i++){
             std::cout << "NAME: " << skeleton.bones[i].name << std::endl;
             std::cout << "ID: " << skeleton.bones[i].id << std::endl;
             std::cout << "PARENT_ID: " << skeleton.bones[i].parentID << std::endl;
@@ -290,18 +288,23 @@ class Loader{
         std::vector<glm::ivec4> joints = AssembleIntsToIVec4(jointsVector);
         std::vector<glm::vec4> weights = AssembleFloatsToVec4(weightsVector);
 
-        for(size_t i = 0; i < numBones; i++) {
+        for(size_t i = 0; i < numJoints; i++) {
             skeleton.bones[JSON["skins"][0]["joints"][i]].inverseBindMatrix = invBindMatrices[i];
         }
 
         std::vector<Vertex> vertices;
+        int last = 0;
         for(size_t i = 0; i < positions.size(); i++) {
+            if(joints[i].x != last) {
+                last = joints[i].x;
+                std::cout << joints[i].x << std::endl;
+            }
             vertices.push_back({
                 positions[i],
                 normals[i],
                 uvs[i],
                 //we only need the first index, since each vertex is only effected by one bone
-                (unsigned int)joints[i].x
+                (unsigned int)JSON["skins"][0]["joints"][joints[i].x]
             });
         }
 

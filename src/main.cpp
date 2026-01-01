@@ -1,5 +1,8 @@
 #include "gameplay/environment.hpp"
 #include "gameplay/scene.hpp"
+#include "glm/ext/quaternion_transform.hpp"
+#include "glm/ext/quaternion_trigonometric.hpp"
+#include "glm/fwd.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
 #include "graphics/loader.hpp"
@@ -108,6 +111,8 @@ void main_loop(void* arg) {
         app->camera->position = rotatePointAroundPoint(horizontalAxis, app->camera->target, -InputManager::mouseDeltaX * Time::deltaTime, glm::vec3(0.0, 1.0, 0.0));
     }
 
+    app->skeletalMesh->skeleton.bones[1].RotateLocal(glm::vec3(0.0, 1.0, 0.0), 1.0f);
+
     app->Update();
     app->Draw();
 
@@ -154,7 +159,6 @@ int main() {
     app.skeletalMesh = &mesh;
     app.camera = &camera;
     GraphicsBackend::SetBackfaceCulling(true);
-
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(main_loop, &app, 0, 1);

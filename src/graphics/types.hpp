@@ -3,7 +3,9 @@
 #include "../io/files.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/quaternion_float.hpp"
+#include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include "glm/geometric.hpp"
 #include <cstddef>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -19,13 +21,12 @@ class Transform {
     glm::vec3 scale = glm::vec3(1.0f);
 
     glm::mat4 GetMatrix() const {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, position);
-        model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, scale);
-        return model;
+        glm::mat4 translation = glm::translate(glm::mat4(1.0f), position);
+        glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        rot = glm::rotate(rot, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        rot = glm::rotate(rot, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 sca = glm::scale(glm::mat4(1.0f), scale);
+        return translation * rot * sca;
     }
 };
 
@@ -84,10 +85,15 @@ class Bone {
     glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>();
     int parentID = -1;
 
+    void RotateLocal(glm::vec3 localAxis, float localAngle) {
+        glm::quat rotationDelta = glm::angleAxis(glm::radians(localAngle), glm::normalize(localAxis));
+        rotation = rotation * rotationDelta;
+        rotation = glm::normalize(rotation);
+    }
+
     glm::mat4 GetGlobalTransform(std::vector<Bone>& skeletalArray) {
 
-        glm::mat4 localTransform = glm::mat4(1.0f);
-        localTransform = glm::translate(localTransform, position) * glm::toMat4(rotation) * glm::scale(localTransform, scale);
+        glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), position) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
 
         if(parentID != -1) {
             for(size_t i = 0; i < skeletalArray.size(); i++){

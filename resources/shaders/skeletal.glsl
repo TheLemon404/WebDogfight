@@ -41,7 +41,7 @@ void main()
     vec4 worldPosition = uTransform * uJointTransforms[int(aBoneID)] * vec4(aPos, 1.0f);
     gl_Position = uProjection * uView * worldPosition;
 
-    mat3 rotationMatrix = extractRotation(uTransform);
+    mat3 rotationMatrix = extractRotation(uTransform) * extractRotation(uJointTransforms[int(aBoneID)]);
     pNormal = rotationMatrix * aNormal;
 
     pBoneID = aBoneID;
