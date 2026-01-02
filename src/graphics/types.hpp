@@ -32,8 +32,8 @@ class Transform {
 
 class Camera {
     public:
-    glm::vec3 position;
-    glm::vec3 target;
+    glm::vec3 position = glm::vec3(1.0f);
+    glm::vec3 target = glm::vec3(0.0f);
     float near = 0.01f;
     float far = 1000.0f;
     float fov = 60.0f;
@@ -58,6 +58,7 @@ class Shader {
     unsigned int programID;
 
     Shader(unsigned int programID) : programID(programID) {}
+    Shader() : programID(0) {}
 };
 
 struct Vertex {
@@ -116,12 +117,13 @@ class Mesh {
     public:
     Material material;
 
-    unsigned int vao;
-    unsigned int vbo;
-    unsigned int ebo;
-    unsigned int vertexCount;
-    unsigned int indexCount;
+    unsigned int vao = 0;
+    unsigned int vbo = 0;
+    unsigned int ebo = 0;
+    unsigned int vertexCount = 0;
+    unsigned int indexCount = 0;
 
+    Mesh() {}
     Mesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : vao(vao), vbo(vbo), ebo(ebo), vertexCount(vertexCount), indexCount(indexCount) {}
 };
 
@@ -129,5 +131,6 @@ class SkeletalMesh : public Mesh {
     public:
     Skeleton skeleton;
 
+    SkeletalMesh() {}
     SkeletalMesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : Mesh(vao, vbo, ebo, vertexCount, indexCount) {}
 };

@@ -92,3 +92,8 @@ class Window {
         glfwTerminate();
     }
 };
+
+class WindowManager {
+    public:
+    inline static std::shared_ptr<Window> primaryWindow;
+};

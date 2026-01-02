@@ -1,59 +1,39 @@
 #pragma once
 
-#include "aircraft.hpp"
+#include "entity.hpp"
+#include "environment.hpp"
 #include <string>
 #include <vector>
+#include <memory>
 
 class Scene {
-    protected:
-    std::vector<Aircraft> aircrafts;
-
     public:
-    virtual void LoadAssets() {
-        for(Aircraft& aircraft : aircrafts) {
-            aircraft.LoadAssets();
+    std::vector<std::unique_ptr<Entity>> entities;
+    Environment environment;
+
+    void LoadResources() {
+        for(std::unique_ptr<Entity>& entity : entities) {
+            entity->LoadResources();
         }
     }
-    virtual void Initialize() {
-        for(Aircraft& aircraft : aircrafts) {
-            aircraft.Initialize();
+    void Initialize() {
+        for(std::unique_ptr<Entity>& entity : entities) {
+            entity->Initialize();
         }
     }
-
-    virtual void Update() {
-        for(Aircraft& aircraft : aircrafts) {
-            aircraft.Update();
+    void Update() {
+        for(std::unique_ptr<Entity>& entity : entities) {
+            entity->Update();
         }
     }
-    virtual void Draw() {
-        for(Aircraft& aircraft : aircrafts) {
-            aircraft.Draw();
+    void Draw() {
+        for(std::unique_ptr<Entity>& entity : entities) {
+            entity->Draw();
         }
     }
-    virtual void UnloadAssets() {
-        for(Aircraft& aircraft : aircrafts) {
-            aircraft.UnloadAssets();
+    void UnloadResources() {
+        for(std::unique_ptr<Entity>& entity : entities) {
+            entity->UnloadResources();
         }
-    }
-};
-
-class TestScene : public Scene {
-    void Initialize() override {
-        aircrafts.push_back({
-        });
-
-        Scene::Initialize();
-    }
-
-    void Update() override {
-        Scene::Update();
-    }
-
-    void Draw() override {
-        Scene::Draw();
-    }
-
-    void UnloadAssets() override {
-        Scene::UnloadAssets();
     }
 };
