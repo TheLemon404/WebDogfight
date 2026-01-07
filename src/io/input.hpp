@@ -8,40 +8,32 @@
 #define GLFW_MAX_KEYS 256
 
 class InputManager {
+    inline static int lastMouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
+    inline static int lastKeyStates[GLFW_MAX_KEYS];
+
     public:
     inline static double mousePositionX = 0.0;
     inline static double mousePositionY = 0.0;
     inline static double mouseDeltaX = 0.0;
     inline static double mouseDeltaY = 0.0;
+
+    inline static double mouseScrollX = 0.0;
+    inline static double mouseScrollY = 0.0;
+
     inline static int mouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
     inline static int keyStates[GLFW_MAX_KEYS];
 
-    static void GLFWMouseCursorPosCallback(GLFWwindow* window, double x, double y) {
-        mouseDeltaX = x - mousePositionX;
-        mouseDeltaY = y - mousePositionY;
-        mousePositionX = x;
-        mousePositionY = y;
-    }
+    static void GLFWMouseCursorPosCallback(GLFWwindow* window, double x, double y);
+    static void GLFWMouseScrollCallback(GLFWwindow* window, double x, double y);
+    static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    static void GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods);
+    static void ResetInputState();
 
-    static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-        if(button >= GLFW_MAX_MOUSE_BUTTONS){
-            std::cout << "Mouse button not properly mapped: " << button << std::endl;
-            return;
-        }
-        mouseButtonStates[button] = action;
-    }
+    static bool IsKeyJustPressed(unsigned int key);
+    static bool IsKeyPressed(unsigned int key);
+    static bool IsKeyJustRelease(unsigned int key);
 
-    static void GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-        if(key >= GLFW_MAX_KEYS){
-            std::cout << "Mouse button not properly mapped: " << key << std::endl;
-            return;
-        }
-        keyStates[key] = action;
-    }
-
-    static void ResetInputState() {
-        mouseDeltaX = 0.0f;
-        mouseDeltaY = 0.0f;
-    }
-
+    static bool IsMouseButtonJustPressed(unsigned int button);
+    static bool IsMouseButtonPressed(unsigned int button);
+    static bool IsMouseButtonJustReleased(unsigned int button);
 };

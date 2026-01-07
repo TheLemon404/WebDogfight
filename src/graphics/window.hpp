@@ -59,6 +59,7 @@ class Window {
         glfwSetFramebufferSizeCallback(window, Window::GLFWResizeCallback);
 #endif
 
+        glfwSetScrollCallback(window, InputManager::GLFWMouseScrollCallback);
         glfwSetCursorPosCallback(window, InputManager::GLFWMouseCursorPosCallback);
         glfwSetMouseButtonCallback(window, InputManager::GLFWMouseButtonCallback);
         glfwSetKeyCallback(window, InputManager::GLFWKeyCallback);

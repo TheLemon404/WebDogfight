@@ -1,0 +1,69 @@
+#include "input.hpp"
+#include "GLFW/glfw3.h"
+
+void InputManager::GLFWMouseCursorPosCallback(GLFWwindow* window, double x, double y) {
+    mouseDeltaX = x - mousePositionX;
+    mouseDeltaY = y - mousePositionY;
+    mousePositionX = x;
+    mousePositionY = y;
+}
+
+void InputManager::GLFWMouseScrollCallback(GLFWwindow* window, double x, double y) {
+    mouseScrollX = x;
+    mouseScrollY = y;
+}
+
+void InputManager::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if(button >= GLFW_MAX_MOUSE_BUTTONS){
+        std::cout << "Mouse button not properly mapped: " << button << std::endl;
+        return;
+    }
+    lastMouseButtonStates[button] = mouseButtonStates[button];
+    mouseButtonStates[button] = action;
+}
+
+void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
+    if(key >= GLFW_MAX_KEYS){
+        std::cout << "Mouse button not properly mapped: " << key << std::endl;
+        return;
+    }
+    lastKeyStates[key] = keyStates[key];
+    keyStates[key] = action;
+}
+
+void InputManager::ResetInputState() {
+    mouseDeltaX = 0.0;
+    mouseDeltaY = 0.0;
+    mouseScrollX = 0.0;
+    mouseScrollY = 0.0;
+}
+
+bool InputManager::IsKeyJustPressed(unsigned int key) {
+    if(keyStates[key] == GLFW_PRESS && lastKeyStates[key] == GLFW_RELEASE) return true;
+    return false;
+}
+
+bool InputManager::IsKeyPressed(unsigned int key) {
+    if(keyStates[key] == GLFW_PRESS || keyStates[key] == GLFW_REPEAT) return true;
+    return false;
+}
+
+bool InputManager::IsKeyJustRelease(unsigned int key) {
+    if(keyStates[key] == GLFW_RELEASE && (lastKeyStates[key] == GLFW_PRESS || lastKeyStates[key] == GLFW_REPEAT)) return true;
+    return false;
+}
+
+bool InputManager::IsMouseButtonJustPressed(unsigned int button) {
+    if(mouseButtonStates[button] == GLFW_PRESS && lastMouseButtonStates[button] == GLFW_RELEASE) return true;
+    return false;
+}
+
+bool InputManager::IsMouseButtonPressed(unsigned int button) {
+    if(mouseButtonStates[button] == GLFW_PRESS || mouseButtonStates[button] == GLFW_REPEAT) return true;
+    return false;
+}
+
+bool InputManager::IsMouseButtonJustReleased(unsigned int button) {
+    if(mouseButtonStates[button] == GLFW_RELEASE && (lastMouseButtonStates[button] == GLFW_PRESS || lastMouseButtonStates[button] == GLFW_REPEAT)) return true;
+    return false;
+}
