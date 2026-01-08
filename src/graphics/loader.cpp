@@ -158,7 +158,7 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     std::string uri = JSON["buffers"][0]["uri"];
     std::string fileStr = std::string(resourcePath);
     std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
-    std::cout << "attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
+    std::cout << "Attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
     std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
     //get accessors
@@ -198,7 +198,7 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     std::string uri = JSON["buffers"][0]["uri"];
     std::string fileStr = std::string(resourcePath);
     std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
-    std::cout << "attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
+    std::cout << "Attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
     std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
     //construct skeleton

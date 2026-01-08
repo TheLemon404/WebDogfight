@@ -1,0 +1,20 @@
+{
+  "description": {
+    "name": "FA-XX",
+    "bone-mappings": {
+      "root": 5,
+      "brake": 4,
+      "wing.l": 0,
+      "wing.r": 2,
+      "tail.l": 1,
+      "tail.r": 3
+    }
+  },
+  "settings": {
+    "flaps-max-angle": 45,
+    "brake-max-angle": 60,
+    "tail-max-angle": 45,
+    "rudder-max-angle": 40,
+    "control-surface-tween-step": 1
+  }
+}

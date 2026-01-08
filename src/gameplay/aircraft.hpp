@@ -1,20 +1,43 @@
 #pragma once
 
 #include "../graphics/types.hpp"
-#include "../graphics/loader.hpp"
-#include "../graphics/backend.hpp"
-#include "../io/input.hpp"
-#include "../io/time.hpp"
-#include "GLFW/glfw3.h"
 #include "entity.hpp"
-#include "scene_manager.hpp"
-#include "../graphics/window.hpp"
-
+#include <string>
 #include <memory>
 #include <future>
 #include <iostream>
 
+struct AircraftResourceDescriptionBoneMappings {
+    int root;
+    int wingL;
+    int wingR;
+    int tailL;
+    int tailR;
+    int brake;
+};
+
+struct AircraftResourceDescription {
+    std::string name;
+    AircraftResourceDescriptionBoneMappings boneMappings;
+};
+
+struct AircraftResourceSettings {
+    float flapsMaxAngle;
+    float brakeMaxAngle;
+    float tailMaxAngle;
+    float rudderMaxAngle;
+    float controlSurfaceTweenStep;
+};
+
+struct AircraftResource {
+    AircraftResourceDescription description;
+    AircraftResourceSettings settings;
+};
+
 class Aircraft : public Entity {
+    const std::string resourcePath;
+    AircraftResource resource;
+
     public:
     Shader shader;
     SkeletalMesh skeletalMesh;
@@ -43,49 +66,11 @@ class Aircraft : public Entity {
 
     }
 
-    void LoadResources() override {
-        shader = GraphicsBackend::CreateShader("resources/shaders/skeletal.glsl");
-        skeletalMesh = Loader::LoadSkeletalMeshFromGLTF("resources/meshes/demo_jet.gltf");
-        camera = Camera();
-        camera.position = glm::vec3(10.0f, 10.0f, 10.0f);
-        camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
-    }
+    Aircraft(const std::string& aircraftResourcePath) : resourcePath(aircraftResourcePath) {};
 
-    void Initialize() override {
-    }
-
-    void Update() override {
-        camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
-        //camera controls
-        glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
-        if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
-            glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
-            glm::vec3 horizontalAxis = RotatePointAroundPoint(camera.position, camera.target, InputManager::mouseDeltaY * Time::deltaTime, cameraRight);
-            camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -InputManager::mouseDeltaX * Time::deltaTime, glm::vec3(0.0, 1.0, 0.0));
-        }
-        camera.position += cameraForward * glm::vec3(InputManager::mouseScrollY);
-
-        //testing for animations
-        if(InputManager::IsKeyPressed(GLFW_KEY_A)) {
-            skeletalMesh.skeleton.bones[1].RotateLocal(glm::vec3(0.0, 1.0, 0.0), 1.0f);
-            skeletalMesh.skeleton.bones[2].RotateLocal(glm::vec3(1.0, 0.0, 0.0), 1.0f);
-        }
-
-        if(InputManager::IsKeyPressed(GLFW_KEY_D)) {
-            skeletalMesh.skeleton.bones[3].RotateLocal(glm::vec3(0.0, 1.0, 0.0), 1.0f);
-            skeletalMesh.skeleton.bones[0].RotateLocal(glm::vec3(1.0, 0.0, 0.0), 1.0f);
-        }
-    }
-
-    void Draw() override {
-        GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, camera, transform);
-        GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-        GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
-        GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
-    }
-
-    void UnloadResources() override {
-        GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
-        GraphicsBackend::DeleteShader(shader);
-    }
+    void LoadResources() override;
+    void Initialize() override {}
+    void Update() override;
+    void Draw() override;
+    void UnloadResources() override;
 };
