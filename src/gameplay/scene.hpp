@@ -8,31 +8,47 @@
 
 class Scene {
     public:
-    std::vector<std::unique_ptr<Entity>> entities;
+    std::vector<std::shared_ptr<Entity>> entities;
     Environment environment;
 
+    std::shared_ptr<Entity> GetEntityByName(const std::string& name) {
+        for(std::shared_ptr<Entity> entity : entities) {
+            if(entity->name == name) return entity;
+        }
+
+        return nullptr;
+    }
+
+    std::shared_ptr<Entity> GetEntityById(const unsigned int id) {
+        for(std::shared_ptr<Entity> entity : entities) {
+            if(entity->id == id) return entity;
+        }
+
+        return nullptr;
+    }
+
     void LoadResources() {
-        for(std::unique_ptr<Entity>& entity : entities) {
+        for(std::shared_ptr<Entity>& entity : entities) {
             entity->LoadResources();
         }
     }
     void Initialize() {
-        for(std::unique_ptr<Entity>& entity : entities) {
+        for(std::shared_ptr<Entity>& entity : entities) {
             entity->Initialize();
         }
     }
     void Update() {
-        for(std::unique_ptr<Entity>& entity : entities) {
+        for(std::shared_ptr<Entity>& entity : entities) {
             entity->Update();
         }
     }
     void Draw() {
-        for(std::unique_ptr<Entity>& entity : entities) {
+        for(std::shared_ptr<Entity>& entity : entities) {
             entity->Draw();
         }
     }
     void UnloadResources() {
-        for(std::unique_ptr<Entity>& entity : entities) {
+        for(std::shared_ptr<Entity>& entity : entities) {
             entity->UnloadResources();
         }
     }

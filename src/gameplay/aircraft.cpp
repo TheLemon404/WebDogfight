@@ -6,6 +6,7 @@
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
@@ -20,8 +21,6 @@
 using json = nlohmann::json;
 
 void Aircraft::LoadResources() {
-    shader = GraphicsBackend::CreateShader("resources/shaders/skeletal.glsl");
-    skeletalMesh = Loader::LoadSkeletalMeshFromGLTF("resources/meshes/demo_jet.gltf");
     camera = Camera();
     camera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -32,6 +31,8 @@ void Aircraft::LoadResources() {
     json JSON = json::parse(resourceFileText);
 
     resource.description.name = JSON["description"]["name"];
+    resource.description.shaderResourcePath = JSON["description"]["shader-resource-path"];
+    resource.description.meshResourcePath = JSON["description"]["mesh-resource-path"];
     resource.description.boneMappings.root = JSON["description"]["bone-mappings"]["root"];
     resource.description.boneMappings.brake = JSON["description"]["bone-mappings"]["brake"];
     resource.description.boneMappings.wingL = JSON["description"]["bone-mappings"]["wing.l"];
@@ -49,6 +50,9 @@ void Aircraft::LoadResources() {
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraLagDistance = JSON["settings"]["camera-lag-distance"];
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
+
+    shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
+    skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 }
 
 void Aircraft::ApplyControlSurfaces() {
@@ -129,49 +133,47 @@ void Aircraft::Update() {
 
     //testing for flaps
     if(InputManager::IsKeyJustPressed(GLFW_KEY_Q)) {
-        targetRotation.z -= ROLL_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 0, 1), -ROLL_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_Q)) {
-        targetRotation.z += ROLL_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 0, 1), ROLL_ROTATION);
     }
     if(InputManager::IsKeyJustPressed(GLFW_KEY_E)) {
-        targetRotation.z += ROLL_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 0, 1), ROLL_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_E)) {
-        targetRotation.z -= ROLL_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 0, 1), -ROLL_ROTATION);
     }
 
     //testing for tail animation
     if(InputManager::IsKeyJustPressed(GLFW_KEY_W)) {
-        targetRotation.x += PITCH_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(1, 0, 0), PITCH_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_W)) {
-        targetRotation.x -= PITCH_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(1, 0, 0), -PITCH_ROTATION);
     }
     if(InputManager::IsKeyJustPressed(GLFW_KEY_S)) {
-        targetRotation.x -= PITCH_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(1, 0, 0), -PITCH_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_S)) {
-        targetRotation.x += PITCH_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(1, 0, 0), PITCH_ROTATION);
     }
 
     //testing for rudder animations
     if(InputManager::IsKeyJustPressed(GLFW_KEY_A)) {
-        targetRotation.y += YAW_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 1, 0), YAW_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_A)) {
-        targetRotation.y -= YAW_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 1, 0), -YAW_ROTATION);
     }
     if(InputManager::IsKeyJustPressed(GLFW_KEY_D)) {
-        targetRotation.y -= YAW_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 1, 0), -YAW_ROTATION);
     }
     else if(InputManager::IsKeyJustReleased(GLFW_KEY_D)) {
-        targetRotation.y += YAW_ROTATION;
+        targetRotation.RotateLocal(glm::vec3(0, 1, 0), YAW_ROTATION);
     }
 
-    transform.rotation.x = MathUtils::Lerp<float>(transform.rotation.x, targetRotation.x, Time::deltaTime * 10.0f);
-    transform.rotation.y = MathUtils::Lerp<float>(transform.rotation.y, targetRotation.y, Time::deltaTime * 10.0f);
-    transform.rotation.z = MathUtils::Lerp<float>(transform.rotation.z, targetRotation.z, Time::deltaTime * 10.0f);
+    transform.rotation = glm::mix(transform.rotation, targetRotation.rotation, (float)Time::deltaTime * 10.0f);
 
     ApplyControlSurfaces();
 

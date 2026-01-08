@@ -17,16 +17,19 @@
 class Transform {
     public:
     glm::vec3 position = glm::vec3(0.0f);
-    glm::vec3 rotation = glm::vec3(0.0f);
+    glm::quat rotation = glm::identity<glm::quat>();
     glm::vec3 scale = glm::vec3(1.0f);
 
     glm::mat4 GetMatrix() const {
         glm::mat4 translation = glm::translate(glm::mat4(1.0f), position);
-        glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-        rot = glm::rotate(rot, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        rot = glm::rotate(rot, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 sca = glm::scale(glm::mat4(1.0f), scale);
-        return translation * rot * sca;
+        return translation * glm::toMat4(rotation) * sca;
+    }
+
+    void RotateLocal(glm::vec3 localAxis, float localAngle) {
+        glm::quat delta = glm::angleAxis(glm::radians(localAngle), glm::normalize(localAxis));
+        rotation = rotation * delta;
+        rotation = glm::normalize(rotation);
     }
 };
 

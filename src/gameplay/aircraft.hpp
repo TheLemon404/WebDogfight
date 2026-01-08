@@ -20,6 +20,8 @@ struct AircraftResourceDescriptionBoneMappings {
 
 struct AircraftResourceDescription {
     std::string name;
+    std::string shaderResourcePath;
+    std::string meshResourcePath;
     AircraftResourceDescriptionBoneMappings boneMappings;
 };
 
@@ -55,7 +57,7 @@ class Aircraft : public Entity {
 
     float targetRoll = 0.0f;
 
-    glm::vec3 targetRotation;
+    Transform targetRotation;
 
     void ApplyControlSurfaces();
 
@@ -86,7 +88,7 @@ class Aircraft : public Entity {
         return finalPoint;
     }
 
-    Aircraft(const std::string& aircraftResourcePath) : resourcePath(aircraftResourcePath) {};
+    Aircraft(const std::string& name, const std::string& aircraftResourcePath) : Entity(name), resourcePath(aircraftResourcePath) {};
 
     void LoadResources() override;
     void Initialize() override {}

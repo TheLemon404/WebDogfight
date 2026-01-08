@@ -1,6 +1,8 @@
 {
   "description": {
     "name": "FA-XX",
+    "shader-resource-path": "resources/shaders/skeletal.glsl",
+    "mesh-resource-path": "resources/meshes/demo_jet.gltf",
     "bone-mappings": {
       "root": 5,
       "brake": 4,
@@ -15,8 +17,8 @@
   "settings": {
     "flaps-max-angle": 45,
     "brake-max-angle": 60,
-    "tail-max-angle": 45,
-    "rudder-max-angle": 30,
+    "tail-max-angle": 30,
+    "rudder-max-angle": 20,
     "max-speed": 50,
     "camera-ride-height": 5,
     "camera-lag-distance": 25,
