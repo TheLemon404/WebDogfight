@@ -18,7 +18,6 @@ class Window {
 
 #ifdef __EMSCRIPTEN__
     static EM_BOOL EmscriptenResizeCallback(int event_type, const EmscriptenUiEvent *event, void *user_data) {
-        std::cout << user_data << std::endl;
         Window* window = static_cast<Window*>(user_data);
         if(window){
             window->width = event->windowInnerWidth;
