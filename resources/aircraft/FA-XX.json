@@ -7,14 +7,19 @@
       "wing.l": 0,
       "wing.r": 2,
       "tail.l": 1,
-      "tail.r": 3
+      "tail.r": 3,
+      "rudder.l": 1,
+      "rudder.r": 3
     }
   },
   "settings": {
     "flaps-max-angle": 45,
     "brake-max-angle": 60,
     "tail-max-angle": 45,
-    "rudder-max-angle": 40,
+    "rudder-max-angle": 30,
+    "max-speed": 50,
+    "camera-ride-height": 5,
+    "camera-lag-distance": 25,
     "control-surface-tween-step": 1
   }
 }

@@ -36,25 +36,23 @@ if(EMSCRIPTEN)
     # Only add GLM for Emscripten (skip GLFW since it's provided)
     add_subdirectory("vendor/glm")
     add_subdirectory("vendor/json")
-    add_subdirectory("vendor/tweeny")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src} "vendor/stb_image.h")
 
-    target_link_libraries(WebDogfight glm nlohmann_json tweeny-dummy)
+    target_link_libraries(WebDogfight glm nlohmann_json)
 else()
     message(STATUS "Building for GLFW")
 
     add_subdirectory("vendor/glfw")
     add_subdirectory("vendor/glm")
     add_subdirectory("vendor/json")
-    add_subdirectory("vendor/tweeny")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src} "vendor/glad/src/glad.c")
 
     target_include_directories(WebDogfight PUBLIC "vendor/glad/include")
-    target_link_libraries(WebDogfight glfw glm nlohmann_json tweeny-dummy)
+    target_link_libraries(WebDogfight glfw glm nlohmann_json)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()

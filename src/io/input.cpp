@@ -27,7 +27,6 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, in
         std::cout << "Mouse button not properly mapped: " << key << std::endl;
         return;
     }
-    lastKeyStates[key] = keyStates[key];
     keyStates[key] = action;
 }
 
@@ -36,10 +35,18 @@ void InputManager::ResetInputState() {
     mouseDeltaY = 0.0;
     mouseScrollX = 0.0;
     mouseScrollY = 0.0;
+
+    for(size_t i = 0; i < GLFW_MAX_KEYS; i++) {
+        lastKeyStates[i] = keyStates[i];
+    }
+
+    for(size_t i = 0; i < GLFW_MAX_MOUSE_BUTTONS; i++) {
+        lastMouseButtonStates[i] = mouseButtonStates[i];
+    }
 }
 
 bool InputManager::IsKeyJustPressed(unsigned int key) {
-    if(keyStates[key] == GLFW_PRESS && lastKeyStates[key] == GLFW_RELEASE) return true;
+    if((keyStates[key] == GLFW_PRESS) && lastKeyStates[key] == GLFW_RELEASE) return true;
     return false;
 }
 
@@ -48,7 +55,7 @@ bool InputManager::IsKeyPressed(unsigned int key) {
     return false;
 }
 
-bool InputManager::IsKeyJustRelease(unsigned int key) {
+bool InputManager::IsKeyJustReleased(unsigned int key) {
     if(keyStates[key] == GLFW_RELEASE && (lastKeyStates[key] == GLFW_PRESS || lastKeyStates[key] == GLFW_REPEAT)) return true;
     return false;
 }

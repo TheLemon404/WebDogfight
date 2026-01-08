@@ -1,5 +1,6 @@
 #include "gameplay/test_scene.hpp"
 #include "gameplay/scene_manager.hpp"
+#include "io/input.hpp"
 #include "io/time.hpp"
 
 #ifdef __EMSCRIPTEN__
@@ -26,6 +27,9 @@ EM_JS(int, html_get_height, (), {
 void main_loop() {
     WindowManager::primaryWindow->Poll();
 
+    //--- IMPORTANT --- remove this line from production. Users should not be able to see debug graphics
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) GraphicsBackend::debugMode = !GraphicsBackend::debugMode;
+
     GraphicsBackend::ResetState(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
     GraphicsBackend::SetDepthTest(true);
 
@@ -43,13 +47,15 @@ int main() {
     WindowManager::primaryWindow->width = html_get_width();
     WindowManager::primaryWindow->height = html_get_height();
 #else
-    WindowManager::primaryWindow->width = 800;
-    WindowManager::primaryWindow->height = 500;
+    WindowManager::primaryWindow->width = 1600;
+    WindowManager::primaryWindow->height = 1000;
 #endif
     WindowManager::primaryWindow->title = "Fox2";
 
     SceneManager::currentScene = std::make_shared<Scene>(TestScene::Create());
     WindowManager::primaryWindow->Open();
+
+    GraphicsBackend::LoadResources();
 
     SceneManager::currentScene->LoadResources();
     SceneManager::currentScene->Initialize();

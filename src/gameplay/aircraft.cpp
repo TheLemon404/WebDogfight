@@ -4,9 +4,18 @@
 #include "../io/input.hpp"
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
+#include "glm/common.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/geometric.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
+#include "../utils/math.hpp"
+#include <math.h>
 #include <nlohmann/json.hpp>
+
+#define YAW_ROTATION 15
+#define ROLL_ROTATION 25
+#define PITCH_ROTATION 25
 
 using json = nlohmann::json;
 
@@ -29,15 +38,73 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.wingR = JSON["description"]["bone-mappings"]["wing.r"];
     resource.description.boneMappings.tailL = JSON["description"]["bone-mappings"]["tail.l"];
     resource.description.boneMappings.tailR = JSON["description"]["bone-mappings"]["tail.r"];
-
-    std::cout << resource.description.boneMappings.tailL << std::endl;
-    std::cout << resource.description.boneMappings.tailR << std::endl;
+    resource.description.boneMappings.rudderL = JSON["description"]["bone-mappings"]["rudder.l"];
+    resource.description.boneMappings.rudderR = JSON["description"]["bone-mappings"]["rudder.r"];
 
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
     resource.settings.rudderMaxAngle = JSON["settings"]["rudder-max-angle"];
+    resource.settings.maxSpeed = JSON["settings"]["max-speed"];
+    resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
+    resource.settings.cameraLagDistance = JSON["settings"]["camera-lag-distance"];
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
+}
+
+void Aircraft::ApplyControlSurfaces() {
+    //testing for flaps
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_Q)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_Q)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_E)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_E)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
+    }
+
+    //testing for tail animation
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_W)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_W)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_S)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_S)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+    }
+
+    //testing for rudder animations
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_A)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_A)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_D)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_D)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
+    }
 }
 
 void Aircraft::Update() {
@@ -51,15 +118,73 @@ void Aircraft::Update() {
     }
     camera.position += cameraForward * glm::vec3(InputManager::mouseScrollY);
 
-    //testing for animations
-    if(InputManager::IsKeyPressed(GLFW_KEY_A)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.controlSurfaceTweenStep);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.controlSurfaceTweenStep);
+    //throttle controls
+    if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+        controls.throttle += 0.0001f;
     }
-    if(InputManager::IsKeyPressed(GLFW_KEY_D)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.controlSurfaceTweenStep);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.controlSurfaceTweenStep);
+    else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+        controls.throttle -= 0.0001f;
     }
+    controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
+
+    //testing for flaps
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_Q)) {
+        targetRotation.z -= ROLL_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_Q)) {
+        targetRotation.z += ROLL_ROTATION;
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_E)) {
+        targetRotation.z += ROLL_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_E)) {
+        targetRotation.z -= ROLL_ROTATION;
+    }
+
+    //testing for tail animation
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_W)) {
+        targetRotation.x += PITCH_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_W)) {
+        targetRotation.x -= PITCH_ROTATION;
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_S)) {
+        targetRotation.x -= PITCH_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_S)) {
+        targetRotation.x += PITCH_ROTATION;
+    }
+
+    //testing for rudder animations
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_A)) {
+        targetRotation.y += YAW_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_A)) {
+        targetRotation.y -= YAW_ROTATION;
+    }
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_D)) {
+        targetRotation.y -= YAW_ROTATION;
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_D)) {
+        targetRotation.y += YAW_ROTATION;
+    }
+
+    transform.rotation.x = MathUtils::Lerp<float>(transform.rotation.x, targetRotation.x, Time::deltaTime * 10.0f);
+    transform.rotation.y = MathUtils::Lerp<float>(transform.rotation.y, targetRotation.y, Time::deltaTime * 10.0f);
+    transform.rotation.z = MathUtils::Lerp<float>(transform.rotation.z, targetRotation.z, Time::deltaTime * 10.0f);
+
+    ApplyControlSurfaces();
+
+    /*
+    //physics applications
+    physicsBody.forwardVelocity = MathUtils::Lerp<float>(physicsBody.forwardVelocity, controls.throttle * resource.settings.maxSpeed, Time::deltaTime);
+    transform.position += glm::vec3(0.0, 0.0, 1.0) * physicsBody.forwardVelocity;
+
+    //camera calculations
+    camera.target = transform.position + glm::vec3(0.0, 0.0, 10.0);
+    glm::vec3 targetCameraPosition = transform.position + glm::vec3(0.0, resource.settings.cameraRideHeight, -resource.settings.cameraLagDistance);
+    camera.position = targetCameraPosition;
+    */
 }
 
 void Aircraft::Draw()  {
@@ -67,6 +192,14 @@ void Aircraft::Draw()  {
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
     GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
+
+    if(GraphicsBackend::debugMode){
+        Transform t = Transform();
+        t.position = transform.position;
+        t.rotation = transform.rotation;
+        t.scale = glm::vec3(10.0);
+        GraphicsBackend::DrawDebugCube(camera, t);
+    }
 }
 
 void Aircraft::UnloadResources()  {

@@ -1,5 +1,10 @@
 #include "backend.hpp"
 
+void GraphicsBackend::LoadResources() {
+    debugCube = CreateCube();
+    debugShader = CreateShader("resources/shaders/debug.glsl");
+}
+
 void GraphicsBackend::SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
     enum class Mode { NONE, VERTEX, FRAGMENT };
     std::istringstream stream(shaderSource);
@@ -276,4 +281,9 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void GraphicsBackend::DrawDebugCube(Camera& camera, Transform& transform) {
+    BeginDrawMesh(debugCube, debugShader, camera, transform);
+    EndDrawMesh(debugCube);
 }

@@ -5,7 +5,7 @@
 #include <iostream>
 
 #define GLFW_MAX_MOUSE_BUTTONS 8
-#define GLFW_MAX_KEYS 256
+#define GLFW_MAX_KEYS 342
 
 class InputManager {
     inline static int lastMouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
@@ -31,7 +31,7 @@ class InputManager {
 
     static bool IsKeyJustPressed(unsigned int key);
     static bool IsKeyPressed(unsigned int key);
-    static bool IsKeyJustRelease(unsigned int key);
+    static bool IsKeyJustReleased(unsigned int key);
 
     static bool IsMouseButtonJustPressed(unsigned int button);
     static bool IsMouseButtonPressed(unsigned int button);

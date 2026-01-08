@@ -24,9 +24,14 @@ enum ShaderReadMode {
 };
 
 class GraphicsBackend {
+    inline static Mesh debugCube;
+    inline static Shader debugShader;
     static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
 
     public:
+    inline static bool debugMode = false;
+
+    static void LoadResources();
     static Shader CreateShader(const std::string& resourcePath);
     static Mesh CreateCube();
     static void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
@@ -92,4 +97,7 @@ class GraphicsBackend {
         glClearColor(val, val, val, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    //debug drawing
+    static void DrawDebugCube(Camera& camera, Transform& transform);
 };

@@ -2,3 +2,4 @@ cmake-build-desktop
 cmake-build-web
 __cmake_systeminformation
 .cache
+stream_goals.txt

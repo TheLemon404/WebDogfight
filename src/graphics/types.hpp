@@ -87,13 +87,12 @@ class Bone {
     int parentID = -1;
 
     void RotateLocal(glm::vec3 localAxis, float localAngle) {
-        glm::quat rotationDelta = glm::angleAxis(glm::radians(localAngle), glm::normalize(localAxis));
-        rotation = rotation * rotationDelta;
+        glm::quat delta = glm::angleAxis(glm::radians(localAngle), glm::normalize(localAxis));
+        rotation = rotation * delta;
         rotation = glm::normalize(rotation);
     }
 
     glm::mat4 GetGlobalTransform(std::vector<Bone>& skeletalArray) {
-
         glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), position) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
 
         if(parentID != -1) {
