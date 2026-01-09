@@ -14,6 +14,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 class Window {
     public:
     int width, height;
@@ -100,4 +102,9 @@ class Window {
 class WindowManager {
     public:
     inline static std::shared_ptr<Window> primaryWindow;
+
+    static glm::mat4 GetUIOrthographicMatrix() {
+        float widthFraction = static_cast<float>(primaryWindow->width) / primaryWindow->height;
+        return glm::ortho(-widthFraction, widthFraction, -1.0f, 1.0f, 0.01f, 100.0f);
+    }
 };

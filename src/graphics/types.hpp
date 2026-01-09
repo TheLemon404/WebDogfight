@@ -52,11 +52,6 @@ class Camera {
         return glm::perspective(glm::radians(fov), aspect, near, far);
     }
 
-    glm::mat4 GetUIOrthographicMatrix() const {
-        float widthFraction = 1600.0 / 1000.0;
-        return glm::ortho(-widthFraction, widthFraction, -1.0f, 1.0f, 0.1f, 100.0f);
-    }
-
     glm::mat4 GetViewMatrix() const {
         return glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
     }

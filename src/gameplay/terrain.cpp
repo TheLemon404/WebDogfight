@@ -18,7 +18,7 @@ void Terrain::Initialize() {
             float x = static_cast<float>(i) / ((float)TERRAIN_RESOLUTION - 1);
             float z = static_cast<float>(j) / ((float)TERRAIN_RESOLUTION - 1);
 
-            glm::vec3 position = glm::vec3(x, rand() / 10000.0f, z) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
+            glm::vec3 position = glm::vec3(x, 0, z) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
             position -= glm::vec3(TERRAIN_RESOLUTION / 2.0, 0, TERRAIN_RESOLUTION / 2.0);
 
             vertices.push_back({

@@ -2,6 +2,7 @@
 #include "scene_manager.hpp"
 #include <cmath>
 #include "../io/time.hpp"
+#include "../graphics/window.hpp"
 
 void Widget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
@@ -25,12 +26,12 @@ void Widget::Initialize() {
 }
 
 void Widget::Update() {
-    thickness = sin(Time::currentTime) * 0.1f;
+    thickness = ((1.0 + sin(Time::currentTime)) / 2.0) * 0.1f;
 }
 
 void Widget::Draw() {
     GraphicsBackend::BeginDrawMesh2D(quad, *shader, SceneManager::activeCamera, screenPosition, scale);
-    GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetUIOrthographicMatrix(), "uProjection");
+    GraphicsBackend::UploadShaderUniformMat4(*shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     if(type == WidgetType::CIRCLE || type == WidgetType::RING) {
         GraphicsBackend::UploadShaderUniformFloat(*shader, radius, "uRadius");
     }
