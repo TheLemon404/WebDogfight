@@ -64,7 +64,6 @@ class Aircraft : public Entity {
     public:
     Shader shader;
     SkeletalMesh skeletalMesh;
-    Camera camera;
     Transform transform;
 
     glm::vec3 RotatePointAroundPoint(

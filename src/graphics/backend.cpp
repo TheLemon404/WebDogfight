@@ -1,8 +1,16 @@
 #include "backend.hpp"
+#include "types.hpp"
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
-    debugShader = CreateShader("resources/shaders/debug.glsl");
+
+    globalShaders.debug = CreateShader("resources/shaders/debug.glsl");
+    globalShaders.flat = CreateShader("resources/shaders/flat.glsl");
+    globalShaders.skeletal = CreateShader("resources/shaders/skeletal.glsl");
+    globalShaders.terrain = CreateShader("resources/shaders/terrain.glsl");
+    globalShaders.uiSquare = CreateShader("resources/shaders/ui_square.glsl");
+    globalShaders.uiCircle = CreateShader("resources/shaders/ui_circle.glsl");
+    globalShaders.uiRing = CreateShader("resources/shaders/ui_ring.glsl");
 }
 
 void GraphicsBackend::SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
@@ -92,6 +100,47 @@ Shader GraphicsBackend::CreateShader(const std::string& resourcePath) {
     glDeleteShader(fragmentShaderID);
 
     return Shader(programID);
+}
+
+Mesh GraphicsBackend::CreateQuad() {
+    std::vector<Vertex> vertices = {
+        {{-0.5f, -0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
+        {{ 0.5f, -0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
+        {{ 0.5f,  0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
+        {{-0.5f,  0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
+    };
+
+    std::vector<unsigned int> indices = {
+        // Front face
+        0, 1, 2,
+        2, 3, 0,
+    };
+
+    unsigned int vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
 Mesh GraphicsBackend::CreateCube() {
@@ -283,7 +332,42 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
+void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera, glm::vec2 &screenPosition, glm::vec2 &scale) {
+    glUseProgram(shader.programID);
+
+    glBindVertexArray(mesh.vao);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    Transform t = Transform();
+    t.position.x = screenPosition.x;
+    t.position.y = screenPosition.y;
+    t.position.z = -1.0f;
+    t.scale.x = scale.x;
+    t.scale.y = scale.y;
+
+    //vertex uniforms
+    UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
+
+    //fragment uniforms
+    UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
+    UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
+}
+
+void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
+    glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
 void GraphicsBackend::DrawDebugCube(Camera& camera, Transform& transform) {
-    BeginDrawMesh(debugCube, debugShader, camera, transform);
+    BeginDrawMesh(debugCube, globalShaders.debug, camera, transform);
     EndDrawMesh(debugCube);
 }

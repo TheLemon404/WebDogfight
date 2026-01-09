@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 if(EMSCRIPTEN)
     message(STATUS "Building for WebGL with Emscripten")
     # Delete the previous .data file so that it automatically updates
-    #
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGL2=1")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MIN_WEBGL_VERSION=2")
@@ -38,8 +37,17 @@ if(EMSCRIPTEN)
     add_subdirectory("vendor/json")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    add_executable(WebDogfight ${src} "vendor/stb_image.h")
+    file(GLOB imgui_src CONFIGURE_DEPENDS "vendor/imgui/*.cpp" "vendor/imgui/*.h")
+    add_executable(WebDogfight ${src}
+        ${imgui_src}
+        "vendor/stb_image.h"
+        "vendor/imgui/backends/imgui_impl_glfw.cpp"
+        "vendor/imgui/backends/imgui_impl_glfw.h"
+        "vendor/imgui/backends/imgui_impl_opengl3.cpp"
+        "vendor/imgui/backends/imgui_impl_opengl3.h"
+    )
 
+    target_include_directories(WebDogfight PUBLIC "vendor/imgui")
     target_link_libraries(WebDogfight glm nlohmann_json)
 else()
     message(STATUS "Building for GLFW")
@@ -49,9 +57,18 @@ else()
     add_subdirectory("vendor/json")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    add_executable(WebDogfight ${src} "vendor/glad/src/glad.c")
+    file(GLOB imgui_src CONFIGURE_DEPENDS "vendor/imgui/*.cpp" "vendor/imgui/*.h")
+    add_executable(WebDogfight ${src}
+        ${imgui_src}
+        "vendor/glad/src/glad.c"
+        "vendor/stb_image.h"
+        "vendor/imgui/backends/imgui_impl_glfw.cpp"
+        "vendor/imgui/backends/imgui_impl_glfw.h"
+        "vendor/imgui/backends/imgui_impl_opengl3.cpp"
+        "vendor/imgui/backends/imgui_impl_opengl3.h"
+    )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/glad/include")
+    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui")
     target_link_libraries(WebDogfight glfw glm nlohmann_json)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

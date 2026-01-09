@@ -1,8 +1,13 @@
 #pragma once
 
 #include "entity.hpp"
+#include "../graphics/types.hpp"
 
 class Terrain : public Entity {
+    Mesh mesh;
+    Shader shader;
+    Transform transform = Transform();
+
     public:
     Terrain(const std::string& name) : Entity(name) {};
 

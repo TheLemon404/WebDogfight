@@ -14,6 +14,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+
 class Transform {
     public:
     glm::vec3 position = glm::vec3(0.0f);
@@ -33,6 +34,11 @@ class Transform {
     }
 };
 
+class Color {
+    public:
+    glm::vec4 value = glm::vec4(1.0f);
+};
+
 class Camera {
     public:
     glm::vec3 position = glm::vec3(1.0f);
@@ -44,6 +50,11 @@ class Camera {
 
     glm::mat4 GetProjectionMatrix() const {
         return glm::perspective(glm::radians(fov), aspect, near, far);
+    }
+
+    glm::mat4 GetUIOrthographicMatrix() const {
+        float widthFraction = 1600.0 / 1000.0;
+        return glm::ortho(-widthFraction, widthFraction, -1.0f, 1.0f, 0.1f, 100.0f);
     }
 
     glm::mat4 GetViewMatrix() const {

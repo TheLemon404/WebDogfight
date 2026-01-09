@@ -23,22 +23,39 @@ enum ShaderReadMode {
     FRAGMENT
 };
 
+struct GlobalShaders {
+    Shader debug;
+    Shader flat;
+    Shader skeletal;
+    Shader terrain;
+    Shader uiCircle;
+    Shader uiSquare;
+    Shader uiRing;
+};
+
 class GraphicsBackend {
     inline static Mesh debugCube;
-    inline static Shader debugShader;
     static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
 
     public:
     inline static bool debugMode = false;
 
+    inline static GlobalShaders globalShaders = GlobalShaders();
+
     static void LoadResources();
     static Shader CreateShader(const std::string& resourcePath);
     static Mesh CreateCube();
+    static Mesh CreateQuad();
     static void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
     static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const std::string& var) {
         GLint location = glGetUniformLocation(shader.programID, var.c_str());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+    }
+
+    static void UploadShaderUniformVec4(Shader& shader, const glm::vec4& vector, const std::string& var) {
+        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        glUniform4fv(location, 1, glm::value_ptr(vector));
     }
 
     static void UploadShaderUniformVec3(Shader& shader, const glm::vec3& vector, const std::string& var) {
@@ -90,6 +107,9 @@ class GraphicsBackend {
     static void EndDrawSkeletalMesh(Mesh& mesh);
     static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform);
     static void EndDrawMesh(Mesh& mesh);
+
+    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, Camera& camera, glm::vec2& screenPosition, glm::vec2& scale);
+    static void EndDrawMesh2D(Mesh& mesh);
 
     static void ResetState(int viewportWidth, int viewportHeight) {
        	glViewport(0, 0, viewportWidth, viewportHeight);

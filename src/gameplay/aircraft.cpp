@@ -8,6 +8,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
+#include "scene.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
 #include "../utils/math.hpp"
@@ -21,9 +22,8 @@
 using json = nlohmann::json;
 
 void Aircraft::LoadResources() {
-    camera = Camera();
-    camera.position = glm::vec3(10.0f, 10.0f, 10.0f);
-    camera.target = glm::vec3(0.0f, 0.0f, 0.0f);
+    SceneManager::activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
+    SceneManager::activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
 
     std::cout << "Attemping to read Aircraft Resource JSON file at: " << resourcePath << std::endl;
 
@@ -53,6 +53,8 @@ void Aircraft::LoadResources() {
 
     shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
+
+    transform.position.y = 10.0;
 }
 
 void Aircraft::ApplyControlSurfaces() {
@@ -112,8 +114,10 @@ void Aircraft::ApplyControlSurfaces() {
 }
 
 void Aircraft::Update() {
-    camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
     //camera controls
+    Camera& camera = SceneManager::activeCamera;
+    camera.target = transform.position;
+    camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
     if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
         glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
@@ -176,21 +180,10 @@ void Aircraft::Update() {
     transform.rotation = glm::mix(transform.rotation, targetRotation.rotation, (float)Time::deltaTime * 10.0f);
 
     ApplyControlSurfaces();
-
-    /*
-    //physics applications
-    physicsBody.forwardVelocity = MathUtils::Lerp<float>(physicsBody.forwardVelocity, controls.throttle * resource.settings.maxSpeed, Time::deltaTime);
-    transform.position += glm::vec3(0.0, 0.0, 1.0) * physicsBody.forwardVelocity;
-
-    //camera calculations
-    camera.target = transform.position + glm::vec3(0.0, 0.0, 10.0);
-    glm::vec3 targetCameraPosition = transform.position + glm::vec3(0.0, resource.settings.cameraRideHeight, -resource.settings.cameraLagDistance);
-    camera.position = targetCameraPosition;
-    */
 }
 
 void Aircraft::Draw()  {
-    GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, camera, transform);
+    GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
     GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
@@ -200,7 +193,7 @@ void Aircraft::Draw()  {
         t.position = transform.position;
         t.rotation = transform.rotation;
         t.scale = glm::vec3(10.0);
-        GraphicsBackend::DrawDebugCube(camera, t);
+        GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, t);
     }
 }
 
