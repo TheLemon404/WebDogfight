@@ -203,6 +203,11 @@ void Aircraft::UnloadResources()  {
     GraphicsBackend::DeleteShader(shader);
 }
 
-void AircraftAimRecticle::Update() {
-    CircleWidget::Update();
+void AircraftWidgetLayer::CreateWidgets() {
+    std::shared_ptr<CircleWidget> aim = std::make_shared<CircleWidget>("circleWidget");
+    widgets.push_back(aim);
+}
+
+void AircraftWidgetLayer::UpdateLayer() {
+
 }

@@ -97,9 +97,7 @@ class Aircraft : public Entity {
     void UnloadResources() override;
 };
 
-class AircraftAimRecticle : public CircleWidget {
-    public:
-    void Update() override;
-
-    AircraftAimRecticle(const std::string& name) : CircleWidget(name) {};
+class AircraftWidgetLayer : public WidgetLayer {
+    void CreateWidgets() override;
+    void UpdateLayer() override;
 };

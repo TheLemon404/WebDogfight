@@ -12,9 +12,7 @@ class TestScene {
         testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
         testScene.entities.push_back(std::make_shared<Terrain>("terrain"));
 
-        std::shared_ptr<WidgetLayer> layer = std::make_shared<WidgetLayer>();
-        std::shared_ptr<CircleWidget> aim = std::make_shared<CircleWidget>("circleWidget");
-        layer->widgets.push_back(aim);
+        std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);
         return testScene;
     }
