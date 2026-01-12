@@ -23,24 +23,13 @@ enum ShaderReadMode {
     FRAGMENT
 };
 
-struct GlobalShaders {
-    Shader debug;
-    Shader flat;
-    Shader skeletal;
-    Shader terrain;
-    Shader uiCircle;
-    Shader uiSquare;
-    Shader uiRing;
-};
-
 class GraphicsBackend {
     inline static Mesh debugCube;
+    inline static Shader debugShader;
     static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
 
     public:
     inline static bool debugMode = false;
-
-    inline static GlobalShaders globalShaders = GlobalShaders();
 
     static void LoadResources();
     static Shader CreateShader(const std::string& resourcePath);
@@ -102,6 +91,8 @@ class GraphicsBackend {
     static void DeleteShader(Shader& shader) {
         glDeleteProgram(shader.programID);
     }
+
+    static void UnloadResources();
 
     static void BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform);
     static void EndDrawSkeletalMesh(Mesh& mesh);

@@ -3,7 +3,8 @@
 #include "scene_manager.hpp"
 #include <vector>
 
-#define TERRAIN_RESOLUTION 75
+#define TERRAIN_RESOLUTION 100
+#define TERRAIN_SIZE 10
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::Initialize() {
@@ -18,8 +19,8 @@ void Terrain::Initialize() {
             float x = static_cast<float>(i) / ((float)TERRAIN_RESOLUTION - 1);
             float z = static_cast<float>(j) / ((float)TERRAIN_RESOLUTION - 1);
 
-            glm::vec3 position = glm::vec3(x, 0, z) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
-            position -= glm::vec3(TERRAIN_RESOLUTION / 2.0, 0, TERRAIN_RESOLUTION / 2.0);
+            glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, 0, z * TERRAIN_SIZE) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
+            position -= glm::vec3((TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0, 0, (TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0);
 
             vertices.push_back({
                 position,
@@ -40,6 +41,9 @@ void Terrain::Initialize() {
             indices.push_back(topLeft);
             indices.push_back(topRight);
             indices.push_back(bottomLeft);
+
+            indices.push_back(bottomLeft);
+            indices.push_back(topRight);
             indices.push_back(bottomRight);
         }
     }
@@ -52,5 +56,6 @@ void Terrain::Draw() {
     GraphicsBackend::BeginDrawMesh(mesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
+    GraphicsBackend::UploadShaderUniformInt(shader, TERRAIN_RESOLUTION, "uResolution");
     GraphicsBackend::EndDrawMesh(mesh);
 }

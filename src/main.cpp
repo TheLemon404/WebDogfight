@@ -71,6 +71,7 @@ int main() {
 #endif
 
     SceneManager::currentScene->UnloadResources();
+    GraphicsBackend::UnloadResources();
     WindowManager::primaryWindow->Close();
 
     return 0;

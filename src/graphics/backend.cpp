@@ -3,14 +3,12 @@
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
+    debugShader = CreateShader("resources/shaders/flat.glsl");
+}
 
-    globalShaders.debug = CreateShader("resources/shaders/debug.glsl");
-    globalShaders.flat = CreateShader("resources/shaders/flat.glsl");
-    globalShaders.skeletal = CreateShader("resources/shaders/skeletal.glsl");
-    globalShaders.terrain = CreateShader("resources/shaders/terrain.glsl");
-    globalShaders.uiSquare = CreateShader("resources/shaders/ui_square.glsl");
-    globalShaders.uiCircle = CreateShader("resources/shaders/ui_circle.glsl");
-    globalShaders.uiRing = CreateShader("resources/shaders/ui_ring.glsl");
+void GraphicsBackend::UnloadResources() {
+    DeleteMesh(debugCube);
+    DeleteShader(debugShader);
 }
 
 void GraphicsBackend::SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
@@ -368,6 +366,6 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 }
 
 void GraphicsBackend::DrawDebugCube(Camera& camera, Transform& transform) {
-    BeginDrawMesh(debugCube, globalShaders.debug, camera, transform);
+    BeginDrawMesh(debugCube, debugShader, camera, transform);
     EndDrawMesh(debugCube);
 }

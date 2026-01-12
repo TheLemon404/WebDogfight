@@ -3,7 +3,7 @@
 #include "scene.hpp"
 #include "aircraft.hpp"
 #include "terrain.hpp"
-#include "ui.hpp"
+#include "widget.hpp"
 
 class TestScene {
     public:
@@ -11,7 +11,9 @@ class TestScene {
         Scene testScene = Scene();
         testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
         testScene.entities.push_back(std::make_shared<Terrain>("terrain"));
-        testScene.widgets.push_back(std::make_shared<Widget>("testWidget", WidgetType::RING));
+        std::shared_ptr<CircleWidget> circle = std::make_shared<CircleWidget>("circleWidget");
+        circle->position.x = -1.0;
+        testScene.widgets.push_back(circle);
         return testScene;
     }
 };

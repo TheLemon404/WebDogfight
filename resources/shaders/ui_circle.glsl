@@ -22,10 +22,11 @@ void main()
 #version 300 es
 precision highp float;
 
-layout(location = 0) in vec2 pUV;
+in vec2 pUV;
 
 uniform vec4 uColor;
 uniform float uRadius;
+uniform float uThickness;
 
 out vec4 FragColor;
 
@@ -33,6 +34,8 @@ out vec4 FragColor;
 
 void main()
 {
-    if (distance(UI_CENTER, pUV) > uRadius) discard;
+    float dist = distance(UI_CENTER, pUV);
+    if (dist > uRadius) discard;
+    if (dist < uRadius - uThickness) discard;
     FragColor = uColor;
 }

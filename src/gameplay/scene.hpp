@@ -2,7 +2,7 @@
 
 #include "entity.hpp"
 #include "environment.hpp"
-#include "ui.hpp"
+#include "widget.hpp"
 #include <string>
 #include <vector>
 #include <memory>

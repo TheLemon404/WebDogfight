@@ -2,6 +2,7 @@
 
 #include "../graphics/types.hpp"
 #include "entity.hpp"
+#include "widget.hpp"
 #include <string>
 #include <memory>
 #include <future>

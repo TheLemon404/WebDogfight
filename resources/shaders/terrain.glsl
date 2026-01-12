@@ -9,6 +9,7 @@ uniform mat4 uTransform;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out vec2 pUV;
 out vec3 pNormal;
 
 mat3 extractRotation(mat4 transformation) {
@@ -37,23 +38,34 @@ void main()
 
     mat3 rotationMatrix = extractRotation(uTransform);
     pNormal = rotationMatrix * aNormal;
+
+    pUV = aUV;
 }
 
 #fragment
 #version 300 es
 precision highp float;
 
+in vec2 pUV;
 in vec3 pNormal;
 
 uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
+uniform int uResolution;
 
 out vec4 FragColor;
 
 void main()
 {
+    int iX = int(pUV.x * float(uResolution));
+    int iY = int(pUV.y * float(uResolution));
+    int checkerX = iX % 2;
+    int checkerY = iY % 2;
+
+    float val = float(bool(checkerX) ^^ bool(checkerY));
+
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), 1.0f);
+    FragColor = vec4(mix(uShadowColor, vec3(val), dot), 1.0f);
 }

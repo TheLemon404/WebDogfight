@@ -44,7 +44,7 @@ class Camera {
     glm::vec3 position = glm::vec3(1.0f);
     glm::vec3 target = glm::vec3(0.0f);
     float near = 0.01f;
-    float far = 1000.0f;
+    float far = 10000.0f;
     float fov = 60.0f;
     float aspect = 1.0f;
 
