@@ -5,16 +5,20 @@
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/quaternion_common.hpp"
+#include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
+#include "glm/gtc/constants.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
 #include <glm/gtx/rotate_vector.hpp>
 #include "glm/ext/vector_float3.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
+#include "glm/common.hpp"
 #include "scene.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
@@ -22,6 +26,8 @@
 #include "widget.hpp"
 #include <math.h>
 #include <nlohmann/json.hpp>
+
+#define BRAKE_ANGLE_LERP_TIME 1.0
 
 #define YAW_ROTATION 15
 #define ROLL_ROTATION 25
@@ -74,66 +80,29 @@ void Aircraft::Initialize() {
 }
 
 void Aircraft::ApplyControlSurfaces() {
+    float uiDiff = aimWidget->position.x - mouseWidget->position.x;
+    glm::quat diffQuat = transform.rotation * glm::conjugate(targetRotation.rotation);
+    glm::vec3 eulerAngles = glm::eulerAngles(diffQuat);
+    float rollDelta = MathUtils::Clamp<float>(uiDiff, -1.0, 1.0);
+    float pitchDelta = MathUtils::Clamp<float>(eulerAngles.x, -1.0, 1.0);
+    float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
+
     //testing for flaps
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_Q)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_Q)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_E)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_E)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle);
-    }
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
 
     //testing for tail animation
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_W)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
+
+    if(InputManager::IsKeyPressed(GLFW_KEY_B)) {
+        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, Time::deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_W)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_S)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_S)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.tailMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.tailMaxAngle);
+    else {
+        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, 0, Time::deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
 
-    //testing for rudder animations
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_A)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_A)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_D)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), resource.settings.rudderMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_D)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
-    }
-
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_B)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.brakeMaxAngle);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_B)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.brakeMaxAngle);
-    }
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
 }
 
 void Aircraft::Update() {
@@ -221,8 +190,8 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
-    mouse->position.x = InputManager::mouseDelta.x / 25.0f;
-    mouse->position.y = -InputManager::mouseDelta.y / 25.0f;
+    mouse->position.x = MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / 25.0, Time::deltaTime * 10.0);
+    mouse->position.y = MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 25.0, Time::deltaTime * 10.0);
 
     aim->position = UIAlignmentWithRotation(aircraft->transform.rotation);
 }

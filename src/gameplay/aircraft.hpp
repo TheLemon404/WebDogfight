@@ -61,6 +61,7 @@ class Aircraft : public Entity {
     std::shared_ptr<Widget> mouseWidget;
 
     float targetRoll = 0.0f;
+    float targetBrakeAngle = 0.0f;
 
     Transform targetRotation;
 

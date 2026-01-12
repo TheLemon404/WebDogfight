@@ -10,7 +10,7 @@
 class MathUtils {
     public:
     template<typename T>
-    static T Lerp(T from, T to, float factor) {
+    static T Lerp(T from, T to, double factor) {
         return (1.0 - factor) * from + factor * to;
     };
 

@@ -222,6 +222,13 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
                 JSON["nodes"][jointIndex]["rotation"][1],
                 JSON["nodes"][jointIndex]["rotation"][2]
             );
+            //store this base pose for later
+            bone.restingRotation = glm::quat(
+                JSON["nodes"][jointIndex]["rotation"][3],
+                JSON["nodes"][jointIndex]["rotation"][0],
+                JSON["nodes"][jointIndex]["rotation"][1],
+                JSON["nodes"][jointIndex]["rotation"][2]
+            );
         }
         if(JSON["nodes"][jointIndex].contains("scale"))
         {

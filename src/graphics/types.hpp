@@ -87,6 +87,8 @@ class Texture {
 
 class Bone {
     public:
+    glm::quat restingRotation;
+
     unsigned int id;
     std::string name;
     glm::vec3 position = glm::vec3(0.0f);
@@ -96,9 +98,13 @@ class Bone {
     int parentID = -1;
 
     void RotateLocal(glm::vec3 localAxis, float localAngle) {
-        glm::quat delta = glm::angleAxis(glm::radians(localAngle), glm::normalize(localAxis));
-        rotation = rotation * delta;
-        rotation = glm::normalize(rotation);
+        glm::vec3 globalAxis = rotation * localAxis;
+        rotation = glm::angleAxis(localAngle, globalAxis) * rotation;
+    }
+
+    void SetLocalRotation(glm::vec3 localAxis, float localAngle) {
+        glm::vec3 globalAxis = rotation * localAxis;
+        rotation = glm::angleAxis(glm::radians(localAngle), globalAxis) * restingRotation;
     }
 
     glm::mat4 GetGlobalTransform(std::vector<Bone>& skeletalArray) {
