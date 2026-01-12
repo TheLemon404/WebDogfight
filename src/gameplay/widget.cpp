@@ -4,6 +4,22 @@
 #include "../io/time.hpp"
 #include "../graphics/window.hpp"
 
+std::shared_ptr<Widget> WidgetLayer::GetWidgetByName(const std::string& name) {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        if(widget->name == name) return widget;
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<Widget> WidgetLayer::GetWidgetById(const unsigned int id) {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        if(widget->id == id) return widget;
+    }
+
+    return nullptr;
+}
+
 void WidgetLayer::LoadResources() {
     for(std::shared_ptr<Widget>& widget : widgets) {
         widget->LoadResources();
@@ -54,10 +70,6 @@ void RectWidget::UnloadResources() {
 void CircleWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
     shader = GraphicsBackend::CreateShader("resources/shaders/ui_circle.glsl");
-}
-
-void CircleWidget::Update() {
-    thickness = ((1.0 + sin(Time::currentTime)) / 2.0) * 0.1f;
 }
 
 void CircleWidget::Draw() {

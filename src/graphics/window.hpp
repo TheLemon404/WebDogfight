@@ -79,6 +79,8 @@ class Window {
 #ifndef __EMSCRIPTEN__
         gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress);
 #endif
+
+        glfwSetInputMode(window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
 
     bool ShouldClose() {
@@ -87,6 +89,11 @@ class Window {
 
     void Poll() {
         glfwPollEvents();
+
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
+            InputManager::mouseHidden = !InputManager::mouseHidden;
+            glfwSetInputMode(window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        }
     }
 
     void SwapBuffers() {

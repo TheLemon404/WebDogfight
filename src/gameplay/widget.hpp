@@ -34,6 +34,9 @@ class WidgetLayer {
     virtual void CreateWidgets() {};
     virtual void UpdateLayer() {};
 
+    std::shared_ptr<Widget> GetWidgetByName(const std::string& name);
+    std::shared_ptr<Widget> GetWidgetById(const unsigned int id);
+
     void LoadResources();
     void Initialize();
     void Update();
@@ -53,14 +56,13 @@ class RectWidget : public Widget {
 };
 
 class CircleWidget : public Widget {
-    protected:
+    public:
     float radius = 0.5f;
     float thickness = 0.1f;
 
-    public:
     void LoadResources() override;
     void Initialize() override {};
-    void Update() override;
+    void Update() override {};
     void Draw() override;
     void UnloadResources() override;
 

@@ -3,6 +3,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/scalar_multiplication.hpp>
 
+#define GLOBAL_FORWARD glm::vec3(0.0, 0.0, 1.0)
+#define GLOBAL_LEFT glm::vec3(1.0, 0.0, 0.0)
+#define GLOBAL_UP glm::vec3(0.0, 1.0, 0.0)
+
 class MathUtils {
     public:
     template<typename T>

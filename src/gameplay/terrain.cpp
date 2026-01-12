@@ -7,9 +7,12 @@
 #define TERRAIN_SIZE 10
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
-void Terrain::Initialize() {
+void Terrain::LoadResources() {
     shader = GraphicsBackend::CreateShader("resources/shaders/terrain.glsl");
+}
 
+
+void Terrain::Initialize() {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -49,6 +52,7 @@ void Terrain::Initialize() {
     }
 
     mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
+    mesh.material.albedo = glm::vec3(0.48f, 0.63f, 0.35f);
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 

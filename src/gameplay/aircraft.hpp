@@ -35,6 +35,7 @@ struct AircraftResourceSettings {
     float cameraRideHeight;
     float cameraLagDistance;
     float controlSurfaceTweenStep;
+    float rollMagnifier;
 };
 
 struct AircraftResource {
@@ -55,6 +56,9 @@ class Aircraft : public Entity {
     AircraftResource resource;
     AircraftControls controls;
     AircraftPhysicsBody physicsBody;
+
+    std::shared_ptr<Widget> aimWidget;
+    std::shared_ptr<Widget> mouseWidget;
 
     float targetRoll = 0.0f;
 
@@ -91,13 +95,17 @@ class Aircraft : public Entity {
     Aircraft(const std::string& name, const std::string& aircraftResourcePath) : Entity(name), resourcePath(aircraftResourcePath) {};
 
     void LoadResources() override;
-    void Initialize() override {}
+    void Initialize() override;
     void Update() override;
     void Draw() override;
     void UnloadResources() override;
 };
 
 class AircraftWidgetLayer : public WidgetLayer {
+    std::shared_ptr<Aircraft> aircraft;
+    std::shared_ptr<CircleWidget> aim;
+    std::shared_ptr<CircleWidget> mouse;
+    glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
     void CreateWidgets() override;
     void UpdateLayer() override;
 };

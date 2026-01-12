@@ -20,8 +20,9 @@
     "tail-max-angle": 30,
     "rudder-max-angle": 20,
     "max-speed": 50,
-    "camera-ride-height": 5,
+    "camera-ride-height": 6,
     "camera-lag-distance": 25,
-    "control-surface-tween-step": 1
+    "control-surface-tween-step": 1,
+    "roll-magnifier": 1.0
   }
 }

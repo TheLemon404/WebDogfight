@@ -1,24 +1,22 @@
 #pragma once
 
+#include "glm/ext/vector_float2.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <iostream>
 
 #define GLFW_MAX_MOUSE_BUTTONS 8
-#define GLFW_MAX_KEYS 342
+#define GLFW_MAX_KEYS 345
 
 class InputManager {
     inline static int lastMouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
     inline static int lastKeyStates[GLFW_MAX_KEYS];
 
     public:
-    inline static double mousePositionX = 0.0;
-    inline static double mousePositionY = 0.0;
-    inline static double mouseDeltaX = 0.0;
-    inline static double mouseDeltaY = 0.0;
-
-    inline static double mouseScrollX = 0.0;
-    inline static double mouseScrollY = 0.0;
+    inline static bool mouseHidden = true;
+    inline static glm::vec2 mousePosition = glm::vec2(0.0);
+    inline static glm::vec2 mouseDelta = glm::vec2(0.0);
+    inline static glm::vec2 mouseScroll = glm::vec2(0.0);
 
     inline static int mouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
     inline static int keyStates[GLFW_MAX_KEYS];

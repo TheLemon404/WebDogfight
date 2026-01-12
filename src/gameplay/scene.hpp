@@ -29,6 +29,22 @@ class Scene {
         return nullptr;
     }
 
+    std::shared_ptr<Widget> GetWidgetByName(const std::string& name) {
+        for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
+            return widgetLayer->GetWidgetByName(name);
+        }
+
+        return nullptr;
+    }
+
+    std::shared_ptr<Widget> GetWidgetById(const unsigned int id) {
+        for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
+            return widgetLayer->GetWidgetById(id);
+        }
+
+        return nullptr;
+    }
+
     void LoadResources() {
         for(std::shared_ptr<Entity>& entity : entities) {
             entity->LoadResources();

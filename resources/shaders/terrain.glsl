@@ -67,5 +67,5 @@ void main()
     float val = float(bool(checkerX) ^^ bool(checkerY));
 
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, vec3(val), dot), 1.0f);
+    FragColor = vec4(mix(uShadowColor, vec3(val) * uAlbedo, dot), 1.0f);
 }

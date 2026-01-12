@@ -5,6 +5,13 @@
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
+#include "glm/ext/quaternion_common.hpp"
+#include "glm/ext/quaternion_geometric.hpp"
+#include "glm/ext/quaternion_transform.hpp"
+#include "glm/ext/quaternion_trigonometric.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/euler_angles.hpp"
+#include <glm/gtx/rotate_vector.hpp>
 #include "glm/ext/vector_float3.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
@@ -51,11 +58,19 @@ void Aircraft::LoadResources() {
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraLagDistance = JSON["settings"]["camera-lag-distance"];
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
+    resource.settings.rollMagnifier = JSON["settings"]["roll-magnifier"];
 
     shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
     transform.position.y = 10.0;
+}
+
+void Aircraft::Initialize() {
+    aimWidget = SceneManager::currentScene->GetWidgetByName("aimWidget");
+    mouseWidget = SceneManager::currentScene->GetWidgetByName("mouseWidget");
+
+    skeletalMesh.material.albedo = glm::vec3(0.7f);
 }
 
 void Aircraft::ApplyControlSurfaces() {
@@ -112,20 +127,36 @@ void Aircraft::ApplyControlSurfaces() {
         skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderL].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
         skeletalMesh.skeleton.bones[resource.description.boneMappings.rudderR].RotateLocal(glm::vec3(0.0, 1.0, 0.0), -resource.settings.rudderMaxAngle);
     }
+
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_B)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].RotateLocal(glm::vec3(1.0, 0.0, 0.0), resource.settings.brakeMaxAngle);
+    }
+    else if(InputManager::IsKeyJustReleased(GLFW_KEY_B)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].RotateLocal(glm::vec3(1.0, 0.0, 0.0), -resource.settings.brakeMaxAngle);
+    }
 }
 
 void Aircraft::Update() {
     //camera controls
     Camera& camera = SceneManager::activeCamera;
-    camera.target = transform.position;
-    camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
-    if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
-        glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
-        glm::vec3 horizontalAxis = RotatePointAroundPoint(camera.position, camera.target, InputManager::mouseDeltaY * Time::deltaTime, cameraRight);
-        camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -InputManager::mouseDeltaX * Time::deltaTime, glm::vec3(0.0, 1.0, 0.0));
+    glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
+    glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
+    glm::vec3 horizontalAxis = RotatePointAroundPoint(camera.position, camera.target, InputManager::mouseDelta.y * Time::deltaTime, cameraRight);
+    camera.target = transform.position + cameraUp * resource.settings.cameraRideHeight;
+    camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
+    camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -InputManager::mouseDelta.x * Time::deltaTime, glm::vec3(0.0, 1.0, 0.0));
+    camera.position += cameraForward * glm::vec3(InputManager::mouseScroll.y);
+    glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
+
+    //aircraft orientation
+    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)){
+        float uiDiff = aimWidget->position.x - mouseWidget->position.x;
+        targetRotation.rotation = glm::angleAxis(-uiDiff * resource.settings.rollMagnifier, GLOBAL_FORWARD);
+        targetRotation.rotation = glm::quatLookAt(-cameraForward, GLOBAL_UP) * targetRotation.rotation;
     }
-    camera.position += cameraForward * glm::vec3(InputManager::mouseScrollY);
+
+    transform.rotation = glm::slerp(transform.rotation, targetRotation.rotation, (float)Time::deltaTime);
 
     //throttle controls
     if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -135,51 +166,8 @@ void Aircraft::Update() {
         controls.throttle -= 0.0001f;
     }
     controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
-
-    //testing for flaps
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_Q)) {
-        targetRotation.RotateLocal(glm::vec3(0, 0, 1), -ROLL_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_Q)) {
-        targetRotation.RotateLocal(glm::vec3(0, 0, 1), ROLL_ROTATION);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_E)) {
-        targetRotation.RotateLocal(glm::vec3(0, 0, 1), ROLL_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_E)) {
-        targetRotation.RotateLocal(glm::vec3(0, 0, 1), -ROLL_ROTATION);
-    }
-
-    //testing for tail animation
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_W)) {
-        targetRotation.RotateLocal(glm::vec3(1, 0, 0), PITCH_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_W)) {
-        targetRotation.RotateLocal(glm::vec3(1, 0, 0), -PITCH_ROTATION);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_S)) {
-        targetRotation.RotateLocal(glm::vec3(1, 0, 0), -PITCH_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_S)) {
-        targetRotation.RotateLocal(glm::vec3(1, 0, 0), PITCH_ROTATION);
-    }
-
-    //testing for rudder animations
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_A)) {
-        targetRotation.RotateLocal(glm::vec3(0, 1, 0), YAW_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_A)) {
-        targetRotation.RotateLocal(glm::vec3(0, 1, 0), -YAW_ROTATION);
-    }
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_D)) {
-        targetRotation.RotateLocal(glm::vec3(0, 1, 0), -YAW_ROTATION);
-    }
-    else if(InputManager::IsKeyJustReleased(GLFW_KEY_D)) {
-        targetRotation.RotateLocal(glm::vec3(0, 1, 0), YAW_ROTATION);
-    }
-
-    transform.rotation = glm::mix(transform.rotation, targetRotation.rotation, (float)Time::deltaTime * 10.0f);
-
+    transform.position += aircraftForward * controls.throttle * resource.settings.maxSpeed;
+    camera.position += aircraftForward * controls.throttle * resource.settings.maxSpeed;
     ApplyControlSurfaces();
 }
 
@@ -203,11 +191,38 @@ void Aircraft::UnloadResources()  {
     GraphicsBackend::DeleteShader(shader);
 }
 
+glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
+    glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(rotation, GLOBAL_FORWARD));
+    glm::vec3 aircraftUpVector = glm::normalize(glm::rotate(rotation, GLOBAL_UP));
+    glm::vec3 aircraftLeftVector = glm::normalize(glm::rotate(rotation, GLOBAL_LEFT));
+
+    glm::vec3 localLeftVector = glm::normalize(glm::rotate(aircraftForwardVector, glm::radians(90.0f), aircraftUpVector));
+    glm::vec3 localUpVector = glm::normalize(glm::rotate(aircraftForwardVector, glm::radians(90.0f), aircraftLeftVector));
+    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    float x = glm::dot(localLeftVector, cameraForward);
+    float y = glm::dot(localUpVector, cameraForward);
+    return glm::vec2(x, y);
+}
+
 void AircraftWidgetLayer::CreateWidgets() {
-    std::shared_ptr<CircleWidget> aim = std::make_shared<CircleWidget>("circleWidget");
+    aim = std::make_shared<CircleWidget>("aimWidget");
+    aim->radius = 0.05f;
+    aim->thickness = 0.005f;
+    aim->color.value = glm::vec4(0.0, 1.0, 0.0, 1.0);
     widgets.push_back(aim);
+
+    mouse = std::make_shared<CircleWidget>("mouseWidget");
+    mouse->radius = 0.025f;
+    mouse->thickness = 0.005f;
+    mouse->color.value = glm::vec4(0.0, 1.0, 0.0, 1.0);
+    widgets.push_back(mouse);
+
+    aircraft = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"));
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
+    mouse->position.x = InputManager::mouseDelta.x / 25.0f;
+    mouse->position.y = -InputManager::mouseDelta.y / 25.0f;
 
+    aim->position = UIAlignmentWithRotation(aircraft->transform.rotation);
 }

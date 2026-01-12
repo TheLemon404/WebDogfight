@@ -2,15 +2,15 @@
 #include "GLFW/glfw3.h"
 
 void InputManager::GLFWMouseCursorPosCallback(GLFWwindow* window, double x, double y) {
-    mouseDeltaX = x - mousePositionX;
-    mouseDeltaY = y - mousePositionY;
-    mousePositionX = x;
-    mousePositionY = y;
+    mouseDelta.x = x - mousePosition.x;
+    mouseDelta.y = y - mousePosition.y;
+    mousePosition.x = x;
+    mousePosition.y = y;
 }
 
 void InputManager::GLFWMouseScrollCallback(GLFWwindow* window, double x, double y) {
-    mouseScrollX = x;
-    mouseScrollY = y;
+    mouseScroll.x = x;
+    mouseScroll.y = y;
 }
 
 void InputManager::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -31,10 +31,10 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, in
 }
 
 void InputManager::ResetInputState() {
-    mouseDeltaX = 0.0;
-    mouseDeltaY = 0.0;
-    mouseScrollX = 0.0;
-    mouseScrollY = 0.0;
+    mouseDelta.x = 0.0;
+    mouseDelta.y = 0.0;
+    mouseScroll.x = 0.0;
+    mouseScroll.y = 0.0;
 
     for(size_t i = 0; i < GLFW_MAX_KEYS; i++) {
         lastKeyStates[i] = keyStates[i];
