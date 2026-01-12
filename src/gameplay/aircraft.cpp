@@ -12,6 +12,7 @@
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
 #include "../utils/math.hpp"
+#include "widget.hpp"
 #include <math.h>
 #include <nlohmann/json.hpp>
 
@@ -200,4 +201,8 @@ void Aircraft::Draw()  {
 void Aircraft::UnloadResources()  {
     GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
     GraphicsBackend::DeleteShader(shader);
+}
+
+void AircraftAimRecticle::Update() {
+    CircleWidget::Update();
 }

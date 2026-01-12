@@ -27,6 +27,20 @@ class Widget {
     virtual void UnloadResources() = 0;
 };
 
+class WidgetLayer {
+    public:
+    std::vector<std::shared_ptr<Widget>> widgets;
+
+    virtual void CreateWidgets() {};
+    virtual void UpdateLayer() {};
+
+    void LoadResources();
+    void Initialize();
+    void Update();
+    void Draw();
+    void UnloadResources();
+};
+
 class RectWidget : public Widget {
     public:
     void LoadResources() override;

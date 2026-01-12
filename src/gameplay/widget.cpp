@@ -4,6 +4,36 @@
 #include "../io/time.hpp"
 #include "../graphics/window.hpp"
 
+void WidgetLayer::LoadResources() {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        widget->LoadResources();
+    }
+}
+
+void WidgetLayer::Initialize() {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        widget->Initialize();
+    }
+}
+
+void WidgetLayer::Update() {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        widget->Update();
+    }
+}
+
+void WidgetLayer::Draw() {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        widget->Draw();
+    }
+}
+
+void WidgetLayer::UnloadResources() {
+    for(std::shared_ptr<Widget>& widget : widgets) {
+        widget->UnloadResources();
+    }
+}
+
 void RectWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
     shader = GraphicsBackend::CreateShader("resources/shaders/ui_square.glsl");
