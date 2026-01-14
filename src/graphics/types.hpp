@@ -148,3 +148,15 @@ class SkeletalMesh : public Mesh {
     SkeletalMesh() {}
     SkeletalMesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : Mesh(vao, vbo, ebo, vertexCount, indexCount) {}
 };
+
+struct Skybox {
+    Mesh mesh;
+    Shader shader;
+
+    public:
+    Color skyColor;
+    Color horizonColor;
+
+    Skybox();
+    ~Skybox();
+};

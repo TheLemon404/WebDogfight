@@ -4,13 +4,12 @@
 #include <vector>
 
 #define TERRAIN_RESOLUTION 100
-#define TERRAIN_SIZE 10
+#define TERRAIN_SIZE 100
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::LoadResources() {
     shader = GraphicsBackend::CreateShader("resources/shaders/terrain.glsl");
 }
-
 
 void Terrain::Initialize() {
     std::vector<Vertex> vertices;
@@ -24,6 +23,7 @@ void Terrain::Initialize() {
 
             glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, 0, z * TERRAIN_SIZE) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
             position -= glm::vec3((TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0, 0, (TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0);
+
 
             vertices.push_back({
                 position,

@@ -19,9 +19,10 @@
     "brake-max-angle": 60,
     "tail-max-angle": 30,
     "rudder-max-angle": 20,
-    "max-speed": 50,
+    "max-speed": 10000,
     "camera-ride-height": 6,
-    "camera-lag-distance": 25,
+    "camera-distance": 60,
+    "camera-zoom-distance": 20,
     "control-surface-tween-step": 1,
     "roll-magnifier": 1.0
   }

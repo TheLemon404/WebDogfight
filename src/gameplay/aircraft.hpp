@@ -33,7 +33,8 @@ struct AircraftResourceSettings {
     float rudderMaxAngle;
     float maxSpeed;
     float cameraRideHeight;
-    float cameraLagDistance;
+    float cameraDistance;
+    float cameraZoomDistance;
     float controlSurfaceTweenStep;
     float rollMagnifier;
 };
@@ -62,6 +63,8 @@ class Aircraft : public Entity {
 
     float targetRoll = 0.0f;
     float targetBrakeAngle = 0.0f;
+
+    glm::vec2 cameraRotationInputValue = glm::vec2(0.0);
 
     Transform targetRotation;
 

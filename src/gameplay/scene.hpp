@@ -46,6 +46,8 @@ class Scene {
     }
 
     void LoadResources() {
+        environment.skybox = std::make_shared<Skybox>();
+
         for(std::shared_ptr<Entity>& entity : entities) {
             entity->LoadResources();
         }
@@ -71,14 +73,7 @@ class Scene {
             widgetLayer->Update();
         }
     }
-    void Draw() {
-        for(std::shared_ptr<Entity>& entity : entities) {
-            entity->Draw();
-        }
-        for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
-            widgetLayer->Draw();
-        }
-    }
+    void Draw();
     void UnloadResources() {
         for(std::shared_ptr<Entity>& entity : entities) {
             entity->UnloadResources();

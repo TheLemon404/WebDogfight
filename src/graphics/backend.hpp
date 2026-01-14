@@ -26,6 +26,7 @@ enum ShaderReadMode {
 class GraphicsBackend {
     inline static Mesh debugCube;
     inline static Shader debugShader;
+
     static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
 
     public:
@@ -71,6 +72,10 @@ class GraphicsBackend {
         value ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     }
 
+    static void SetDepthMask(bool value) {
+        value ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
+    }
+
     static void SetDepthTest(bool value) {
         glDepthFunc(GL_LESS);
         value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
@@ -108,6 +113,8 @@ class GraphicsBackend {
         glClearColor(val, val, val, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    static void DrawSkybox(Skybox& skybox, Camera& camera);
 
     //debug drawing
     static void DrawDebugCube(Camera& camera, Transform& transform);

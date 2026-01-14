@@ -4,6 +4,9 @@
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
     debugShader = CreateShader("resources/shaders/flat.glsl");
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GraphicsBackend::UnloadResources() {
@@ -356,6 +359,33 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera
 
 void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
     glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
+    glUseProgram(skybox.shader.programID);
+
+    glBindVertexArray(skybox.mesh.vao);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    //vertex uniforms
+    UploadShaderUniformMat4(skybox.shader, camera.GetProjectionMatrix(), "uProjection");
+    UploadShaderUniformMat4(skybox.shader, glm::mat4(glm::mat3(camera.GetViewMatrix())), "uView");
+
+    //fragment uniforms
+    UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
+    UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
+
+    glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
