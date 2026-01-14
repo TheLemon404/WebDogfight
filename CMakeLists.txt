@@ -40,14 +40,14 @@ if(EMSCRIPTEN)
     file(GLOB imgui_src CONFIGURE_DEPENDS "vendor/imgui/*.cpp" "vendor/imgui/*.h")
     add_executable(WebDogfight ${src}
         ${imgui_src}
-        "vendor/stb_image.h"
+        "vendor/stb_image/stb_image.h"
         "vendor/imgui/backends/imgui_impl_glfw.cpp"
         "vendor/imgui/backends/imgui_impl_glfw.h"
         "vendor/imgui/backends/imgui_impl_opengl3.cpp"
         "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/imgui")
+    target_include_directories(WebDogfight PUBLIC "vendor/imgui" "vendor/stb_image")
     target_link_libraries(WebDogfight glm nlohmann_json)
 else()
     message(STATUS "Building for GLFW")
@@ -61,7 +61,6 @@ else()
     add_executable(WebDogfight ${src}
         ${imgui_src}
         "vendor/glad/src/glad.c"
-        "vendor/stb_image.h"
         "vendor/imgui/backends/imgui_impl_glfw.cpp"
         "vendor/imgui/backends/imgui_impl_glfw.h"
         "vendor/imgui/backends/imgui_impl_opengl3.cpp"

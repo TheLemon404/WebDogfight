@@ -10,7 +10,7 @@ layout(location = 2) in vec2 aUV;
 layout(location = 3) in uint aBoneID;
 
 uniform mat4 uTransform;
-uniform mat4 uView;
+uniform mat4 uViewTransform;
 uniform mat4 uProjection;
 uniform mat4 uJointTransforms[MAX_BONES];
 
@@ -38,10 +38,10 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uTransform * uJointTransforms[int(aBoneID)] * vec4(aPos, 1.0f);
-    gl_Position = uProjection * uView * worldPosition;
+    vec4 worldPosition = uViewTransform * uJointTransforms[int(aBoneID)] * vec4(aPos, 1.0f);
+    gl_Position = uProjection * worldPosition;
 
-    mat3 rotationMatrix = extractRotation(uTransform) * extractRotation(uJointTransforms[int(aBoneID)]);
+    mat3 rotationMatrix = extractRotation(uViewTransform) * extractRotation(uJointTransforms[int(aBoneID)]);
     pNormal = rotationMatrix * aNormal;
 
     pBoneID = aBoneID;

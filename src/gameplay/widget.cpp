@@ -56,9 +56,14 @@ void RectWidget::LoadResources() {
 }
 
 void RectWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale);
+    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
+    GraphicsBackend::UploadShaderUniformInt(shader, border, "uBorder");
+    GraphicsBackend::UploadShaderUniformInt(shader, cornerBorder, "uCornerBorder");
+    GraphicsBackend::UploadShaderUniformInt(shader, cornerLength, "uCornerLength");
+    GraphicsBackend::UploadShaderUniformVec4(shader, borderColor.value, "uBorderColor");
+    GraphicsBackend::UploadShaderUniformVec4(shader, cornerColor.value, "uCornerColor");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
 
@@ -73,7 +78,7 @@ void CircleWidget::LoadResources() {
 }
 
 void CircleWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale);
+    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformFloat(shader, radius, "uRadius");

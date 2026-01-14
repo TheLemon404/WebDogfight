@@ -14,6 +14,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <memory>
 #include <glm/glm.hpp>
 
 class Window {
@@ -90,7 +91,7 @@ class Window {
     void Poll() {
         glfwPollEvents();
 
-        if(InputManager::IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT)) {
             InputManager::mouseHidden = !InputManager::mouseHidden;
             glfwSetInputMode(window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
         }
@@ -108,10 +109,11 @@ class Window {
 
 class WindowManager {
     public:
+    inline static float widthFraction = 1.0f;
     inline static std::shared_ptr<Window> primaryWindow;
 
     static glm::mat4 GetUIOrthographicMatrix() {
-        float widthFraction = static_cast<float>(primaryWindow->width) / primaryWindow->height;
+        widthFraction = static_cast<float>(primaryWindow->width) / primaryWindow->height;
         return glm::ortho(-widthFraction, widthFraction, -1.0f, 1.0f, 0.01f, 100.0f);
     }
 };

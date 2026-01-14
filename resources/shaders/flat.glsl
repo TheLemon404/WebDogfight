@@ -6,7 +6,7 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
 
 uniform mat4 uTransform;
-uniform mat4 uView;
+uniform mat4 uViewTransform;
 uniform mat4 uProjection;
 
 out vec3 pNormal;
@@ -32,8 +32,8 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uTransform * vec4(aPos, 1.0f);
-    gl_Position = uProjection * uView * worldPosition;
+    vec4 worldPosition = uViewTransform * vec4(aPos, 1.0f);
+    gl_Position = uProjection * worldPosition;
 
     mat3 rotationMatrix = extractRotation(uTransform);
     pNormal = rotationMatrix * aNormal;

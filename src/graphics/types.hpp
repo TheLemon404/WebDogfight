@@ -13,6 +13,7 @@
 #include <string>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <unordered_map>
 
 
 class Transform {
@@ -63,11 +64,25 @@ struct Material {
 };
 
 class Shader {
+    std::unordered_map<std::string, int> uniformLocationCache;
+
     public:
     unsigned int programID;
 
     Shader(unsigned int programID) : programID(programID) {}
     Shader() : programID(0) {}
+
+    int GetCachedUniformLocation(const std::string& name) {
+        if(uniformLocationCache.find(name) != uniformLocationCache.end()) {
+            return uniformLocationCache[name];
+        }
+
+        return -1;
+    }
+
+    void SetCachedUniformLocation(const std::string& name, int location) {
+        uniformLocationCache[name] = location;
+    }
 };
 
 struct Vertex {
@@ -81,8 +96,9 @@ struct Vertex {
 class Texture {
     public:
     unsigned int id;
-    int widht;
+    int width;
     int height;
+    int channels;
 };
 
 class Bone {
@@ -125,6 +141,22 @@ class Bone {
 class Skeleton {
     public:
     std::vector<Bone> bones;
+    std::vector<glm::mat4> cachedGlobalBoneTransforms;
+
+    void UpdateGlobalBoneTransforms() {
+        cachedGlobalBoneTransforms.resize(bones.size());
+
+        for(size_t i = 0; i < bones.size(); i++) {
+            glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), bones[i].position) * glm::toMat4(bones[i].rotation) * glm::scale(glm::mat4(1.0f), bones[i].scale);
+
+            if(bones[i].parentID != -1) {
+                cachedGlobalBoneTransforms[i] = cachedGlobalBoneTransforms[bones[i].parentID] * localTransform;
+            }
+            else {
+                cachedGlobalBoneTransforms[i] = localTransform;
+            }
+        }
+    }
 };
 
 class Mesh {

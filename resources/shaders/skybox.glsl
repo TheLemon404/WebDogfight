@@ -34,7 +34,7 @@ void main()
 {
     gl_Position = uProjection * uView * vec4(aPos, 1.0f);
 
-    pNormal = normalize(vec3(0.0) - aPos);
+    pNormal = aNormal;
 }
 
 #fragment
@@ -45,11 +45,18 @@ in vec3 pNormal;
 
 uniform vec3 uSkyColor;
 uniform vec3 uHorizonColor;
+uniform vec3 uSunColor;
+uniform vec3 uSunDirection;
+uniform float uSunRadius;
 
 out vec4 FragColor;
 
 void main()
 {
     float lerpFactor = clamp(-pNormal.y, 0.0, 1.0);
-    FragColor = vec4(mix(uHorizonColor, uSkyColor, pow(lerpFactor, 0.7)), 1.0f);
+    float sunDot = max(dot(normalize(uSunDirection), pNormal), 0.0);
+    float sunLerp = pow(sunDot, 10.0);
+
+    vec3 sky = mix(uHorizonColor, uSkyColor, pow(lerpFactor, 0.7));
+    FragColor = vec4(mix(sky, uSunColor, sunLerp), 1.0f);
 }

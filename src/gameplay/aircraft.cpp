@@ -33,6 +33,8 @@
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
 
+#define GRAVITY 250.0f
+
 using json = nlohmann::json;
 
 void Aircraft::LoadResources() {
@@ -60,17 +62,20 @@ void Aircraft::LoadResources() {
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
     resource.settings.rudderMaxAngle = JSON["settings"]["rudder-max-angle"];
+    resource.settings.throttleIncreaseRate = JSON["settings"]["throttle-increase-rate"];
+    resource.settings.throttleCruise = JSON["settings"]["throttle-increase-rate"];
     resource.settings.maxSpeed = JSON["settings"]["max-speed"];
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraDistance = JSON["settings"]["camera-distance"];
     resource.settings.cameraZoomDistance = JSON["settings"]["camera-zoom-distance"];
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
     resource.settings.rollMagnifier = JSON["settings"]["roll-magnifier"];
+    resource.settings.rollRate = JSON["settings"]["roll-rate"];
 
     shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
-    transform.position.y = 10.0;
+    transform.position.y = 100.0;
 }
 
 void Aircraft::Initialize() {
@@ -82,7 +87,7 @@ void Aircraft::Initialize() {
 
 void Aircraft::ApplyControlSurfaces() {
     float uiDiff = aimWidget->position.x - mouseWidget->position.x;
-    glm::quat diffQuat = transform.rotation * glm::conjugate(targetRotation.rotation);
+    glm::quat diffQuat = transform.rotation * glm::inverse(targetRotation);
     glm::vec3 eulerAngles = glm::eulerAngles(diffQuat);
     float rollDelta = MathUtils::Clamp<float>(uiDiff, -1.0, 1.0);
     float pitchDelta = MathUtils::Clamp<float>(eulerAngles.x, -1.0, 1.0);
@@ -125,25 +130,35 @@ void Aircraft::Update() {
     glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
 
     //aircraft orientation
+    glm::quat extraRotation = glm::identity<glm::quat>();
     if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)){
         float uiDiff = aimWidget->position.x - mouseWidget->position.x;
-        targetRotation.rotation = glm::angleAxis(-uiDiff * resource.settings.rollMagnifier, GLOBAL_FORWARD);
-        targetRotation.rotation = glm::quatLookAt(-cameraForward, GLOBAL_UP) * targetRotation.rotation;
+        extraRotation = glm::angleAxis(MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f)), GLOBAL_FORWARD);
     }
 
-    transform.rotation = glm::slerp(transform.rotation, targetRotation.rotation, (float)Time::deltaTime);
+    targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
+    unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
+    transform.rotation = unrolledRotation * extraRotation;
 
     //throttle controls
     if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-        controls.throttle += 0.0001f;
+        controls.throttle += resource.settings.throttleIncreaseRate * Time::deltaTime;
     }
     else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-        controls.throttle -= 0.0001f;
+        controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
     }
+
     controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
-    transform.position += aircraftForward * controls.throttle * resource.settings.maxSpeed * Time::deltaTime;
-    camera.position += aircraftForward * controls.throttle * resource.settings.maxSpeed * Time::deltaTime;
+
+    glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
+
+    float fallFactor = GRAVITY * MathUtils::Clamp<float>(((1.0f * resource.settings.throttleCruise) - controls.throttle), 0.0, 1.0);
+    glm::vec3 moveOffset = ((unrotatedForward * controls.throttle * resource.settings.maxSpeed) + (-GLOBAL_UP * fallFactor)) * Time::deltaTime;
+    transform.position += moveOffset;
+    camera.position += moveOffset;
     ApplyControlSurfaces();
+
+    skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
 }
 
 void Aircraft::Draw()  {
@@ -177,36 +192,47 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
     float x = glm::dot(localLeftVector, cameraForward);
-    float y = glm::dot(localUpVector, cameraForward) * glm::sign(dot);
+    float y = glm::dot(localUpVector, cameraForward);
 
     return glm::vec2(x, y);
 }
 
 void AircraftWidgetLayer::CreateWidgets() {
     aim = std::make_shared<CircleWidget>("aimWidget");
-    aim->radius = 0.05f;
-    aim->thickness = 0.005f;
+    aim->radius = 0.02f;
+    aim->thickness = 0.002f;
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     widgets.push_back(aim);
 
-    mouse = std::make_shared<CircleWidget>("mouseWidget");
-    mouse->radius = 0.025f;
-    mouse->thickness = 0.005f;
-    mouse->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    mouse = std::make_shared<RectWidget>("mouseWidget");
+    mouse->rotation = 45.0;
+    mouse->scale = glm::vec2(0.02);
+    mouse->color.value.a = 0.0;
+    mouse->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    mouse->cornerColor.value = mouse->borderColor.value;
+    mouse->border = 16;
     widgets.push_back(mouse);
+
+    std::shared_ptr<RectWidget> rect = std::make_shared<RectWidget>("rect");
+    rect->position = glm::vec2(-0.7, -0.7);
+    rect->scale = glm::vec2(0.3, 0.2);
+    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(rect);
 
     aircraft = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"));
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
-    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / 50.0, Time::deltaTime * 10.0), -10.0, 10.0);
+    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / (WindowManager::widthFraction * 50.0), Time::deltaTime * 10.0), -10.0, 10.0);
 #ifdef __EMSCRIPTEN__
     mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, InputManager::mouseDelta.y / 50.0, Time::deltaTime * 10.0), -10.0, 10.0);
 #else
     mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 50.0, Time::deltaTime * 10.0), -10.0, 10.0);
 #endif
 
-    aim->position = UIAlignmentWithRotation(aircraft->transform.rotation);
+    aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
+    aim->position.x /= WindowManager::widthFraction;
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraft->transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);

@@ -1,4 +1,6 @@
 #include "loader.hpp"
+#include "backend.hpp"
+#include "types.hpp"
 
 std::vector<unsigned int> Loader::GetIntsFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
     std::vector<unsigned int> result;
@@ -293,3 +295,36 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
     return mesh;
 }
+
+/*
+Texture Loader::LoadTextureFromFile(const char* resourcePath) {
+    Texture texture = Texture();
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char *data = stbi_load(resourcePath, &texture.width, &texture.height, &texture.channels, 0);
+    if(data) {
+        if(texture.channels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+    }
+    else {
+        std::cout << "Failed to loat texture resource from file: " << resourcePath << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    return texture;
+}
+*/

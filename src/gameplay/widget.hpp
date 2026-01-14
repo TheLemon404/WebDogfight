@@ -10,6 +10,7 @@ class Widget {
 
     public:
     Color color;
+    float rotation = 0.0;
     glm::vec2 position;
     glm::vec2 scale = glm::vec2(1.0f);
 
@@ -46,13 +47,22 @@ class WidgetLayer {
 
 class RectWidget : public Widget {
     public:
+    int border = 1;
+    int cornerBorder = 1;
+    int cornerLength = 10;
+    Color borderColor;
+    Color cornerColor;
+
     void LoadResources() override;
     void Initialize() override {};
     void Update() override {};
     void Draw() override;
     void UnloadResources() override;
 
-    RectWidget(const std::string& name) : Widget(name) {};
+    RectWidget(const std::string& name) : Widget(name) {
+        borderColor.value = glm::vec4(1.0);
+        cornerColor.value = glm::vec4(1.0);
+    };
 };
 
 class CircleWidget : public Widget {

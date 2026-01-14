@@ -27,4 +27,5 @@ class Loader{
     public:
     static Mesh LoadMeshFromGLTF(const char* resourcePath);
     static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath);
+    static Texture LoadTextureFromFile(const char* resourcePath);
 };

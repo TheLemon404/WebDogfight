@@ -1,5 +1,8 @@
 #include "backend.hpp"
+#include "glm/ext/quaternion_transform.hpp"
 #include "types.hpp"
+#include "window.hpp"
+#include "../gameplay/scene_manager.hpp"
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
@@ -105,10 +108,10 @@ Shader GraphicsBackend::CreateShader(const std::string& resourcePath) {
 
 Mesh GraphicsBackend::CreateQuad() {
     std::vector<Vertex> vertices = {
-        {{-0.5f, -0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
-        {{ 0.5f, -0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
-        {{ 0.5f,  0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
-        {{-0.5f,  0.5f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
+        {{-1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
+        {{ 1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
+        {{ 1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
+        {{-1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
     };
 
     std::vector<unsigned int> indices = {
@@ -149,40 +152,40 @@ Mesh GraphicsBackend::CreateCube() {
     // Define the 8 unique vertices of a cube
     std::vector<Vertex> vertices = {
         // Front face
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
+        {{-1.0f, -1.0f,  1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
+        {{ 1.0f, -1.0f,  1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
+        {{ 1.0f,  1.0f,  1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
+        {{-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
 
         // Back face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}}, // 4
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}}, // 5
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}}, // 6
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}}, // 7
+        {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}}, // 4
+        {{ 1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}}, // 5
+        {{ 1.0f,  1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}}, // 6
+        {{-1.0f,  1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}}, // 7
 
         // Left face
-        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}}, // 8
-        {{-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}}, // 9
-        {{-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}}, // 10
-        {{-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}}, // 11
+        {{-1.0f, -1.0f, -1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}}, // 8
+        {{-1.0f, -1.0f,  1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}}, // 9
+        {{-1.0f,  1.0f,  1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}}, // 10
+        {{-1.0f,  1.0f, -1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}}, // 11
 
         // Right face
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},  // 12
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  // 13
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},  // 14
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},  // 15
+        {{ 1.0f, -1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},  // 12
+        {{ 1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  // 13
+        {{ 1.0f,  1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},  // 14
+        {{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},  // 15
 
         // Top face
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 16
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 17
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},  // 18
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},  // 19
+        {{-1.0f,  1.0f,  1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 16
+        {{ 1.0f,  1.0f,  1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 17
+        {{ 1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},  // 18
+        {{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},  // 19
 
         // Bottom face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}}, // 20
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}}, // 21
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}}, // 22
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}  // 23
+        {{-1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}}, // 20
+        {{ 1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}}, // 21
+        {{ 1.0f, -1.0f,  1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}}, // 22
+        {{-1.0f, -1.0f,  1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}  // 23
     };
 
     // Define indices for the 6 faces (2 triangles per face)
@@ -279,11 +282,13 @@ void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, 
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
-    UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
-    UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+    // -- IMPORTANT -- calculating view and transform on CPU prevents the floating poij
+    glm::mat4 transformMatrix = transform.GetMatrix();
+    UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
+    UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
     for(size_t i = 0; i < mesh.skeleton.bones.size(); i++) {
-        UploadShaderUniformMat4(shader, mesh.skeleton.bones[i].GetGlobalTransform(mesh.skeleton.bones) * mesh.skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(mesh.skeleton.bones[i].id) + "]");
+        UploadShaderUniformMat4(shader, mesh.skeleton.cachedGlobalBoneTransforms[i] * mesh.skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(mesh.skeleton.bones[i].id) + "]");
     }
 
     //fragment uniforms
@@ -313,9 +318,10 @@ void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, 
     glEnableVertexAttribArray(2);
 
     //vertex uniforms
+    glm::mat4 transformMatrix = transform.GetMatrix();
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
-    UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
-    UploadShaderUniformMat4(shader, transform.GetMatrix(), "uTransform");
+    UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
+    UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
     //fragment uniforms
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
@@ -333,7 +339,7 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera, glm::vec2 &screenPosition, glm::vec2 &scale) {
+void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -343,11 +349,12 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera
     glEnableVertexAttribArray(2);
 
     Transform t = Transform();
-    t.position.x = screenPosition.x;
+    t.position.x = screenPosition.x * WindowManager::widthFraction;
     t.position.y = screenPosition.y;
     t.position.z = -1.0f;
     t.scale.x = scale.x;
     t.scale.y = scale.y;
+    t.rotation = glm::rotate(t.rotation, glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0));
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
@@ -384,6 +391,9 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     //fragment uniforms
     UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
     UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
+    UploadShaderUniformVec3(skybox.shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
+    UploadShaderUniformVec3(skybox.shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    UploadShaderUniformFloat(skybox.shader, SceneManager::currentScene->environment.sunRadius, "uSunRadius");
 
     glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 

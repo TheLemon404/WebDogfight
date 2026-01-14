@@ -29,6 +29,15 @@ class GraphicsBackend {
 
     static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
 
+    static int GetUniformLocation(Shader& shader, const std::string& var) {
+        GLint location = shader.GetCachedUniformLocation(var);
+        if(location == -1) {
+            location = glGetUniformLocation(shader.programID, var.c_str());
+            shader.SetCachedUniformLocation(var, location);
+        }
+        return location;
+    }
+
     public:
     inline static bool debugMode = false;
 
@@ -39,32 +48,32 @@ class GraphicsBackend {
     static void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
     static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
     static void UploadShaderUniformVec4(Shader& shader, const glm::vec4& vector, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniform4fv(location, 1, glm::value_ptr(vector));
     }
 
     static void UploadShaderUniformVec3(Shader& shader, const glm::vec3& vector, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniform3fv(location, 1, glm::value_ptr(vector));
     }
 
     static void UploadShaderUniformVec2(Shader& shader, const glm::vec2& vector, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniform2fv(location, 1, glm::value_ptr(vector));
     }
 
     static void UploadShaderUniformFloat(Shader& shader, const float val, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniform1f(location, val);
     }
 
     static void UploadShaderUniformInt(Shader& shader, const int val, const std::string& var) {
-        GLint location = glGetUniformLocation(shader.programID, var.c_str());
+        GLint location = GetUniformLocation(shader, var);
         glUniform1i(location, val);
     }
 
@@ -104,7 +113,7 @@ class GraphicsBackend {
     static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform);
     static void EndDrawMesh(Mesh& mesh);
 
-    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, Camera& camera, glm::vec2& screenPosition, glm::vec2& scale);
+    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, Camera& camera, glm::vec2& screenPosition, glm::vec2& scale, float rotation);
     static void EndDrawMesh2D(Mesh& mesh);
 
     static void ResetState(int viewportWidth, int viewportHeight) {

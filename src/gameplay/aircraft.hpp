@@ -2,6 +2,7 @@
 
 #include "../graphics/types.hpp"
 #include "entity.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "widget.hpp"
 #include <string>
 #include <memory>
@@ -31,12 +32,15 @@ struct AircraftResourceSettings {
     float brakeMaxAngle;
     float tailMaxAngle;
     float rudderMaxAngle;
+    float throttleIncreaseRate;
+    float throttleCruise;
     float maxSpeed;
     float cameraRideHeight;
     float cameraDistance;
     float cameraZoomDistance;
     float controlSurfaceTweenStep;
     float rollMagnifier;
+    float rollRate;
 };
 
 struct AircraftResource {
@@ -61,19 +65,22 @@ class Aircraft : public Entity {
     std::shared_ptr<Widget> aimWidget;
     std::shared_ptr<Widget> mouseWidget;
 
-    float targetRoll = 0.0f;
     float targetBrakeAngle = 0.0f;
 
     glm::vec2 cameraRotationInputValue = glm::vec2(0.0);
 
-    Transform targetRotation;
+    glm::quat targetRotation;
 
     void ApplyControlSurfaces();
+
+    float rollValue;
 
     public:
     Shader shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
+
+    glm::quat unrolledRotation = glm::identity<glm::quat>();
 
     glm::vec3 RotatePointAroundPoint(
         const glm::vec3& pointToRotate,
@@ -108,7 +115,7 @@ class Aircraft : public Entity {
 class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<Aircraft> aircraft;
     std::shared_ptr<CircleWidget> aim;
-    std::shared_ptr<CircleWidget> mouse;
+    std::shared_ptr<RectWidget> mouse;
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
     void CreateWidgets() override;
     void UpdateLayer() override;
