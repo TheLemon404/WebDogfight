@@ -2,6 +2,9 @@
 #include "backend.hpp"
 #include "types.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 std::vector<unsigned int> Loader::GetIntsFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
     std::vector<unsigned int> result;
 
@@ -296,7 +299,6 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     return mesh;
 }
 
-/*
 Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     Texture texture = Texture();
 
@@ -327,4 +329,3 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
 
     return texture;
 }
-*/

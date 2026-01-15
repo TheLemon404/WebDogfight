@@ -61,13 +61,14 @@ else()
     add_executable(WebDogfight ${src}
         ${imgui_src}
         "vendor/glad/src/glad.c"
+        "vendor/stb_image/stb_image.h"
         "vendor/imgui/backends/imgui_impl_glfw.cpp"
         "vendor/imgui/backends/imgui_impl_glfw.h"
         "vendor/imgui/backends/imgui_impl_opengl3.cpp"
         "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui")
+    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui" "vendor/stb_image")
     target_link_libraries(WebDogfight glfw glm nlohmann_json)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
