@@ -199,7 +199,7 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
 
 void AircraftWidgetLayer::CreateWidgets() {
     aim = std::make_shared<CircleWidget>("aimWidget");
-    aim->radius = 0.02f;
+    aim->radius = 0.015f;
     aim->thickness = 0.002f;
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     widgets.push_back(aim);
@@ -224,11 +224,11 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
-    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / (WindowManager::widthFraction * 50.0), Time::deltaTime * 10.0), -10.0, 10.0);
+    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / (WindowManager::widthFraction * 50.0), Time::deltaTime * 2.0), -10.0, 10.0);
 #ifdef __EMSCRIPTEN__
-    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, InputManager::mouseDelta.y / 50.0, Time::deltaTime * 10.0), -10.0, 10.0);
+    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, InputManager::mouseDelta.y / 50.0, Time::deltaTime * 2.0), -10.0, 10.0);
 #else
-    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 50.0, Time::deltaTime * 10.0), -10.0, 10.0);
+    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 50.0, Time::deltaTime * 2.0), -10.0, 10.0);
 #endif
 
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
