@@ -3,6 +3,7 @@
 #include "types.hpp"
 #include "window.hpp"
 #include "../gameplay/scene_manager.hpp"
+#include "../utils/math.hpp"
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
@@ -354,7 +355,7 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera
     t.position.z = -1.0f;
     t.scale.x = scale.x;
     t.scale.y = scale.y;
-    t.rotation = glm::rotate(t.rotation, glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0));
+    t.rotation = glm::rotate(t.rotation, glm::radians(rotation), GLOBAL_FORWARD);
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
