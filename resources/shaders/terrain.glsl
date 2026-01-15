@@ -9,8 +9,12 @@ uniform mat4 uViewTransform;
 uniform mat4 uTransform;
 uniform mat4 uProjection;
 
+uniform sampler2D uHeightmap;
+
 out vec2 pUV;
-out vec3 pNormal;
+out vec3 pPos;
+
+#define HEIGHT_CONSTANT 10000.0
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -33,13 +37,14 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uViewTransform * vec4(aPos, 1.0f);
-    gl_Position = uProjection * worldPosition;
-
-    mat3 rotationMatrix = extractRotation(uTransform);
-    pNormal = rotationMatrix * aNormal;
+    float height = textureLod(uHeightmap, aUV, 0.0).r * HEIGHT_CONSTANT;
+    vec3 worldPosition = aPos + vec3(0.0, height, 0.0);
+    vec4 viewPosition = uViewTransform * vec4(worldPosition, 1.0);
+    gl_Position = uProjection * viewPosition;
 
     pUV = aUV;
+
+    pPos = worldPosition;
 }
 
 #fragment
@@ -47,13 +52,15 @@ void main()
 precision highp float;
 
 in vec2 pUV;
-in vec3 pNormal;
+in vec3 pPos;
 
 uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
 uniform int uResolution;
+
+uniform vec3 cameraPosition;
 
 out vec4 FragColor;
 
@@ -66,6 +73,7 @@ void main()
 
     float val = float(bool(checkerX) ^^ bool(checkerY));
 
-    float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, vec3(val) * uAlbedo, dot), 1.0f);
+    vec3 normal = normalize(cross(dFdx(pPos), dFdy(pPos)));
+    float dot = clamp(dot(normal, -uSunDirection), 0.0, 1.0);
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), 1.0f);
 }

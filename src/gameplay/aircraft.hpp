@@ -49,7 +49,7 @@ struct AircraftResource {
 };
 
 struct AircraftControls {
-    float throttle = 0.0;
+    float throttle = 0.5;
 };
 
 struct AircraftPhysicsBody {
@@ -64,6 +64,8 @@ class Aircraft : public Entity {
 
     std::shared_ptr<Widget> aimWidget;
     std::shared_ptr<Widget> mouseWidget;
+
+    glm::vec2 smoothedMouseDelta = glm::vec2(0.0);
 
     float targetBrakeAngle = 0.0f;
 
@@ -82,12 +84,7 @@ class Aircraft : public Entity {
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
 
-    glm::vec3 RotatePointAroundPoint(
-        const glm::vec3& pointToRotate,
-        const glm::vec3& center,
-        float angleRadians,
-        const glm::vec3& axis)
-    {
+    glm::vec3 RotatePointAroundPoint(const glm::vec3& pointToRotate, const glm::vec3& center, float angleRadians, const glm::vec3& axis) {
         // 1. Translate the point to the origin (relative to the center)
         glm::vec3 translatedPoint = pointToRotate - center;
 

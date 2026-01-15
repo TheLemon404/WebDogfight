@@ -75,7 +75,7 @@ void Aircraft::LoadResources() {
     shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
-    transform.position.y = 100.0;
+    transform.position.y = 6000.0;
 }
 
 void Aircraft::Initialize() {
@@ -117,10 +117,11 @@ void Aircraft::Update() {
     camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
     camera.position = camera.target + GLOBAL_FORWARD * (InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance);
     //this ugly one-liner makes for smooth camera rotation
-    cameraRotationInputValue = MathUtils::Lerp<glm::vec2>(cameraRotationInputValue, cameraRotationInputValue + InputManager::mouseDelta * Time::deltaTime * 3.0, Time::deltaTime * 5.0);
-
+    smoothedMouseDelta = MathUtils::Lerp<glm::vec2>(smoothedMouseDelta, InputManager::mouseDelta / 500.0, Time::deltaTime * 10.0);
+    cameraRotationInputValue += smoothedMouseDelta;
     glm::vec3 horizontalAxis = RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
     camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
+    camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, glm::vec3(0.0, 1.0, 0.0));
     camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, glm::vec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
@@ -156,6 +157,7 @@ void Aircraft::Update() {
     glm::vec3 moveOffset = ((unrotatedForward * controls.throttle * resource.settings.maxSpeed) + (-GLOBAL_UP * fallFactor)) * Time::deltaTime;
     transform.position += moveOffset;
     camera.position += moveOffset;
+
     ApplyControlSurfaces();
 
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();

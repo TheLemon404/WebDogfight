@@ -302,22 +302,32 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
 Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     Texture texture = Texture();
 
+    std::cout << "Attemping to read Texture file at: " << resourcePath << std::endl;
+
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     unsigned char *data = stbi_load(resourcePath, &texture.width, &texture.height, &texture.channels, 0);
     if(data) {
-        if(texture.channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        if(texture.channels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 2) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, texture.width, texture.height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         else if(texture.channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8I, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
     }

@@ -77,6 +77,22 @@ class GraphicsBackend {
         glUniform1i(location, val);
     }
 
+    static void UseTextureSlot(const Texture& texture, unsigned int slot) {
+        switch (slot) {
+            case 0:
+                glActiveTexture(GL_TEXTURE0);
+                break;
+            case 1:
+                glActiveTexture(GL_TEXTURE1);
+                break;
+        }
+        glBindTexture(GL_TEXTURE_2D, texture.id);
+    }
+
+    static void ResetTextureSlots() {
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     static void SetBackfaceCulling(bool value) {
         value ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     }

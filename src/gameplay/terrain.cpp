@@ -1,14 +1,26 @@
 #include "terrain.hpp"
 #include "../graphics/backend.hpp"
+#include "../graphics/loader.hpp"
 #include "scene_manager.hpp"
 #include <vector>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 #define TERRAIN_RESOLUTION 100
-#define TERRAIN_SIZE 100
+#define TERRAIN_SIZE 1000
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::LoadResources() {
-    shader = GraphicsBackend::CreateShader("resources/shaders/terrain.glsl");
+
+    std::cout << "Attemping to read Terrain Resource JSON file at: " << terrainResourcePath << std::endl;
+    std::string resourceFileText = Files::ReadResourceString(terrainResourcePath);
+    json JSON = json::parse(resourceFileText);
+    resource.assets.shader = JSON["assets"]["shader"];
+    resource.assets.heightmap = JSON["assets"]["heightmap"];
+
+    shader = GraphicsBackend::CreateShader(resource.assets.shader);
+    heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
 }
 
 void Terrain::Initialize() {
@@ -61,5 +73,8 @@ void Terrain::Draw() {
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
     GraphicsBackend::UploadShaderUniformInt(shader, TERRAIN_RESOLUTION, "uResolution");
+    GraphicsBackend::UseTextureSlot(heightMap, 0);
+    GraphicsBackend::UploadShaderUniformInt(shader, 0, "uHeightmap");
     GraphicsBackend::EndDrawMesh(mesh);
+    GraphicsBackend::ResetTextureSlots();
 }
