@@ -140,7 +140,7 @@ void Aircraft::Update() {
     glm::quat extraRotation = glm::identity<glm::quat>();
 
     if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)){
-        uiDiff = aimWidget->position.x - mouseWidget->position.x;
+        uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
         targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
     }
 
