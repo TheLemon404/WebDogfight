@@ -5,6 +5,7 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "widget.hpp"
+#include <cstdlib>
 #include <string>
 #include <memory>
 #include <future>
@@ -61,6 +62,7 @@ struct AircraftPhysicsBody {
 
 class AircraftExhaustParticleSystem : public ParticleSystem {
     float particleLifetimes[MAX_PARTICLE_TRANSFORMS];
+    float particleRotations[MAX_PARTICLE_TRANSFORMS];
     float particleStartLifetime = 1.0;
 
     public:
@@ -73,8 +75,9 @@ class AircraftExhaustParticleSystem : public ParticleSystem {
     void UnloadResources() override;
 
     AircraftExhaustParticleSystem() {
-        for(size_t i = 1; i < MAX_PARTICLE_TRANSFORMS; i++){
+        for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++){
             particleLifetimes[i] = particleStartLifetime * ((float)i / (MAX_PARTICLE_TRANSFORMS - 1.0));
+            particleRotations[i] = (float)rand() / 10.0f;
         }
     }
 };

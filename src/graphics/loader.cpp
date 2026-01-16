@@ -330,12 +330,12 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8I, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
+
+        texture.data = data;
     }
     else {
         std::cout << "Failed to loat texture resource from file: " << resourcePath << std::endl;
     }
-
-    stbi_image_free(data);
 
     return texture;
 }

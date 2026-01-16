@@ -101,6 +101,8 @@ class Texture {
     int width;
     int height;
     int channels = 3;
+
+    unsigned char* data;
 };
 
 class Bone {

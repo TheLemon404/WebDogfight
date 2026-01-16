@@ -26,7 +26,7 @@ class Terrain : public Entity {
 
     void LoadResources() override;
     void Initialize() override;
-    void Update() override {};
+    void Update() override;
     void Draw() override;
-    void UnloadResources() override {};
+    void UnloadResources() override;
 };

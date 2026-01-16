@@ -19,6 +19,8 @@
 #include <string>
 #include <iostream>
 
+#include "stb_image.h"
+
 enum ShaderReadMode {
     VERTEX,
     FRAGMENT
@@ -121,6 +123,11 @@ class GraphicsBackend {
 
     static void DeleteShader(Shader& shader) {
         glDeleteProgram(shader.programID);
+    }
+
+    static void DeleteTexture(Texture& texture) {
+        glDeleteTextures(1, &texture.id);
+        stbi_image_free(texture.data);
     }
 
     static void UnloadResources();

@@ -289,12 +289,13 @@ void AircraftExhaustParticleSystem::Update() {
         if(particleLifetimes[i] <= 0.0) {
             transforms[i].position = aircraftPosition;
             particleLifetimes[i] = particleStartLifetime;
+            particleRotations[i] = (float)rand() / 10.0f;
         }
         else {
             particleLifetimes[i] -= Time::deltaTime;
         }
 
-        transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP);
+        transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP) * glm::angleAxis(particleRotations[i], GLOBAL_FORWARD);
         float scaleByLifetime = (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))) * 3.0;
         transforms[i].scale = glm::vec3(scaleByLifetime);
     }

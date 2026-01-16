@@ -1,18 +1,21 @@
 #include "terrain.hpp"
 #include "../graphics/backend.hpp"
 #include "../graphics/loader.hpp"
+#include "entity.hpp"
+#include "aircraft.hpp"
 #include "scene_manager.hpp"
 #include <vector>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#define HEIGHT_CONSTANT 10000.0f
+
 #define TERRAIN_RESOLUTION 100
-#define TERRAIN_SIZE 1000
+#define TERRAIN_SIZE 100000
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::LoadResources() {
-
     std::cout << "Attemping to read Terrain Resource JSON file at: " << terrainResourcePath << std::endl;
     std::string resourceFileText = Files::ReadResourceString(terrainResourcePath);
     json JSON = json::parse(resourceFileText);
@@ -33,8 +36,8 @@ void Terrain::Initialize() {
             float x = static_cast<float>(i) / ((float)TERRAIN_RESOLUTION - 1);
             float z = static_cast<float>(j) / ((float)TERRAIN_RESOLUTION - 1);
 
-            glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, 0, z * TERRAIN_SIZE) * glm::vec3((float)TERRAIN_RESOLUTION, 1, (float)TERRAIN_RESOLUTION);
-            position -= glm::vec3((TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0, 0, (TERRAIN_RESOLUTION * TERRAIN_SIZE) / 2.0);
+            glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, 0, z * TERRAIN_SIZE);
+            position -= glm::vec3((TERRAIN_SIZE) / 2.0, 0, (TERRAIN_SIZE) / 2.0);
 
 
             vertices.push_back({
@@ -68,6 +71,22 @@ void Terrain::Initialize() {
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 
+void Terrain::Update() {
+    for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
+        glm::vec2 uv = glm::vec2(aircraft->transform.position.x, aircraft->transform.position.z) + glm::vec2(TERRAIN_SIZE / 2.0);
+        uv /= glm::vec2(TERRAIN_SIZE);
+
+        glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
+        int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
+        unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
+        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT;
+
+        if(aircraft->transform.position.y <= height) {
+            aircraft->transform.position.y += 6000.0;
+        }
+    }
+}
+
 void Terrain::Draw() {
     GraphicsBackend::BeginDrawMesh(mesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
@@ -78,4 +97,10 @@ void Terrain::Draw() {
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::ResetTextureSlots();
+}
+
+void Terrain::UnloadResources() {
+    GraphicsBackend::DeleteMesh(mesh);
+    GraphicsBackend::DeleteShader(shader);
+    GraphicsBackend::DeleteTexture(heightMap);
 }

@@ -29,6 +29,18 @@ class Scene {
         return nullptr;
     }
 
+    template <typename T>
+    std::vector<std::shared_ptr<T>> GetEntitiesByType() {
+        std::vector<std::shared_ptr<T>> result;
+        for(std::shared_ptr<Entity> entity : entities) {
+            std::shared_ptr<T> cast = std::dynamic_pointer_cast<T>(entity);
+            if(cast) {
+                result.push_back(cast);
+            }
+        }
+        return result;
+    }
+
     std::shared_ptr<Widget> GetWidgetByName(const std::string& name) {
         for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
             return widgetLayer->GetWidgetByName(name);
