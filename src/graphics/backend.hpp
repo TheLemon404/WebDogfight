@@ -5,6 +5,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "types.hpp"
 
+#include <cstddef>
 #include <cstring>
 #include <sstream>
 
@@ -128,6 +129,8 @@ class GraphicsBackend {
     static void EndDrawSkeletalMesh(Mesh& mesh);
     static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform);
     static void EndDrawMesh(Mesh& mesh);
+    static void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
+    static void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);
 
     static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, Camera& camera, glm::vec2& screenPosition, glm::vec2& scale, float rotation);
     static void EndDrawMesh2D(Mesh& mesh);

@@ -47,6 +47,7 @@ in vec3 pNormal;
 
 uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
+uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
 
@@ -55,5 +56,5 @@ out vec4 FragColor;
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), 1.0f);
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
 }

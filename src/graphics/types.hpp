@@ -15,6 +15,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <unordered_map>
 
+#define MAX_PARTICLE_TRANSFORMS 25
 
 class Transform {
     public:
@@ -61,6 +62,7 @@ class Camera {
 struct Material {
     glm::vec3 albedo = glm::vec3(1.0f);
     glm::vec3 shadowColor = glm::vec3(0.3f);
+    float alpha = 1.0f;
 };
 
 class Shader {
@@ -122,20 +124,6 @@ class Bone {
         glm::vec3 globalAxis = rotation * localAxis;
         rotation = glm::angleAxis(glm::radians(localAngle), globalAxis) * restingRotation;
     }
-
-    glm::mat4 GetGlobalTransform(std::vector<Bone>& skeletalArray) {
-        glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), position) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
-
-        if(parentID != -1) {
-            for(size_t i = 0; i < skeletalArray.size(); i++){
-                if(skeletalArray[i].id == parentID){
-                    return skeletalArray[i].GetGlobalTransform(skeletalArray) * localTransform;
-                }
-            }
-        }
-
-        return localTransform;
-    }
 };
 
 class Skeleton {
@@ -143,20 +131,7 @@ class Skeleton {
     std::vector<Bone> bones;
     std::vector<glm::mat4> cachedGlobalBoneTransforms;
 
-    void UpdateGlobalBoneTransforms() {
-        cachedGlobalBoneTransforms.resize(bones.size());
-
-        for(size_t i = 0; i < bones.size(); i++) {
-            glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), bones[i].position) * glm::toMat4(bones[i].rotation) * glm::scale(glm::mat4(1.0f), bones[i].scale);
-
-            if(bones[i].parentID != -1) {
-                cachedGlobalBoneTransforms[i] = cachedGlobalBoneTransforms[bones[i].parentID] * localTransform;
-            }
-            else {
-                cachedGlobalBoneTransforms[i] = localTransform;
-            }
-        }
-    }
+    void UpdateGlobalBoneTransforms();
 };
 
 class Mesh {
@@ -191,4 +166,18 @@ struct Skybox {
 
     Skybox();
     ~Skybox();
+};
+
+class ParticleSystem {
+    protected:
+    Mesh mesh;
+    Shader shader;
+    Transform transforms[MAX_PARTICLE_TRANSFORMS];
+
+    public:
+    virtual void LoadResources() = 0;
+    virtual void Initialize() = 0;
+    virtual void Update() = 0;
+    virtual void Draw() = 0;
+    virtual void UnloadResources() = 0;
 };

@@ -20,4 +20,21 @@ class MathUtils {
         else if(val > max) return max;
         return val;
     }
+
+
+    static glm::vec3 RotatePointAroundPoint(const glm::vec3& pointToRotate, const glm::vec3& center, float angleRadians, const glm::vec3& axis) {
+        // 1. Translate the point to the origin (relative to the center)
+        glm::vec3 translatedPoint = pointToRotate - center;
+
+        // 2. Create the rotation quaternion
+        glm::quat rotationQuat = glm::angleAxis(angleRadians, axis);
+
+        // 3. Apply the rotation using quaternion multiplication
+        glm::vec3 rotatedPoint = rotationQuat * translatedPoint;
+
+        // 4. Translate the point back to its original position (relative to the center)
+        glm::vec3 finalPoint = rotatedPoint + center;
+
+        return finalPoint;
+    }
 };

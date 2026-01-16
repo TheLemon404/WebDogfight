@@ -11,7 +11,9 @@
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
+#include "glm/fwd.hpp"
 #include "glm/gtc/constants.hpp"
+#include <cstddef>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
 #include <glm/gtx/rotate_vector.hpp>
@@ -34,6 +36,7 @@
 #define PITCH_ROTATION 25
 
 #define GRAVITY 250.0f
+#define MAGIC_STALL_NUMBER 46.0f
 
 using json = nlohmann::json;
 
@@ -76,6 +79,9 @@ void Aircraft::LoadResources() {
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
     transform.position.y = 6000.0;
+
+    exhaustParticles = AircraftExhaustParticleSystem();
+    exhaustParticles.LoadResources();
 }
 
 void Aircraft::Initialize() {
@@ -83,6 +89,8 @@ void Aircraft::Initialize() {
     mouseWidget = SceneManager::currentScene->GetWidgetByName("mouseWidget");
 
     skeletalMesh.material.albedo = glm::vec3(0.7f);
+
+    exhaustParticles.Initialize();
 }
 
 void Aircraft::ApplyControlSurfaces() {
@@ -94,8 +102,10 @@ void Aircraft::ApplyControlSurfaces() {
     float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
 
     //testing for flaps
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
+    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)) {
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
+        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
+    }
 
     //testing for tail animation
     skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
@@ -119,10 +129,9 @@ void Aircraft::Update() {
     //this ugly one-liner makes for smooth camera rotation
     smoothedMouseDelta = MathUtils::Lerp<glm::vec2>(smoothedMouseDelta, InputManager::mouseDelta / 500.0, Time::deltaTime * 10.0);
     cameraRotationInputValue += smoothedMouseDelta;
-    glm::vec3 horizontalAxis = RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
+    glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
     camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
-    camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, glm::vec3(0.0, 1.0, 0.0));
-    camera.position = RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, glm::vec3(0.0, 1.0, 0.0));
+    camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, glm::vec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
     glm::vec3 cameraRight = glm::cross(glm::vec3(0.0, 1.0, 0.0), cameraForward);
@@ -132,12 +141,15 @@ void Aircraft::Update() {
 
     //aircraft orientation
     glm::quat extraRotation = glm::identity<glm::quat>();
+
     if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)){
-        float uiDiff = aimWidget->position.x - mouseWidget->position.x;
-        extraRotation = glm::angleAxis(MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f)), GLOBAL_FORWARD);
+        uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
+        targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
     }
 
-    targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
+    float rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
+    extraRotation = glm::angleAxis(rollAngle, GLOBAL_FORWARD);
+
     unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
     transform.rotation = unrolledRotation * extraRotation;
 
@@ -148,19 +160,31 @@ void Aircraft::Update() {
     else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
         controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
     }
-
     controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
 
     glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
-    float fallFactor = GRAVITY * MathUtils::Clamp<float>(((1.0f * resource.settings.throttleCruise) - controls.throttle), 0.0, 1.0);
-    glm::vec3 moveOffset = ((unrotatedForward * controls.throttle * resource.settings.maxSpeed) + (-GLOBAL_UP * fallFactor)) * Time::deltaTime;
+    //stalling logic
+    float upDot = MathUtils::Clamp<float>(glm::dot(unrotatedForward, GLOBAL_UP), 0.0, 1.0);
+    float throttleMinimize = upDot / MAGIC_STALL_NUMBER;
+
+    appliedForce = MathUtils::Lerp<float>(appliedForce, controls.throttle, Time::deltaTime * 2.0);
+    appliedForce -= throttleMinimize;
+
+    float fallFaceFactor = MathUtils::Clamp<float>(glm::abs(MathUtils::Clamp<float>(appliedForce, -1.0, 0.0) * 10.0), 0.0, 1.0);
+
+    transform.rotation = glm::slerp(transform.rotation, downQuaternion, fallFaceFactor);
+
+    float fallFactor = GRAVITY * MathUtils::Clamp<float>(((1.0f * resource.settings.throttleCruise) - appliedForce), 0.0, 1.0);
+    glm::vec3 moveOffset = ((unrotatedForward * appliedForce * resource.settings.maxSpeed) + (-GLOBAL_UP * fallFactor)) * Time::deltaTime;
     transform.position += moveOffset;
     camera.position += moveOffset;
 
     ApplyControlSurfaces();
-
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
+
+    exhaustParticles.aircraftPosition = transform.position;
+    exhaustParticles.Update();
 }
 
 void Aircraft::Draw()  {
@@ -176,11 +200,15 @@ void Aircraft::Draw()  {
         t.scale = glm::vec3(10.0);
         GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, t);
     }
+
+    exhaustParticles.Draw();
 }
 
 void Aircraft::UnloadResources()  {
     GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
     GraphicsBackend::DeleteShader(shader);
+
+    exhaustParticles.UnloadResources();
 }
 
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
@@ -226,11 +254,11 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
-    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / (WindowManager::widthFraction * 50.0), Time::deltaTime * 2.0), -10.0, 10.0);
+    mouse->position.x = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.x, InputManager::mouseDelta.x / (WindowManager::widthFraction * 30.0), Time::deltaTime * 2.0), -10.0, 10.0);
 #ifdef __EMSCRIPTEN__
-    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, InputManager::mouseDelta.y / 50.0, Time::deltaTime * 2.0), -10.0, 10.0);
+    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, InputManager::mouseDelta.y / 30.0, Time::deltaTime * 2.0), -10.0, 10.0);
 #else
-    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 50.0, Time::deltaTime * 2.0), -10.0, 10.0);
+    mouse->position.y = MathUtils::Clamp<float>(MathUtils::Lerp<double>(mouse->position.y, -InputManager::mouseDelta.y / 30.0, Time::deltaTime * 2.0), -10.0, 10.0);
 #endif
 
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
@@ -240,4 +268,47 @@ void AircraftWidgetLayer::UpdateLayer() {
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
     aim->color.value.a = dot;
+}
+
+void AircraftExhaustParticleSystem::LoadResources() {
+    mesh = GraphicsBackend::CreateQuad();
+    mesh.material.albedo = glm::vec3(0.7f);
+    mesh.material.alpha = 0.1f;
+    shader = GraphicsBackend::CreateShader("resources/shaders/particles.glsl");
+}
+
+void AircraftExhaustParticleSystem::Initialize() {
+    for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
+        transforms[i] = Transform();
+        transforms[i].position = aircraftPosition;
+    }
+}
+
+void AircraftExhaustParticleSystem::Update() {
+    glm::vec3 toCameraDir = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
+        if(particleLifetimes[i] <= 0.0) {
+            transforms[i].position = aircraftPosition;
+            particleLifetimes[i] = particleStartLifetime;
+        }
+        else {
+            particleLifetimes[i] -= Time::deltaTime;
+        }
+
+        transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP);
+        float scaleByLifetime = (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))) * 3.0;
+        transforms[i].scale = glm::vec3(scaleByLifetime);
+    }
+}
+
+void AircraftExhaustParticleSystem::Draw() {
+    GraphicsBackend::SetBackfaceCulling(false);
+    GraphicsBackend::BeginDrawMeshInstanced(mesh, shader, SceneManager::activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
+    GraphicsBackend::EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
+    GraphicsBackend::SetBackfaceCulling(true);
+}
+
+void AircraftExhaustParticleSystem::UnloadResources() {
+    GraphicsBackend::DeleteMesh(mesh);
+    GraphicsBackend::DeleteShader(shader);
 }

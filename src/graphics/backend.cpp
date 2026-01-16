@@ -1,5 +1,6 @@
 #include "backend.hpp"
 #include "glm/ext/quaternion_transform.hpp"
+#include "loader.hpp"
 #include "types.hpp"
 #include "window.hpp"
 #include "../gameplay/scene_manager.hpp"
@@ -293,6 +294,7 @@ void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, 
     }
 
     //fragment uniforms
+    UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
     UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
 }
@@ -325,12 +327,48 @@ void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, 
     UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
     //fragment uniforms
+    UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
     UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
 }
 
 void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera, Transform* transforms, size_t numParticles) {
+    glUseProgram(shader.programID);
+
+    glBindVertexArray(mesh.vao);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    //vertex uniforms
+    UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
+    glm::mat4 cameraView = camera.GetViewMatrix();
+    for(size_t i = 0; i < numParticles; i++) {
+        glm::mat4 transformMatrix = transforms[i].GetMatrix();
+        UploadShaderUniformMat4(shader, cameraView * transformMatrix, "uViewTransforms[" + std::to_string(i) + "]");
+        UploadShaderUniformMat4(shader, transformMatrix, "uTransforms[" + std::to_string(i) + "]");
+    }
+
+    //fragment uniforms
+    UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
+    UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
+    UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
+}
+
+void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
+    glDrawElementsInstanced(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0, numParticles);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

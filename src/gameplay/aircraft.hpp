@@ -3,11 +3,14 @@
 #include "../graphics/types.hpp"
 #include "entity.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include "widget.hpp"
 #include <string>
 #include <memory>
 #include <future>
 #include <iostream>
+
+#define BODY_PRESSURE_NUM_PARTICLES 5
 
 struct AircraftResourceDescriptionBoneMappings {
     int root;
@@ -56,6 +59,26 @@ struct AircraftPhysicsBody {
     float forwardVelocity = 0.0;
 };
 
+class AircraftExhaustParticleSystem : public ParticleSystem {
+    float particleLifetimes[MAX_PARTICLE_TRANSFORMS];
+    float particleStartLifetime = 1.0;
+
+    public:
+    glm::vec3 aircraftPosition;
+
+    void LoadResources() override;
+    void Initialize() override;
+    void Update() override;
+    void Draw() override;
+    void UnloadResources() override;
+
+    AircraftExhaustParticleSystem() {
+        for(size_t i = 1; i < MAX_PARTICLE_TRANSFORMS; i++){
+            particleLifetimes[i] = particleStartLifetime * ((float)i / (MAX_PARTICLE_TRANSFORMS - 1.0));
+        }
+    }
+};
+
 class Aircraft : public Entity {
     const std::string resourcePath;
     AircraftResource resource;
@@ -75,30 +98,21 @@ class Aircraft : public Entity {
 
     void ApplyControlSurfaces();
 
-    float rollValue;
+    float rollValue = 0.0f;
+    float uiDiff = 0.0f;
+
+    const glm::quat downQuaternion = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    AircraftExhaustParticleSystem exhaustParticles;
 
     public:
+    float appliedForce = 0.0;
+
     Shader shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
-
-    glm::vec3 RotatePointAroundPoint(const glm::vec3& pointToRotate, const glm::vec3& center, float angleRadians, const glm::vec3& axis) {
-        // 1. Translate the point to the origin (relative to the center)
-        glm::vec3 translatedPoint = pointToRotate - center;
-
-        // 2. Create the rotation quaternion
-        glm::quat rotationQuat = glm::angleAxis(angleRadians, axis);
-
-        // 3. Apply the rotation using quaternion multiplication
-        glm::vec3 rotatedPoint = rotationQuat * translatedPoint;
-
-        // 4. Translate the point back to its original position (relative to the center)
-        glm::vec3 finalPoint = rotatedPoint + center;
-
-        return finalPoint;
-    }
 
     Aircraft(const std::string& name, const std::string& aircraftResourcePath) : Entity(name), resourcePath(aircraftResourcePath) {};
 

@@ -56,6 +56,7 @@ in vec3 pPos;
 
 uniform vec3 uSunDirection;
 uniform vec3 uSunColor;
+uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
 uniform int uResolution;
@@ -66,14 +67,7 @@ out vec4 FragColor;
 
 void main()
 {
-    int iX = int(pUV.x * float(uResolution));
-    int iY = int(pUV.y * float(uResolution));
-    int checkerX = iX % 2;
-    int checkerY = iY % 2;
-
-    float val = float(bool(checkerX) ^^ bool(checkerY));
-
     vec3 normal = normalize(cross(dFdx(pPos), dFdy(pPos)));
     float dot = clamp(dot(normal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), 1.0f);
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
 }

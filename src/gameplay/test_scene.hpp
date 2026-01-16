@@ -9,8 +9,8 @@ class TestScene {
     public:
     static Scene Create() {
         Scene testScene = Scene();
-        testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));
+        testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
 
         std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);
