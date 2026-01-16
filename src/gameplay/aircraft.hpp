@@ -11,6 +11,8 @@
 #include <future>
 #include <iostream>
 
+#include "../audio/backend.hpp"
+
 #define BODY_PRESSURE_NUM_PARTICLES 5
 
 struct AircraftResourceDescriptionBoneMappings {
@@ -102,11 +104,15 @@ class Aircraft : public Entity {
     void ApplyControlSurfaces();
 
     float rollValue = 0.0f;
+    float rollInput = 0.0f;
     float uiDiff = 0.0f;
 
     const glm::quat downQuaternion = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
     AircraftExhaustParticleSystem exhaustParticles;
+
+    //audio
+    Sound engineSound = Sound();
 
     public:
     float appliedForce = 0.0;

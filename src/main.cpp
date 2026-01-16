@@ -11,6 +11,8 @@
 #include "graphics/window.hpp"
 #include <memory>
 
+#include "audio/backend.hpp"
+
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 
@@ -55,6 +57,8 @@ int main() {
     SceneManager::currentScene = std::make_shared<Scene>(TestScene::Create());
     WindowManager::primaryWindow->Open();
 
+    AudioBackend::Initialize();
+
     GraphicsBackend::LoadResources();
 
     SceneManager::currentScene->LoadResources();
@@ -70,6 +74,7 @@ int main() {
     }
 #endif
 
+    AudioBackend::Shutdown();
     SceneManager::currentScene->UnloadResources();
     GraphicsBackend::UnloadResources();
     WindowManager::primaryWindow->Close();

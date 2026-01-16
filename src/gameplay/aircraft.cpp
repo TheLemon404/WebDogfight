@@ -6,13 +6,11 @@
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
 #include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/quaternion_common.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
-#include "glm/gtc/constants.hpp"
 #include <cstddef>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
@@ -21,11 +19,9 @@
 #include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
 #include "glm/common.hpp"
-#include "scene.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
 #include "../utils/math.hpp"
-#include "widget.hpp"
 #include <math.h>
 #include <nlohmann/json.hpp>
 
@@ -82,6 +78,8 @@ void Aircraft::LoadResources() {
 
     exhaustParticles = AircraftExhaustParticleSystem();
     exhaustParticles.LoadResources();
+
+    AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
 }
 
 void Aircraft::Initialize() {
@@ -91,6 +89,8 @@ void Aircraft::Initialize() {
     skeletalMesh.material.albedo = glm::vec3(0.7f);
 
     exhaustParticles.Initialize();
+
+    AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
 }
 
 void Aircraft::ApplyControlSurfaces() {
@@ -144,8 +144,19 @@ void Aircraft::Update() {
         targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
     }
 
+    if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
+        rollInput -= resource.settings.rollRate * Time::deltaTime;
+    }
+    else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
+        rollInput += resource.settings.rollRate * Time::deltaTime;
+    }
+    else {
+        rollInput = fmodf(rollInput, 2.0f * 3.141592f);
+        rollInput = MathUtils::Lerp<float>(rollInput, 0.0f, Time::deltaTime * 10.0f);
+    }
+
     float rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
-    extraRotation = glm::angleAxis(rollAngle, GLOBAL_FORWARD);
+    extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
 
     unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
     transform.rotation = glm::normalize(unrolledRotation * extraRotation);
@@ -158,6 +169,8 @@ void Aircraft::Update() {
         controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
     }
     controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
+
+    AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
 
     glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
@@ -199,6 +212,8 @@ void Aircraft::Draw()  {
 }
 
 void Aircraft::UnloadResources()  {
+    AudioBackend::EndSoundAsset(engineSound);
+
     GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
     GraphicsBackend::DeleteShader(shader);
 

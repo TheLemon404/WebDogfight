@@ -41,13 +41,14 @@ if(EMSCRIPTEN)
     add_executable(WebDogfight ${src}
         ${imgui_src}
         "vendor/stb_image/stb_image.h"
+        "vendor/miniaudio/miniaudio.h"
         "vendor/imgui/backends/imgui_impl_glfw.cpp"
         "vendor/imgui/backends/imgui_impl_glfw.h"
         "vendor/imgui/backends/imgui_impl_opengl3.cpp"
         "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/imgui" "vendor/stb_image")
+    target_include_directories(WebDogfight PUBLIC "vendor/imgui" "vendor/stb_image" "vendor/miniaudio")
     target_link_libraries(WebDogfight glm nlohmann_json)
 else()
     message(STATUS "Building for GLFW")
@@ -62,13 +63,14 @@ else()
         ${imgui_src}
         "vendor/glad/src/glad.c"
         "vendor/stb_image/stb_image.h"
+        "vendor/miniaudio/miniaudio.h"
         "vendor/imgui/backends/imgui_impl_glfw.cpp"
         "vendor/imgui/backends/imgui_impl_glfw.h"
         "vendor/imgui/backends/imgui_impl_opengl3.cpp"
         "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui" "vendor/stb_image")
+    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui" "vendor/stb_image" "vendor/miniaudio")
     target_link_libraries(WebDogfight glfw glm nlohmann_json)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
