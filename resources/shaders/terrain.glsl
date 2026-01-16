@@ -61,13 +61,28 @@ uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
 uniform int uResolution;
 
-uniform vec3 cameraPosition;
+uniform vec3 uFogColor;
 
 out vec4 FragColor;
+
+#define NEAR 0.4
+#define FAR 100000.0
+#define FALLOFF 60000.0
+
+float linearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // back to NDC
+    return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
+}
 
 void main()
 {
     vec3 normal = normalize(cross(dFdx(pPos), dFdy(pPos)));
     float dot = clamp(dot(normal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
+
+    vec3 color = mix(uShadowColor, uAlbedo, dot);
+
+    float distanceLerp = clamp(linearizeDepth(gl_FragCoord.z) / FALLOFF, 0.0, 1.0);
+
+    FragColor = vec4(mix(color, uFogColor, distanceLerp), uAlpha);
 }

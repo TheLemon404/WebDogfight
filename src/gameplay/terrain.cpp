@@ -75,6 +75,7 @@ void Terrain::Draw() {
     GraphicsBackend::UploadShaderUniformInt(shader, TERRAIN_RESOLUTION, "uResolution");
     GraphicsBackend::UseTextureSlot(heightMap, 0);
     GraphicsBackend::UploadShaderUniformInt(shader, 0, "uHeightmap");
+    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::ResetTextureSlots();
 }
