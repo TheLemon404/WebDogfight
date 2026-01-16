@@ -9,6 +9,8 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#define MAX_AIRCRAFT_HEIGHT 1000000.0f
+
 #define HEIGHT_CONSTANT 10000.0f
 
 #define TERRAIN_RESOLUTION 100
@@ -81,9 +83,22 @@ void Terrain::Update() {
         unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
         float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT;
 
-        if(aircraft->transform.position.y <= height) {
+        //boundaries and terrain collision
+        if(aircraft->transform.position.y < height) {
             aircraft->transform.position.y += 6000.0;
         }
+        else if(aircraft->transform.position.y > MAX_AIRCRAFT_HEIGHT) {
+            aircraft->transform.position.y = 6000.0;
+        }
+
+        if(uv.x > 1.0f || uv.x < 0.0f) {
+            aircraft->transform.position.x = 0.0f;
+        }
+
+        if(uv.y > 1.0f || uv.y < 0.0f) {
+            aircraft->transform.position.z = 0.0f;
+        }
+
     }
 }
 

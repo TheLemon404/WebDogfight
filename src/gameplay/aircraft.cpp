@@ -6,11 +6,13 @@
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/quaternion_common.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
+#include "glm/trigonometric.hpp"
 #include <cstddef>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
@@ -159,7 +161,6 @@ void Aircraft::Update() {
     extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
 
     unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
-    transform.rotation = glm::normalize(unrolledRotation * extraRotation);
 
     //throttle controls
     if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -174,12 +175,16 @@ void Aircraft::Update() {
 
     glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
-    //stalling logic
-    appliedForce = MathUtils::Lerp<float>(appliedForce, controls.throttle, Time::deltaTime * 2.0);
+    //stalling and thrust logic
+    physicsBody.forwardThrust = MathUtils::Lerp<float>(physicsBody.forwardThrust, controls.throttle, Time::deltaTime * 2.0);
 
-    float fallFaceFactor = MathUtils::Clamp<float>(glm::abs(MathUtils::Clamp<float>(appliedForce, -1.0, 0.0) * 10.0), 0.0, 1.0);
+    float stallFactor = 1.0 - (MathUtils::Clamp<float>(physicsBody.forwardThrust, 0.0f, resource.settings.throttleCruise) * (1.0f / resource.settings.throttleCruise));
 
-    glm::vec3 moveOffset = unrotatedForward * appliedForce * resource.settings.maxSpeed * Time::deltaTime;
+    // --- TODO --- alter this when adding stall rotation logic
+    transform.rotation = glm::normalize(unrolledRotation * extraRotation);
+
+    glm::vec3 moveDirection = unrotatedForward * physicsBody.forwardThrust * resource.settings.maxSpeed;
+    glm::vec3 moveOffset = MathUtils::Lerp<glm::vec3>(moveDirection, -GLOBAL_UP * GRAVITY, stallFactor) * (float)Time::deltaTime;
     transform.position += moveOffset;
 
     camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;

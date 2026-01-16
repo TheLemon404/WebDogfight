@@ -59,7 +59,7 @@ struct AircraftControls {
 };
 
 struct AircraftPhysicsBody {
-    float forwardVelocity = 0.0;
+    float forwardThrust = 0.0;
 };
 
 class AircraftExhaustParticleSystem : public ParticleSystem {
@@ -115,8 +115,6 @@ class Aircraft : public Entity {
     Sound engineSound = Sound();
 
     public:
-    float appliedForce = 0.0;
-
     Shader shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
