@@ -101,7 +101,7 @@ class Aircraft : public Entity {
 
     glm::quat targetRotation;
 
-    void ApplyControlSurfaces();
+    void ApplyControlSurfaces(float roll);
 
     float rollValue = 0.0f;
     float rollInput = 0.0f;

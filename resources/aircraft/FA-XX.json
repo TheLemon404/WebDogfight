@@ -27,6 +27,6 @@
     "camera-zoom-distance": 20,
     "control-surface-tween-step": 1,
     "roll-magnifier": 2.0,
-    "roll-rate": 7.0
+    "roll-rate": 4.0
   }
 }

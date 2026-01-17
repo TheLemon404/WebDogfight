@@ -1,5 +1,6 @@
 #include "gameplay/test_scene.hpp"
 #include "gameplay/scene_manager.hpp"
+#include "graphics/loader.hpp"
 #include "io/input.hpp"
 #include "io/time.hpp"
 

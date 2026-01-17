@@ -24,7 +24,7 @@ void Terrain::LoadResources() {
     resource.assets.shader = JSON["assets"]["shader"];
     resource.assets.heightmap = JSON["assets"]["heightmap"];
 
-    shader = GraphicsBackend::CreateShader(resource.assets.shader);
+    shader = Loader::LoadShaderFromGLSL(resource.assets.shader);
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
 }
 

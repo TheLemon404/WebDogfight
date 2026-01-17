@@ -30,8 +30,6 @@ class GraphicsBackend {
     inline static Mesh debugCube;
     inline static Shader debugShader;
 
-    static void SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource);
-
     static int GetUniformLocation(Shader& shader, const std::string& var) {
         GLint location = shader.GetCachedUniformLocation(var);
         if(location == -1) {
@@ -45,9 +43,11 @@ class GraphicsBackend {
     inline static bool debugMode = false;
 
     static void LoadResources();
-    static Shader CreateShader(const std::string& resourcePath);
     static Mesh CreateCube();
     static Mesh CreateQuad();
+
+    static void UpdateMeshVerticesPositions(Mesh& mesh, Vertex* vertices, int numVertices);
+
     static void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
     static void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const std::string& var) {
@@ -97,6 +97,18 @@ class GraphicsBackend {
         glBindTexture(GL_TEXTURE_2D, texture.id);
     }
 
+    static void UseTextureIDSlot(const unsigned int textureID, unsigned int slot) {
+        switch (slot) {
+            case 0:
+                glActiveTexture(GL_TEXTURE0);
+                break;
+            case 1:
+                glActiveTexture(GL_TEXTURE1);
+                break;
+        }
+        glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+
     static void ResetTextureSlots() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -133,6 +145,12 @@ class GraphicsBackend {
     static void DeleteTexture(Texture& texture) {
         glDeleteTextures(1, &texture.id);
         stbi_image_free(texture.data);
+    }
+
+    static void DeleteFont(Font& font) {
+        for(std::pair<const char, Character> c : font.characters) {
+            glDeleteTextures(1, &c.second.textureID);
+        }
     }
 
     static void UnloadResources();

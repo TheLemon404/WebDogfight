@@ -20,7 +20,7 @@ void Skeleton::UpdateGlobalBoneTransforms()  {
 
 Skybox::Skybox() {
     mesh = Loader::LoadMeshFromGLTF("resources/meshes/sphere.gltf");
-    shader = GraphicsBackend::CreateShader("resources/shaders/skybox.glsl");
+    shader = Loader::LoadShaderFromGLSL("resources/shaders/skybox.glsl");
     skyColor.value = glm::vec4(0.68f, 0.85f, 0.90f, 1.0);
     horizonColor.value = glm::vec4(1.0f, 0.75f, 0.55f, 1.0f);
 }

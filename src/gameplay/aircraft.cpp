@@ -73,7 +73,7 @@ void Aircraft::LoadResources() {
     resource.settings.rollMagnifier = JSON["settings"]["roll-magnifier"];
     resource.settings.rollRate = JSON["settings"]["roll-rate"];
 
-    shader = GraphicsBackend::CreateShader(resource.description.shaderResourcePath.c_str());
+    shader = Loader::LoadShaderFromGLSL(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
     transform.position.y = 6000.0;
@@ -95,11 +95,10 @@ void Aircraft::Initialize() {
     AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
 }
 
-void Aircraft::ApplyControlSurfaces() {
-    float uiDiff = aimWidget->position.x - mouseWidget->position.x;
+void Aircraft::ApplyControlSurfaces(float roll) {
     glm::quat diffQuat = transform.rotation * glm::inverse(targetRotation);
     glm::vec3 eulerAngles = glm::eulerAngles(diffQuat);
-    float rollDelta = MathUtils::Clamp<float>(uiDiff, -1.0, 1.0);
+    float rollDelta = MathUtils::Clamp<float>(roll, -1.0, 1.0);
     float pitchDelta = MathUtils::Clamp<float>(eulerAngles.x, -1.0, 1.0);
     float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
 
@@ -154,7 +153,7 @@ void Aircraft::Update() {
     }
     else {
         rollInput = fmodf(rollInput, 2.0f * 3.141592f);
-        rollInput = MathUtils::Lerp<float>(rollInput, 0.0f, Time::deltaTime * 10.0f);
+        rollInput = MathUtils::Lerp<float>(rollInput, 0.0f, Time::deltaTime * 2.0f);
     }
 
     float rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
@@ -192,7 +191,7 @@ void Aircraft::Update() {
     glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
     camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
 
-    ApplyControlSurfaces();
+    ApplyControlSurfaces(rollAngle - rollInput);
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
 
     exhaustParticles.aircraftPosition = transform.position;
@@ -254,7 +253,10 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->cornerColor.value = mouse->borderColor.value;
     widgets.push_back(mouse);
 
-    std::shared_ptr<RectWidget> rect = std::make_shared<RectWidget>("rect");
+    Font font = Font();
+    Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Bold.ttf", font);
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", font);
+    rect->text = "This is a test...\nnewline\nanother newline";
     rect->position = glm::vec2(-0.7, -0.7);
     rect->scale = glm::vec2(0.3, 0.2);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -290,7 +292,7 @@ void AircraftExhaustParticleSystem::LoadResources() {
     mesh = GraphicsBackend::CreateQuad();
     mesh.material.albedo = glm::vec3(0.7f);
     mesh.material.alpha = 0.1f;
-    shader = GraphicsBackend::CreateShader("resources/shaders/particles.glsl");
+    shader = Loader::LoadShaderFromGLSL("resources/shaders/particles.glsl");
 }
 
 void AircraftExhaustParticleSystem::Initialize() {
@@ -313,7 +315,7 @@ void AircraftExhaustParticleSystem::Update() {
         }
 
         transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP) * glm::angleAxis(particleRotations[i], GLOBAL_FORWARD);
-        float scaleByLifetime = (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))) * 3.0;
+        float scaleByLifetime = (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))) * 4.0;
         transforms[i].scale = glm::vec3(scaleByLifetime);
     }
 }

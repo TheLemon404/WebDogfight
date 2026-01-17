@@ -1,5 +1,8 @@
 #include "loader.hpp"
 #include "backend.hpp"
+
+#include "freetype/freetype.h"
+#include "freetype/ftmodapi.h"
 #include "types.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -153,6 +156,96 @@ std::vector<glm::vec2> Loader::AssembleFloatsToVec2(std::vector<float> data) {
         });
     }
     return result;
+}
+
+void Loader::SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
+    enum class Mode { NONE, VERTEX, FRAGMENT };
+    std::istringstream stream(shaderSource);
+    std::string line;
+    Mode mode = Mode::NONE;
+
+    while (std::getline(stream, line)) {
+        // Strip CR (Windows)
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+
+        // Strip UTF-8 BOM
+        if (line.size() >= 3 &&
+            (unsigned char)line[0] == 0xEF &&
+            (unsigned char)line[1] == 0xBB &&
+            (unsigned char)line[2] == 0xBF) {
+            line.erase(0, 3);
+        }
+
+        if (line == "#vertex") {
+            mode = Mode::VERTEX;
+            continue;
+        }
+        if (line == "#fragment") {
+            mode = Mode::FRAGMENT;
+            continue;
+        }
+
+        if (mode == Mode::VERTEX)
+            vertexSource += line + '\n';
+        else if (mode == Mode::FRAGMENT)
+            fragmentSource += line + '\n';
+    }
+
+    if (vertexSource.empty() || fragmentSource.empty()) {
+        throw std::runtime_error(
+            "Invalid shader source, missing #vertex or #fragment");
+    }
+}
+
+
+Shader Loader::LoadShaderFromGLSL(const std::string& resourcePath) {
+    std::string shaderSource = Files::ReadResourceString(resourcePath);
+    std::string vertexSource = "";
+    std::string fragmentSource = "";
+    SplitShaderSource(shaderSource, vertexSource, fragmentSource);
+
+    std::cout << "Attempting to create shader from file: " << resourcePath << std::endl;
+
+    unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    unsigned int fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    unsigned int programID = glCreateProgram();
+    char* vSource = vertexSource.data();
+    char* fSource = fragmentSource.data();
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
+    glShaderSource(vertexShaderID, 1, &vSource, NULL);
+    glCompileShader(vertexShaderID);
+    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShaderID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
+    glShaderSource(fragmentShaderID, 1, &fSource, NULL);
+    glCompileShader(fragmentShaderID);
+    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShaderID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    glAttachShader(programID, vertexShaderID);
+    glAttachShader(programID, fragmentShaderID);
+    glLinkProgram(programID);
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(programID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    glDeleteShader(vertexShaderID);
+    glDeleteShader(fragmentShaderID);
+
+    return Shader(programID);
 }
 
 Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
@@ -338,4 +431,48 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     }
 
     return texture;
+}
+
+void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
+    std::cout << "Attemping to font file at: " << resourcePath << std::endl;
+
+    if (FT_Init_FreeType(&font.freetypeLibrary))
+    {
+        throw std::runtime_error("ERROR::FREETYPE: Could not init FreeType Library");
+    }
+
+    if (FT_New_Face(font.freetypeLibrary, resourcePath, 0, &font.freetypeFace))
+    {
+        throw std::runtime_error("ERROR::FREETYPE: Failed to load font");
+    }
+    FT_Set_Pixel_Sizes(font.freetypeFace, 0, 48);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    for(unsigned char c = 0; c < 128; c++){
+        if(FT_Load_Char(font.freetypeFace, c, FT_LOAD_RENDER)) {
+            std::cout << "Warning: failed to load glyph: " << c << std::endl;
+            continue;
+        }
+
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, font.freetypeFace->glyph->bitmap.buffer);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        Character character = Character();
+        character.textureID = textureID;
+        character.size = glm::ivec2(font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows);
+        character.bearing = glm::ivec2(font.freetypeFace->glyph->bitmap_left, font.freetypeFace->glyph->bitmap_top);
+        character.advance = font.freetypeFace->glyph->advance.x;
+        font.characters.insert(std::pair<char, Character>(c, character));
+    }
+
+    FT_Done_Face(font.freetypeFace);
+    FT_Done_Library(font.freetypeLibrary);
 }

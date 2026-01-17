@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graphics/backend.hpp"
+#include "../graphics/loader.hpp"
 #include <memory>
 
 class Widget {
@@ -63,6 +63,24 @@ class RectWidget : public Widget {
         borderColor.value = glm::vec4(1.0);
         cornerColor.value = glm::vec4(1.0);
     };
+};
+
+class TextRectWidget : public RectWidget {
+    Shader textShader;
+    Mesh textMesh;
+
+    public:
+    Font font;
+
+    Color fontColor = COLOR_WHITE;
+
+    std::string text;
+
+    void LoadResources() override;
+    void Draw() override;
+    void UnloadResources() override;
+
+    TextRectWidget(const std::string& name, Font font) : font(font), RectWidget(name) {}
 };
 
 class CircleWidget : public Widget {

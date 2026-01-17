@@ -8,7 +8,7 @@
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
-    debugShader = CreateShader("resources/shaders/flat.glsl");
+    debugShader = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -17,136 +17,6 @@ void GraphicsBackend::LoadResources() {
 void GraphicsBackend::UnloadResources() {
     DeleteMesh(debugCube);
     DeleteShader(debugShader);
-}
-
-void GraphicsBackend::SplitShaderSource(const std::string& shaderSource, std::string& vertexSource, std::string& fragmentSource) {
-    enum class Mode { NONE, VERTEX, FRAGMENT };
-    std::istringstream stream(shaderSource);
-    std::string line;
-    Mode mode = Mode::NONE;
-
-    while (std::getline(stream, line)) {
-        // Strip CR (Windows)
-        if (!line.empty() && line.back() == '\r')
-            line.pop_back();
-
-        // Strip UTF-8 BOM
-        if (line.size() >= 3 &&
-            (unsigned char)line[0] == 0xEF &&
-            (unsigned char)line[1] == 0xBB &&
-            (unsigned char)line[2] == 0xBF) {
-            line.erase(0, 3);
-        }
-
-        if (line == "#vertex") {
-            mode = Mode::VERTEX;
-            continue;
-        }
-        if (line == "#fragment") {
-            mode = Mode::FRAGMENT;
-            continue;
-        }
-
-        if (mode == Mode::VERTEX)
-            vertexSource += line + '\n';
-        else if (mode == Mode::FRAGMENT)
-            fragmentSource += line + '\n';
-    }
-
-    if (vertexSource.empty() || fragmentSource.empty()) {
-        throw std::runtime_error(
-            "Invalid shader source, missing #vertex or #fragment");
-    }
-}
-
-Shader GraphicsBackend::CreateShader(const std::string& resourcePath) {
-    std::string shaderSource = Files::ReadResourceString(resourcePath);
-    std::string vertexSource = "";
-    std::string fragmentSource = "";
-    SplitShaderSource(shaderSource, vertexSource, fragmentSource);
-
-    std::cout << "Attempting to create shader from file: " << resourcePath << std::endl;
-
-    unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    unsigned int fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    unsigned int programID = glCreateProgram();
-    char* vSource = vertexSource.data();
-    char* fSource = fragmentSource.data();
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
-    glShaderSource(vertexShaderID, 1, &vSource, NULL);
-    glCompileShader(vertexShaderID);
-    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShaderID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
-    glShaderSource(fragmentShaderID, 1, &fSource, NULL);
-    glCompileShader(fragmentShaderID);
-    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShaderID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-    glLinkProgram(programID);
-    glGetProgramiv(programID, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(programID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShaderID);
-    glDeleteShader(fragmentShaderID);
-
-    return Shader(programID);
-}
-
-Mesh GraphicsBackend::CreateQuad() {
-    std::vector<Vertex> vertices = {
-        {{-1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
-        {{ 1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
-        {{ 1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
-        {{-1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
-    };
-
-    std::vector<unsigned int> indices = {
-        // Front face
-        0, 1, 2,
-        2, 3, 0,
-    };
-
-    unsigned int vao, vbo, ebo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
-
-    return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
 Mesh GraphicsBackend::CreateCube() {
@@ -242,6 +112,53 @@ Mesh GraphicsBackend::CreateCube() {
     glBindVertexArray(0);
 
     return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
+}
+
+Mesh GraphicsBackend::CreateQuad() {
+    std::vector<Vertex> vertices = {
+        {{-1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 0
+        {{ 1.0f, -1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 1
+        {{ 1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 2
+        {{-1.0f,  1.0f,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 3
+    };
+
+    std::vector<unsigned int> indices = {
+        // Front face
+        0, 1, 2,
+        2, 3, 0,
+    };
+
+    unsigned int vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
+}
+
+void GraphicsBackend::UpdateMeshVerticesPositions(Mesh& mesh, Vertex* vertices, int numVertices) {
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * numVertices, vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void GraphicsBackend::UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
@@ -397,6 +314,7 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
+    UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
 
     //fragment uniforms
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");

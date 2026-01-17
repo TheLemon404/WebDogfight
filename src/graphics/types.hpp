@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../io/files.hpp"
+#include "freetype/freetype.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
@@ -15,7 +16,12 @@
 #include <glm/gtx/quaternion.hpp>
 #include <unordered_map>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #define MAX_PARTICLE_TRANSFORMS 25
+
+#define COLOR_WHITE { glm::vec4(1.0f) }
 
 class Transform {
     public:
@@ -182,4 +188,21 @@ class ParticleSystem {
     virtual void Update() = 0;
     virtual void Draw() = 0;
     virtual void UnloadResources() = 0;
+};
+
+struct Character {
+    unsigned int textureID;
+    glm::ivec2 size;
+    glm::ivec2 bearing;
+    unsigned int advance;
+};
+
+class Font {
+    public:
+    float fontScale = 5.0f;
+    float lineHeight = 50.0f;
+    float tabIn = 10.0f;
+    FT_Library freetypeLibrary;
+    FT_Face freetypeFace;
+    std::unordered_map<char, Character> characters;
 };
