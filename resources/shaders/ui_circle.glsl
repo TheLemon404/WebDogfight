@@ -1,7 +1,7 @@
 
 #vertex
 #version 300 es
-precision highp float;
+precision mediump float;
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
@@ -20,13 +20,14 @@ void main()
 
 #fragment
 #version 300 es
-precision highp float;
+precision mediump float;
 
 in vec2 pUV;
 
 uniform vec4 uColor;
-uniform float uRadius;
-uniform float uThickness;
+uniform int uRadius;
+uniform int uThickness;
+uniform ivec2 uWidgetResolution;
 
 out vec4 FragColor;
 
@@ -34,8 +35,10 @@ out vec4 FragColor;
 
 void main()
 {
-    float dist = distance(UI_CENTER, pUV);
-    if (dist > uRadius) discard;
-    if (dist < uRadius - uThickness) discard;
+    vec2 currentWidgetPixel = vec2(pUV.x * float(uWidgetResolution.x), pUV.y * float(uWidgetResolution.y));
+
+    float dist = distance(vec2(UI_CENTER.x * float(uWidgetResolution.x), UI_CENTER.y * float(uWidgetResolution.y)), currentWidgetPixel);
+    if (dist > float(uRadius)) discard;
+    if (dist < float(uRadius - uThickness)) discard;
     FragColor = uColor;
 }

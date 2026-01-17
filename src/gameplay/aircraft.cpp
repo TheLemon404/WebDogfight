@@ -141,7 +141,7 @@ void Aircraft::Update() {
     //aircraft orientation
     glm::quat extraRotation = glm::identity<glm::quat>();
 
-    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)){
+    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
         uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
         targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
     }
@@ -243,8 +243,6 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
 
 void AircraftWidgetLayer::CreateWidgets() {
     aim = std::make_shared<CircleWidget>("aimWidget");
-    aim->radius = 0.015f;
-    aim->thickness = 0.002f;
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     widgets.push_back(aim);
 
@@ -254,7 +252,6 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->color.value.a = 0.0;
     mouse->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     mouse->cornerColor.value = mouse->borderColor.value;
-    mouse->border = 16;
     widgets.push_back(mouse);
 
     std::shared_ptr<RectWidget> rect = std::make_shared<RectWidget>("rect");

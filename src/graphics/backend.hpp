@@ -70,6 +70,11 @@ class GraphicsBackend {
         glUniform2fv(location, 1, glm::value_ptr(vector));
     }
 
+    static void UploadShaderUniformIVec2(Shader& shader, const glm::ivec2& vector, const std::string& var) {
+        GLint location = GetUniformLocation(shader, var);
+        glUniform2iv(location, 1, glm::value_ptr(vector));
+    }
+
     static void UploadShaderUniformFloat(Shader& shader, const float val, const std::string& var) {
         GLint location = GetUniformLocation(shader, var);
         glUniform1f(location, val);

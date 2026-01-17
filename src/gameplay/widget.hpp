@@ -67,8 +67,8 @@ class RectWidget : public Widget {
 
 class CircleWidget : public Widget {
     public:
-    float radius = 0.5f;
-    float thickness = 0.1f;
+    int radius = 15;
+    int thickness = 2;
 
     void LoadResources() override;
     void Initialize() override {};

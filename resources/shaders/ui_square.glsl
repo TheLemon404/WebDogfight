@@ -1,6 +1,6 @@
 #vertex
 #version 300 es
-precision highp float;
+precision mediump float;
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
@@ -22,7 +22,7 @@ void main()
 
 #fragment
 #version 300 es
-precision highp float;
+precision mediump float;
 
 in vec2 pPos;
 in vec2 pUV;
@@ -34,24 +34,24 @@ uniform int uBorder;
 uniform int uCornerBorder;
 uniform int uCornerLength;
 
+uniform ivec2 uWidgetResolution;
+
 out vec4 FragColor;
 
 void main()
 {
-    float cornerFactor = 0.9;
-    float cornerBorderWidth = 1.0 - (float(uCornerBorder) / 100.0);
-    float borderWidth = 1.0 - (float(uBorder) / 100.0);
-
     FragColor = uColor;
 
+    ivec2 currentWidgetPixel = ivec2(int(pUV.x * float(uWidgetResolution.x)), int(pUV.y * float(uWidgetResolution.y)));
+
     //border
-    if (pPos.x > borderWidth || pPos.x < -borderWidth || pPos.y > borderWidth || pPos.y < -borderWidth) {
+    if (currentWidgetPixel.x < uBorder || currentWidgetPixel.x >= uWidgetResolution.x - uBorder || currentWidgetPixel.y < uBorder || currentWidgetPixel.y >= uWidgetResolution.y - uBorder) {
         FragColor = uBorderColor;
     }
 
     //corner border
-    if (pPos.x > cornerFactor && (pPos.y > cornerFactor || pPos.y < -cornerFactor) || pPos.x < -cornerFactor && (pPos.y > cornerFactor || pPos.y < -cornerFactor)) {
-        if (pPos.x > cornerBorderWidth || pPos.x < -cornerBorderWidth || pPos.y > cornerBorderWidth || pPos.y < -cornerBorderWidth) {
+    if (currentWidgetPixel.x < uCornerLength && (currentWidgetPixel.y < uCornerLength || currentWidgetPixel.y > uWidgetResolution.y - uCornerLength) || currentWidgetPixel.x > uWidgetResolution.x - uCornerLength && (currentWidgetPixel.y < uCornerLength || currentWidgetPixel.y > uWidgetResolution.y - uCornerLength)) {
+        if (currentWidgetPixel.x < uCornerBorder || currentWidgetPixel.x >= uWidgetResolution.x - uCornerBorder || currentWidgetPixel.y < uCornerBorder || currentWidgetPixel.y >= uWidgetResolution.y - uCornerBorder) {
             FragColor = uCornerColor;
         }
     }

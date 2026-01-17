@@ -64,6 +64,8 @@ void RectWidget::Draw() {
     GraphicsBackend::UploadShaderUniformInt(shader, cornerLength, "uCornerLength");
     GraphicsBackend::UploadShaderUniformVec4(shader, borderColor.value, "uBorderColor");
     GraphicsBackend::UploadShaderUniformVec4(shader, cornerColor.value, "uCornerColor");
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+    GraphicsBackend::UploadShaderUniformIVec2(shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
 
@@ -81,8 +83,10 @@ void CircleWidget::Draw() {
     GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
-    GraphicsBackend::UploadShaderUniformFloat(shader, radius, "uRadius");
-    GraphicsBackend::UploadShaderUniformFloat(shader, thickness, "uThickness");
+    GraphicsBackend::UploadShaderUniformInt(shader, radius, "uRadius");
+    GraphicsBackend::UploadShaderUniformInt(shader, thickness, "uThickness");
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+    GraphicsBackend::UploadShaderUniformIVec2(shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
 
