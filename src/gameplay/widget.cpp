@@ -78,22 +78,16 @@ void TextRectWidget::LoadResources() {
 
     textShader = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
     textMesh = GraphicsBackend::CreateQuad();
-}
 
-void TextRectWidget::Draw() {
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) draw = !draw;
-    // --- IMPORTANT --- THIS IS A BANDAID, REMOVE THIS ASAP!!!
-    if(!draw) {
-        return;
-    }
-
-    GraphicsBackend::SetDepthTest(false);
-    RectWidget::Draw();
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
 
     float x = 0.0f;
     float y = 0.0f;
 
     glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+
+    unsigned int indexOffset = 0;
 
     for(std::string::const_iterator c = text.begin(); c != text.end(); c++) {
         if(*c == '\n'){
@@ -111,24 +105,47 @@ void TextRectWidget::Draw() {
         float w = ch.size.x;
         float h = ch.size.y;
 
-        Vertex vertices[4] = {
-            {{ xPos / xScale,  yPos / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 0
-            {{ (xPos + w) / xScale, yPos / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},  // 1
-            {{ (xPos + w) / xScale, (yPos + h) / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},  // 2
-            {{ xPos / xScale,  (yPos + h) / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},  // 3
-        };
+        Vertex v1 = {{ xPos / xScale,  yPos / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {ch.minUV.x, ch.maxUV.y}};
+        Vertex v2 = {{ (xPos + w) / xScale, yPos / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {ch.maxUV.x, ch.maxUV.y}};
+        Vertex v3 = {{ (xPos + w) / xScale, (yPos + h) / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {ch.maxUV.x, ch.minUV.y}};
+        Vertex v4 = {{ xPos / xScale,  (yPos + h) / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {ch.minUV.x, ch.minUV.y}};
 
-        GraphicsBackend::UpdateMeshVerticesPositions(textMesh, vertices, 4);
+        vertices.push_back(v1);
+        vertices.push_back(v2);
+        vertices.push_back(v3);
+        vertices.push_back(v4);
 
-        glm::vec2 finalScale = scale * font.fontScale;
-        GraphicsBackend::BeginDrawMesh2D(textMesh, textShader, position, finalScale, rotation);
-        GraphicsBackend::UploadShaderUniformInt(textShader, 0, "uFontTexture");
-        GraphicsBackend::UploadShaderUniformVec4(textShader, fontColor.value, "uColor");
-        GraphicsBackend::UseTextureIDSlot(ch.textureID, 0);
-        GraphicsBackend::EndDrawMesh2D(textMesh);
+        indices.push_back(indexOffset + 0);
+        indices.push_back(indexOffset + 1);
+        indices.push_back(indexOffset + 2);
+        indices.push_back(indexOffset + 2);
+        indices.push_back(indexOffset + 3);
+        indices.push_back(indexOffset + 0);
 
         x += ch.advance >> 6;
+
+        indexOffset += 4;
     }
+
+    GraphicsBackend::UpdateMeshVertices(textMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+}
+
+void TextRectWidget::Draw() {
+    // --- IMPORTANT --- THIS IS A BANDAID, REMOVE THIS ASAP!!!
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) draw = !draw;
+    if(!draw) {
+        return;
+    }
+
+    GraphicsBackend::SetDepthTest(false);
+    RectWidget::Draw();
+
+    glm::vec2 finalScale = scale * font.fontScale;
+    GraphicsBackend::BeginDrawMesh2D(textMesh, textShader, position, finalScale, rotation);
+    GraphicsBackend::UploadShaderUniformInt(textShader, 0, "uFontTexture");
+    GraphicsBackend::UploadShaderUniformVec4(textShader, fontColor.value, "uColor");
+    GraphicsBackend::UseTextureIDSlot(font.atlasTextureID, 0);
+    GraphicsBackend::EndDrawMesh2D(textMesh);
 
     GraphicsBackend::SetDepthTest(true);
 }

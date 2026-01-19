@@ -71,6 +71,8 @@ class TextRectWidget : public RectWidget {
 
     bool draw = true;
 
+    std::vector<Transform> transforms;
+
     public:
     Font font;
 

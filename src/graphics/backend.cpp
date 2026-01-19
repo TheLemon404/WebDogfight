@@ -155,10 +155,15 @@ Mesh GraphicsBackend::CreateQuad() {
     return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
-void GraphicsBackend::UpdateMeshVerticesPositions(Mesh& mesh, Vertex* vertices, int numVertices) {
+void GraphicsBackend::UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices) {
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * numVertices, vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * numIndices, indices, GL_STATIC_DRAW);
+
+    mesh.vertexCount = numVertices;
+    mesh.indexCount = numIndices;
 }
 
 void GraphicsBackend::UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices) {

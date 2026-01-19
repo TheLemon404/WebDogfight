@@ -191,14 +191,16 @@ class ParticleSystem {
 };
 
 struct Character {
-    unsigned int textureID;
     glm::ivec2 size;
     glm::ivec2 bearing;
+    glm::vec2 minUV;
+    glm::vec2 maxUV;
     unsigned int advance;
 };
 
 class Font {
     public:
+    unsigned int atlasTextureID;
     float fontScale = 1.0f;
     float lineHeight = 60.0f;
     float tabIn = 10.0f;

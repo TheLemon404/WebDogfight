@@ -46,7 +46,7 @@ class GraphicsBackend {
     static Mesh CreateCube();
     static Mesh CreateQuad();
 
-    static void UpdateMeshVerticesPositions(Mesh& mesh, Vertex* vertices, int numVertices);
+    static void UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices);
 
     static void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
@@ -148,9 +148,7 @@ class GraphicsBackend {
     }
 
     static void DeleteFont(Font& font) {
-        for(std::pair<const char, Character> c : font.characters) {
-            glDeleteTextures(1, &c.second.textureID);
-        }
+        glDeleteTextures(1, &font.atlasTextureID);
     }
 
     static void UnloadResources();

@@ -8,6 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define CHARACTER_PADDING 1
+
 std::vector<unsigned int> Loader::GetIntsFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
     std::vector<unsigned int> result;
 
@@ -447,7 +449,7 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
     }
     FT_Set_Pixel_Sizes(font.freetypeFace, 0, 48);
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    unsigned int xDim = 0, yDim = 0;
 
     for(unsigned char c = 0; c < 128; c++){
         if(FT_Load_Char(font.freetypeFace, c, FT_LOAD_RENDER)) {
@@ -455,23 +457,45 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
             continue;
         }
 
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, font.freetypeFace->glyph->bitmap.buffer);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        xDim += font.freetypeFace->glyph->bitmap.width + CHARACTER_PADDING;
+        if(yDim < font.freetypeFace->glyph->bitmap.rows) yDim = font.freetypeFace->glyph->bitmap.rows;
 
         Character character = Character();
-        character.textureID = textureID;
         character.size = glm::ivec2(font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows);
         character.bearing = glm::ivec2(font.freetypeFace->glyph->bitmap_left, font.freetypeFace->glyph->bitmap_top);
         character.advance = font.freetypeFace->glyph->advance.x;
         font.characters.insert(std::pair<char, Character>(c, character));
     }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, xDim, yDim, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned int xOffset = 0;
+
+    for(unsigned char c = 0; c < 128; c++) {
+        if(FT_Load_Char(font.freetypeFace, c, FT_LOAD_RENDER)) {
+            std::cout << "Warning: failed to load glyph: " << c << std::endl;
+            continue;
+        }
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, 0, font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, font.freetypeFace->glyph->bitmap.buffer);
+
+        font.characters[c].minUV = glm::vec2(static_cast<float>(xOffset) / xDim, 0.0f);
+        font.characters[c].maxUV = glm::vec2(static_cast<float>(xOffset + font.freetypeFace->glyph->bitmap.width) / xDim, static_cast<float>(font.freetypeFace->glyph->bitmap.rows) / yDim);
+
+        xOffset += font.freetypeFace->glyph->bitmap.width + CHARACTER_PADDING;
+    }
+
+    font.atlasTextureID = textureID;
 
     FT_Done_Face(font.freetypeFace);
     FT_Done_Library(font.freetypeLibrary);
