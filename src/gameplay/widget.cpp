@@ -56,7 +56,7 @@ void RectWidget::LoadResources() {
 }
 
 void RectWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale, rotation);
+    GraphicsBackend::BeginDrawMesh2D(quad, shader, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(shader, border, "uBorder");
     GraphicsBackend::UploadShaderUniformInt(shader, cornerBorder, "uCornerBorder");
@@ -81,6 +81,12 @@ void TextRectWidget::LoadResources() {
 }
 
 void TextRectWidget::Draw() {
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) draw = !draw;
+    // --- IMPORTANT --- THIS IS A BANDAID, REMOVE THIS ASAP!!!
+    if(!draw) {
+        return;
+    }
+
     GraphicsBackend::SetDepthTest(false);
     RectWidget::Draw();
 
@@ -96,14 +102,14 @@ void TextRectWidget::Draw() {
             continue;
         }
 
+        float yScale = scale.y * 1000.0f;
+        float xScale = scale.x * 1000.0f;
+
         Character ch = font.characters[*c];
-        float xPos = (x + ch.bearing.x) - widgetResolution.x + font.tabIn;
-        float yPos = (y + ch.size.y - ch.bearing.y) + widgetResolution.y - font.lineHeight;
+        float xPos = (x + ch.bearing.x) - xScale + font.tabIn;
+        float yPos = (y + ch.bearing.y - ch.size.y) + yScale - font.lineHeight;
         float w = ch.size.x;
         float h = ch.size.y;
-
-        float yScale = WindowManager::primaryWindow->height;
-        float xScale = (WindowManager::primaryWindow->width / WindowManager::widthFraction) * 1.5f;
 
         Vertex vertices[4] = {
             {{ xPos / xScale,  yPos / yScale,  0.0}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},  // 0
@@ -115,7 +121,7 @@ void TextRectWidget::Draw() {
         GraphicsBackend::UpdateMeshVerticesPositions(textMesh, vertices, 4);
 
         glm::vec2 finalScale = scale * font.fontScale;
-        GraphicsBackend::BeginDrawMesh2D(textMesh, textShader, SceneManager::activeCamera, position, finalScale, rotation);
+        GraphicsBackend::BeginDrawMesh2D(textMesh, textShader, position, finalScale, rotation);
         GraphicsBackend::UploadShaderUniformInt(textShader, 0, "uFontTexture");
         GraphicsBackend::UploadShaderUniformVec4(textShader, fontColor.value, "uColor");
         GraphicsBackend::UseTextureIDSlot(ch.textureID, 0);
@@ -139,7 +145,7 @@ void CircleWidget::LoadResources() {
 }
 
 void CircleWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, SceneManager::activeCamera, position, scale, rotation);
+    GraphicsBackend::BeginDrawMesh2D(quad, shader, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(shader, radius, "uRadius");

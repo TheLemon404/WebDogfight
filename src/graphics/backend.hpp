@@ -162,7 +162,7 @@ class GraphicsBackend {
     static void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
     static void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);
 
-    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, Camera& camera, glm::vec2& screenPosition, glm::vec2& scale, float rotation);
+    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation);
     static void EndDrawMesh2D(Mesh& mesh);
 
     static void ResetState(int viewportWidth, int viewportHeight) {

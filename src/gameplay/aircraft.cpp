@@ -254,11 +254,29 @@ void AircraftWidgetLayer::CreateWidgets() {
     widgets.push_back(mouse);
 
     Font font = Font();
-    Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Bold.ttf", font);
+    Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", font);
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", font);
-    rect->text = "This is a test...\nnewline\nanother newline";
-    rect->position = glm::vec2(-0.7, -0.7);
-    rect->scale = glm::vec2(0.3, 0.2);
+    rect->text = "Welcome to the Fox2.io\n"
+                "flight controls test!\n\n"
+                "Controls:\n"
+                "- Shift: Thottle Up\n"
+                "- Ctrl: Thottle Down\n"
+                "- Q: Roll Left\n"
+                "- E: Roll Right\n"
+                "- Alt: Free Mouse\n"
+                "- Tab: Free Look\n\n"
+                "Notes:\n"
+                "- Press T to remove\n"
+                "  this window\n"
+                "  (it may increase FPS)\n"
+                "- Stalling is implimented.\n"
+                "- Respawn on terrain\n"
+                "  or boundary collision.\n\n"
+                "Follow development at:\n"
+                "- YouTube: @thelemon9300\n"
+                "- X: @MichaelTeschner7";
+    rect->position = glm::vec2(-0.5, 0.2);
+    rect->scale = glm::vec2(0.4, 0.7);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(rect);

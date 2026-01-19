@@ -69,6 +69,8 @@ class TextRectWidget : public RectWidget {
     Shader textShader;
     Mesh textMesh;
 
+    bool draw = true;
+
     public:
     Font font;
 

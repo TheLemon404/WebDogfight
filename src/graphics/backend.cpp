@@ -295,7 +295,7 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, Camera &camera, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation) {
+void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);

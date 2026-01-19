@@ -18,6 +18,12 @@
     "use_new_terminal": false,
   },
   {
+    "label": "Run Web Live",
+    "command": "emrun",
+    "args": ["web-live/WebDogfight.html"],
+    "use_new_terminal": false,
+  },
+  {
     "label": "CMake Configure Desktop",
     "command": "cmake",
     "args": ["-G", "Ninja", "-B", "cmake-build-desktop"],

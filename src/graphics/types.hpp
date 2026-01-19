@@ -199,8 +199,8 @@ struct Character {
 
 class Font {
     public:
-    float fontScale = 5.0f;
-    float lineHeight = 50.0f;
+    float fontScale = 1.0f;
+    float lineHeight = 60.0f;
     float tabIn = 10.0f;
     FT_Library freetypeLibrary;
     FT_Face freetypeFace;
