@@ -52,31 +52,30 @@ void WidgetLayer::UnloadResources() {
 
 void RectWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
-    shader = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
+    shader = &GraphicsBackend::globalShaders.uiSquare;
 }
 
 void RectWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, position, scale, rotation);
-    GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
-    GraphicsBackend::UploadShaderUniformInt(shader, border, "uBorder");
-    GraphicsBackend::UploadShaderUniformInt(shader, cornerBorder, "uCornerBorder");
-    GraphicsBackend::UploadShaderUniformInt(shader, cornerLength, "uCornerLength");
-    GraphicsBackend::UploadShaderUniformVec4(shader, borderColor.value, "uBorderColor");
-    GraphicsBackend::UploadShaderUniformVec4(shader, cornerColor.value, "uCornerColor");
+    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation);
+    GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
+    GraphicsBackend::UploadShaderUniformInt(*shader, border, "uBorder");
+    GraphicsBackend::UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
+    GraphicsBackend::UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
+    GraphicsBackend::UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
+    GraphicsBackend::UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
     glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
-    GraphicsBackend::UploadShaderUniformIVec2(shader, widgetResolution, "uWidgetResolution");
+    GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
 
 void RectWidget::UnloadResources() {
     GraphicsBackend::DeleteMesh(quad);
-    GraphicsBackend::DeleteShader(shader);
 }
 
 void TextRectWidget::LoadResources() {
     RectWidget::LoadResources();
 
-    textShader = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
+    textShader = &GraphicsBackend::globalShaders.font;
     textMesh = GraphicsBackend::CreateQuad();
 
     RecomputeTextMesh();
@@ -145,9 +144,9 @@ void TextRectWidget::Draw() {
     RectWidget::Draw();
 
     glm::vec2 finalScale = scale * font.fontScale;
-    GraphicsBackend::BeginDrawMesh2D(textMesh, textShader, position, finalScale, rotation);
-    GraphicsBackend::UploadShaderUniformInt(textShader, 0, "uFontTexture");
-    GraphicsBackend::UploadShaderUniformVec4(textShader, fontColor.value, "uColor");
+    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, finalScale, rotation);
+    GraphicsBackend::UploadShaderUniformInt(*textShader, 0, "uFontTexture");
+    GraphicsBackend::UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     GraphicsBackend::UseTextureIDSlot(font.atlasTextureID, 0);
     GraphicsBackend::EndDrawMesh2D(textMesh);
 
@@ -155,28 +154,26 @@ void TextRectWidget::Draw() {
 }
 
 void TextRectWidget::UnloadResources() {
-    GraphicsBackend::DeleteShader(textShader);
     GraphicsBackend::DeleteMesh(textMesh);
     GraphicsBackend::DeleteFont(font);
 }
 
 void CircleWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
-    shader = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
+    shader = &GraphicsBackend::globalShaders.uiCircle;
 }
 
 void CircleWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, shader, position, scale, rotation);
-    GraphicsBackend::UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
-    GraphicsBackend::UploadShaderUniformVec4(shader, color.value, "uColor");
-    GraphicsBackend::UploadShaderUniformInt(shader, radius, "uRadius");
-    GraphicsBackend::UploadShaderUniformInt(shader, thickness, "uThickness");
+    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation);
+    GraphicsBackend::UploadShaderUniformMat4(*shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
+    GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
+    GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
+    GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");
     glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
-    GraphicsBackend::UploadShaderUniformIVec2(shader, widgetResolution, "uWidgetResolution");
+    GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
 
 void CircleWidget::UnloadResources() {
     GraphicsBackend::DeleteMesh(quad);
-    GraphicsBackend::DeleteShader(shader);
 }

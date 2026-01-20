@@ -278,7 +278,7 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "Follow development at:\n"
                 "- YouTube: @thelemon9300\n"
                 "- X: @MichaelTeschner7");
-    rect->position = glm::vec2(-0.5, 0.2);
+    rect->position = glm::vec2(-0.7, 0.2);
     rect->scale = glm::vec2(0.4, 0.7);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
@@ -287,8 +287,8 @@ void AircraftWidgetLayer::CreateWidgets() {
     //aircraft stats ui
     stats = std::make_shared<TextRectWidget>("stats", font);
     stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n");
-    stats->scale = glm::vec2(0.4, 0.4);
-    stats->position = glm::vec2(0.5, -0.5);
+    stats->scale = glm::vec2(0.4, 0.1);
+    stats->position = glm::vec2(0.6, -0.8);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
@@ -325,7 +325,7 @@ void AircraftExhaustParticleSystem::LoadResources() {
     mesh = GraphicsBackend::CreateQuad();
     mesh.material.albedo = glm::vec3(0.7f);
     mesh.material.alpha = 0.1f;
-    shader = Loader::LoadShaderFromGLSL("resources/shaders/particles.glsl");
+    shader = &GraphicsBackend::globalShaders.particles;
 }
 
 void AircraftExhaustParticleSystem::Initialize() {
@@ -355,12 +355,11 @@ void AircraftExhaustParticleSystem::Update() {
 
 void AircraftExhaustParticleSystem::Draw() {
     GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMeshInstanced(mesh, shader, SceneManager::activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
+    GraphicsBackend::BeginDrawMeshInstanced(mesh, *shader, SceneManager::activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
     GraphicsBackend::EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
     GraphicsBackend::SetBackfaceCulling(true);
 }
 
 void AircraftExhaustParticleSystem::UnloadResources() {
     GraphicsBackend::DeleteMesh(mesh);
-    GraphicsBackend::DeleteShader(shader);
 }

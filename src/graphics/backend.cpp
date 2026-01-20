@@ -10,11 +10,29 @@ void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
     debugShader = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
 
+    globalShaders.flat = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
+    globalShaders.particles = Loader::LoadShaderFromGLSL("resources/shaders/particles.glsl");
+    globalShaders.skeletal = Loader::LoadShaderFromGLSL("resources/shaders/skeletal.glsl");
+    globalShaders.skybox = Loader::LoadShaderFromGLSL("resources/shaders/skybox.glsl");
+    globalShaders.font = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
+    globalShaders.terrain = Loader::LoadShaderFromGLSL("resources/shaders/terrain.glsl");
+    globalShaders.uiCircle = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
+    globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GraphicsBackend::UnloadResources() {
+    DeleteShader(globalShaders.flat);
+    DeleteShader(globalShaders.particles);
+    DeleteShader(globalShaders.skeletal);
+    DeleteShader(globalShaders.skeletal);
+    DeleteShader(globalShaders.font);
+    DeleteShader(globalShaders.terrain);
+    DeleteShader(globalShaders.uiCircle);
+    DeleteShader(globalShaders.uiSquare);
+
     DeleteMesh(debugCube);
     DeleteShader(debugShader);
 }
@@ -338,7 +356,7 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 }
 
 void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
-    glUseProgram(skybox.shader.programID);
+    glUseProgram(skybox.shader->programID);
 
     glBindVertexArray(skybox.mesh.vao);
 
@@ -347,15 +365,15 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     glEnableVertexAttribArray(2);
 
     //vertex uniforms
-    UploadShaderUniformMat4(skybox.shader, camera.GetProjectionMatrix(), "uProjection");
-    UploadShaderUniformMat4(skybox.shader, glm::mat4(glm::mat3(camera.GetViewMatrix())), "uView");
+    UploadShaderUniformMat4(*skybox.shader, camera.GetProjectionMatrix(), "uProjection");
+    UploadShaderUniformMat4(*skybox.shader, glm::mat4(glm::mat3(camera.GetViewMatrix())), "uView");
 
     //fragment uniforms
-    UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
-    UploadShaderUniformVec3(skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
-    UploadShaderUniformVec3(skybox.shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
-    UploadShaderUniformVec3(skybox.shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    UploadShaderUniformFloat(skybox.shader, SceneManager::currentScene->environment.sunRadius, "uSunRadius");
+    UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
+    UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
+    UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
+    UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    UploadShaderUniformFloat(*skybox.shader, SceneManager::currentScene->environment.sunRadius, "uSunRadius");
 
     glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 

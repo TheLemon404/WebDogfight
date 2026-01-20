@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <minwindef.h>
 #include <sstream>
 
 #ifdef __EMSCRIPTEN__
@@ -26,6 +27,17 @@ enum ShaderReadMode {
     FRAGMENT
 };
 
+struct GlobalShaders {
+    Shader flat;
+    Shader font;
+    Shader particles;
+    Shader skeletal;
+    Shader skybox;
+    Shader terrain;
+    Shader uiCircle;
+    Shader uiSquare;
+};
+
 class GraphicsBackend {
     inline static Mesh debugCube;
     inline static Shader debugShader;
@@ -41,6 +53,8 @@ class GraphicsBackend {
 
     public:
     inline static bool debugMode = false;
+
+    inline static GlobalShaders globalShaders;
 
     static void LoadResources();
     static Mesh CreateCube();

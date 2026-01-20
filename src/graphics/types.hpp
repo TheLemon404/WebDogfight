@@ -166,7 +166,7 @@ class SkeletalMesh : public Mesh {
 
 struct Skybox {
     Mesh mesh;
-    Shader shader;
+    Shader* shader;
 
     public:
     Color skyColor;
@@ -179,7 +179,7 @@ struct Skybox {
 class ParticleSystem {
     protected:
     Mesh mesh;
-    Shader shader;
+    Shader* shader;
     Transform transforms[MAX_PARTICLE_TRANSFORMS];
 
     public:

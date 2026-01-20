@@ -24,7 +24,7 @@ void Terrain::LoadResources() {
     resource.assets.shader = JSON["assets"]["shader"];
     resource.assets.heightmap = JSON["assets"]["heightmap"];
 
-    shader = Loader::LoadShaderFromGLSL(resource.assets.shader);
+    shader = &GraphicsBackend::globalShaders.terrain;
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
 }
 
@@ -103,19 +103,18 @@ void Terrain::Update() {
 }
 
 void Terrain::Draw() {
-    GraphicsBackend::BeginDrawMesh(mesh, shader, SceneManager::activeCamera, transform);
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
-    GraphicsBackend::UploadShaderUniformInt(shader, TERRAIN_RESOLUTION, "uResolution");
+    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform);
+    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
+    GraphicsBackend::UploadShaderUniformInt(*shader, TERRAIN_RESOLUTION, "uResolution");
     GraphicsBackend::UseTextureSlot(heightMap, 0);
-    GraphicsBackend::UploadShaderUniformInt(shader, 0, "uHeightmap");
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
+    GraphicsBackend::UploadShaderUniformInt(*shader, 0, "uHeightmap");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::ResetTextureSlots();
 }
 
 void Terrain::UnloadResources() {
     GraphicsBackend::DeleteMesh(mesh);
-    GraphicsBackend::DeleteShader(shader);
     GraphicsBackend::DeleteTexture(heightMap);
 }

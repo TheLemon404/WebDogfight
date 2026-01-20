@@ -6,7 +6,7 @@
 class Widget {
     protected:
     Mesh quad;
-    Shader shader;
+    Shader* shader;
 
     public:
     Color color;
@@ -47,8 +47,8 @@ class WidgetLayer {
 
 class RectWidget : public Widget {
     public:
-    int border = 1;
-    int cornerBorder = 1;
+    int border = 2;
+    int cornerBorder = 2;
     int cornerLength = 10;
     Color borderColor;
     Color cornerColor;
@@ -66,7 +66,7 @@ class RectWidget : public Widget {
 };
 
 class TextRectWidget : public RectWidget {
-    Shader textShader;
+    Shader* textShader;
     Mesh textMesh;
     std::string text;
     bool draw = true;

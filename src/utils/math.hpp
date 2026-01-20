@@ -6,6 +6,8 @@
 #define GLOBAL_FORWARD glm::vec3(0.0, 0.0, 1.0)
 #define GLOBAL_LEFT glm::vec3(1.0, 0.0, 0.0)
 #define GLOBAL_UP glm::vec3(0.0, 1.0, 0.0)
+#define GLOBAL_ZERO glm::vec3(0.0)
+#define PI 3.141592
 
 class MathUtils {
     public:

@@ -14,7 +14,7 @@ struct TerrainResource {
 
 class Terrain : public Entity {
     Mesh mesh;
-    Shader shader;
+    Shader* shader;
     Transform transform = Transform();
     TerrainResource resource;
     Texture heightMap;
