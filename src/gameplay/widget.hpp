@@ -68,17 +68,20 @@ class RectWidget : public Widget {
 class TextRectWidget : public RectWidget {
     Shader textShader;
     Mesh textMesh;
-
+    std::string text;
     bool draw = true;
 
-    std::vector<Transform> transforms;
+    void RecomputeTextMesh();
 
     public:
     Font font;
 
     Color fontColor = COLOR_WHITE;
 
-    std::string text;
+    void SetText(const std::string& text) {
+        this->text = text;
+        RecomputeTextMesh();
+    }
 
     void LoadResources() override;
     void Draw() override;

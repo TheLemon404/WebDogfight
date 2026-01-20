@@ -79,6 +79,10 @@ void TextRectWidget::LoadResources() {
     textShader = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
     textMesh = GraphicsBackend::CreateQuad();
 
+    RecomputeTextMesh();
+}
+
+void TextRectWidget::RecomputeTextMesh() {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 

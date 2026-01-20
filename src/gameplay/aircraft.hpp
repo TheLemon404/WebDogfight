@@ -87,8 +87,6 @@ class AircraftExhaustParticleSystem : public ParticleSystem {
 class Aircraft : public Entity {
     const std::string resourcePath;
     AircraftResource resource;
-    AircraftControls controls;
-    AircraftPhysicsBody physicsBody;
 
     std::shared_ptr<Widget> aimWidget;
     std::shared_ptr<Widget> mouseWidget;
@@ -115,6 +113,9 @@ class Aircraft : public Entity {
     Sound engineSound = Sound();
 
     public:
+    AircraftControls controls;
+    AircraftPhysicsBody physicsBody;
+
     Shader shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
@@ -134,6 +135,8 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<Aircraft> aircraft;
     std::shared_ptr<CircleWidget> aim;
     std::shared_ptr<RectWidget> mouse;
+    std::shared_ptr<TextRectWidget> stats;
+
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
     void CreateWidgets() override;
     void UpdateLayer() override;

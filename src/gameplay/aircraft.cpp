@@ -13,6 +13,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
+#include "widget.hpp"
 #include <cstddef>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
@@ -241,6 +242,7 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
 }
 
 void AircraftWidgetLayer::CreateWidgets() {
+    //aircraft aiming ui
     aim = std::make_shared<CircleWidget>("aimWidget");
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     widgets.push_back(aim);
@@ -253,10 +255,11 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->cornerColor.value = mouse->borderColor.value;
     widgets.push_back(mouse);
 
+    //demo window ui
     Font font = Font();
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", font);
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", font);
-    rect->text = "Welcome to the Fox2.io\n"
+    rect->SetText("Welcome to the Fox2.io\n"
                 "flight controls test!\n\n"
                 "Controls:\n"
                 "- Shift: Thottle Up\n"
@@ -274,12 +277,21 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "  or boundary collision.\n\n"
                 "Follow development at:\n"
                 "- YouTube: @thelemon9300\n"
-                "- X: @MichaelTeschner7";
+                "- X: @MichaelTeschner7");
     rect->position = glm::vec2(-0.5, 0.2);
     rect->scale = glm::vec2(0.4, 0.7);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(rect);
+
+    //aircraft stats ui
+    stats = std::make_shared<TextRectWidget>("stats", font);
+    stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n");
+    stats->scale = glm::vec2(0.4, 0.4);
+    stats->position = glm::vec2(0.5, -0.5);
+    stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(stats);
 
     aircraft = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"));
 }
@@ -304,6 +316,9 @@ void AircraftWidgetLayer::UpdateLayer() {
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
     aim->color.value.a = dot;
+
+    stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n"
+        "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n");
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {

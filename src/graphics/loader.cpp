@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define CHARACTER_PADDING 1
+#define CHARACTER_ATLAS_PADDING 4
 
 std::vector<unsigned int> Loader::GetIntsFromJSON(json accessor, json jsonData, std::vector<unsigned char>& data) {
     std::vector<unsigned int> result;
@@ -457,8 +457,8 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
             continue;
         }
 
-        xDim += font.freetypeFace->glyph->bitmap.width + CHARACTER_PADDING;
-        if(yDim < font.freetypeFace->glyph->bitmap.rows) yDim = font.freetypeFace->glyph->bitmap.rows;
+        xDim += font.freetypeFace->glyph->bitmap.width + CHARACTER_ATLAS_PADDING;
+        if(yDim < font.freetypeFace->glyph->bitmap.rows + CHARACTER_ATLAS_PADDING) yDim = font.freetypeFace->glyph->bitmap.rows + CHARACTER_ATLAS_PADDING;
 
         Character character = Character();
         character.size = glm::ivec2(font.freetypeFace->glyph->bitmap.width, font.freetypeFace->glyph->bitmap.rows);
@@ -474,8 +474,8 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, xDim, yDim, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -492,7 +492,7 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
         font.characters[c].minUV = glm::vec2(static_cast<float>(xOffset) / xDim, 0.0f);
         font.characters[c].maxUV = glm::vec2(static_cast<float>(xOffset + font.freetypeFace->glyph->bitmap.width) / xDim, static_cast<float>(font.freetypeFace->glyph->bitmap.rows) / yDim);
 
-        xOffset += font.freetypeFace->glyph->bitmap.width + CHARACTER_PADDING;
+        xOffset += font.freetypeFace->glyph->bitmap.width + CHARACTER_ATLAS_PADDING;
     }
 
     font.atlasTextureID = textureID;
