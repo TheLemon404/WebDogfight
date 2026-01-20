@@ -91,8 +91,6 @@ class Aircraft : public Entity {
     std::shared_ptr<Widget> aimWidget;
     std::shared_ptr<Widget> mouseWidget;
 
-    glm::vec2 smoothedMouseDelta = glm::vec2(0.0);
-
     float targetBrakeAngle = 0.0f;
 
     glm::vec2 cameraRotationInputValue = glm::vec2(0.0);

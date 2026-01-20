@@ -128,9 +128,8 @@ void Aircraft::Update() {
     Camera& camera = SceneManager::activeCamera;
 
     //this ugly one-liner makes for smooth camera rotation
-    smoothedMouseDelta = MathUtils::Lerp<glm::vec2>(smoothedMouseDelta, InputManager::mouseDelta / 500.0, Time::deltaTime * 10.0);
     cameraRotationInputValue += InputManager::mouseDelta / 500.0;
-    camera.aspect = (float)WindowManager::primaryWindow->width / WindowManager::primaryWindow->height;
+    camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
 
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
     glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
