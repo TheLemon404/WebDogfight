@@ -7,7 +7,6 @@
 
 #include <cstddef>
 #include <cstring>
-#include <minwindef.h>
 #include <sstream>
 
 #ifdef __EMSCRIPTEN__
