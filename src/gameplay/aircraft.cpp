@@ -126,40 +126,36 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 void Aircraft::Update() {
     //camera controls
     Camera& camera = SceneManager::activeCamera;
-
     //this ugly one-liner makes for smooth camera rotation
     cameraRotationInputValue += InputManager::mouseDelta / 500.0;
     camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
-
     glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
     glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
     glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
 
-    glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
-
     //aircraft orientation
+    glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
     glm::quat extraRotation = glm::identity<glm::quat>();
-
     if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
         uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
         targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
     }
-
     if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
         rollInput -= resource.settings.rollRate * Time::deltaTime;
+        restingRollRotation = 0.0f;
     }
     else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
         rollInput += resource.settings.rollRate * Time::deltaTime;
+        restingRollRotation = 2.0f * PI;
     }
     else {
-        rollInput = fmodf(rollInput, 2.0f * 3.141592f);
-        rollInput = MathUtils::Lerp<float>(rollInput, 0.0f, Time::deltaTime * 2.0f);
+        rollInput = fmodf(rollInput, 2.0 * PI);
+        rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, Time::deltaTime * 2.0f);
     }
-
     float rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
     extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
-
     unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
+    glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
     //throttle controls
     if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -172,28 +168,24 @@ void Aircraft::Update() {
 
     AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
 
-    glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
-
     //stalling and thrust logic
     physicsBody.forwardThrust = MathUtils::Lerp<float>(physicsBody.forwardThrust, controls.throttle, Time::deltaTime * 2.0);
-
     float stallFactor = 1.0 - (MathUtils::Clamp<float>(physicsBody.forwardThrust, 0.0f, resource.settings.throttleCruise) * (1.0f / resource.settings.throttleCruise));
-
     // --- TODO --- alter this when adding stall rotation logic
     transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-
     glm::vec3 moveDirection = unrotatedForward * physicsBody.forwardThrust * resource.settings.maxSpeed;
     glm::vec3 moveOffset = MathUtils::Lerp<glm::vec3>(moveDirection, -GLOBAL_UP * GRAVITY, stallFactor) * (float)Time::deltaTime;
     transform.position += moveOffset;
 
+    //more camera controls
     camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
     camera.position = camera.target + GLOBAL_FORWARD * (InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance);
     glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
     camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
 
+    //updating other things
     ApplyControlSurfaces(rollAngle - rollInput);
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
-
     exhaustParticles.aircraftPosition = transform.position;
     exhaustParticles.Update();
 }

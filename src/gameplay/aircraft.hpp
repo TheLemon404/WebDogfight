@@ -96,6 +96,7 @@ class Aircraft : public Entity {
     glm::vec2 cameraRotationInputValue = glm::vec2(0.0);
 
     glm::quat targetRotation;
+    float restingRollRotation = 0.0f;
 
     void ApplyControlSurfaces(float roll);
 

@@ -38,18 +38,12 @@ if(EMSCRIPTEN)
     add_subdirectory("vendor/freetype")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    file(GLOB imgui_src CONFIGURE_DEPENDS "vendor/imgui/*.cpp" "vendor/imgui/*.h")
     add_executable(WebDogfight ${src}
-        ${imgui_src}
         "vendor/stb_image/stb_image.h"
         "vendor/miniaudio/miniaudio.h"
-        "vendor/imgui/backends/imgui_impl_glfw.cpp"
-        "vendor/imgui/backends/imgui_impl_glfw.h"
-        "vendor/imgui/backends/imgui_impl_opengl3.cpp"
-        "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/imgui" "vendor/stb_image" "vendor/miniaudio" "vendor/freetype/include")
+    target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor/freetype/include")
     target_link_libraries(WebDogfight glm nlohmann_json freetype)
 else()
     message(STATUS "Building for GLFW")
@@ -60,19 +54,13 @@ else()
     add_subdirectory("vendor/freetype")
 
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    file(GLOB imgui_src CONFIGURE_DEPENDS "vendor/imgui/*.cpp" "vendor/imgui/*.h")
     add_executable(WebDogfight ${src}
-        ${imgui_src}
         "vendor/glad/src/glad.c"
         "vendor/stb_image/stb_image.h"
         "vendor/miniaudio/miniaudio.h"
-        "vendor/imgui/backends/imgui_impl_glfw.cpp"
-        "vendor/imgui/backends/imgui_impl_glfw.h"
-        "vendor/imgui/backends/imgui_impl_opengl3.cpp"
-        "vendor/imgui/backends/imgui_impl_opengl3.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/imgui" "vendor/stb_image" "vendor/miniaudio" "vendor/freetype/include")
+    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/stb_image" "vendor/miniaudio" "vendor/freetype/include")
     target_link_libraries(WebDogfight glfw glm nlohmann_json freetype)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
