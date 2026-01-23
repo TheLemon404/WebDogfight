@@ -55,7 +55,7 @@ void main()
 {
     float lerpFactor = clamp(-pNormal.y, 0.0, 1.0);
     float sunDot = max(dot(normalize(uSunDirection), pNormal), 0.0);
-    float sunLerp = pow(sunDot, 15.0) * 2.0;
+    float sunLerp = pow(sunDot, 20.0) * 2.0;
 
     vec3 sky = mix(uHorizonColor, uSkyColor, pow(lerpFactor, 0.7));
     FragColor = vec4(mix(sky, uSunColor, sunLerp), 1.0f);
