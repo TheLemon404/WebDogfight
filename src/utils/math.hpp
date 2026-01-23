@@ -23,6 +23,18 @@ class MathUtils {
         return val;
     }
 
+    template<typename T>
+    static T Min(T val, T min) {
+        if(val < min) return min;
+        return val;
+    }
+
+    template<typename T>
+    static T Max(T val, T max) {
+        if(val > max) return max;
+        return val;
+    }
+
 
     static glm::vec3 RotatePointAroundPoint(const glm::vec3& pointToRotate, const glm::vec3& center, float angleRadians, const glm::vec3& axis) {
         // 1. Translate the point to the origin (relative to the center)
