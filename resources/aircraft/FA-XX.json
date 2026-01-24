@@ -21,7 +21,7 @@
     "rudder-max-angle": 20,
     "throttle-increase-rate": 0.3,
     "throttle-cruise": 0.5,
-    "max-speed": 1400,
+    "max-thrust": 750,
     "camera-ride-height": 6,
     "camera-distance": 60,
     "camera-zoom-distance": 20,

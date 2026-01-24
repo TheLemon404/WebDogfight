@@ -5,6 +5,7 @@
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
 #include "glm/common.hpp"
+#include "glm/detail/qualifier.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/quaternion_common.hpp"
 #include "glm/ext/quaternion_float.hpp"
@@ -35,7 +36,7 @@
 #define PITCH_ROTATION 25
 
 #define GRAVITY 250.0f
-#define MAGIC_STALL_NUMBER 46.0f
+#define DRAG_COEFFICIENT 0.05f
 
 using json = nlohmann::json;
 
@@ -66,7 +67,7 @@ void Aircraft::LoadResources() {
     resource.settings.rudderMaxAngle = JSON["settings"]["rudder-max-angle"];
     resource.settings.throttleIncreaseRate = JSON["settings"]["throttle-increase-rate"];
     resource.settings.throttleCruise = JSON["settings"]["throttle-increase-rate"];
-    resource.settings.maxSpeed = JSON["settings"]["max-speed"];
+    resource.settings.maxThrust = JSON["settings"]["max-thrust"];
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraDistance = JSON["settings"]["camera-distance"];
     resource.settings.cameraZoomDistance = JSON["settings"]["camera-zoom-distance"];
@@ -135,6 +136,7 @@ void Aircraft::Update() {
 
     //aircraft orientation
     glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
+    glm::vec3 aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
     glm::quat extraRotation = glm::identity<glm::quat>();
     if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
         uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
@@ -168,14 +170,16 @@ void Aircraft::Update() {
 
     AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
 
-    //stalling and thrust logic
-    physicsBody.forwardThrust = MathUtils::Lerp<float>(physicsBody.forwardThrust, controls.throttle, Time::deltaTime * 2.0);
-    float stallFactor = 1.0 - (MathUtils::Clamp<float>(physicsBody.forwardThrust, 0.0f, resource.settings.throttleCruise) * (1.0f / resource.settings.throttleCruise));
-    // --- TODO --- alter this when adding stall rotation logic
+    //stalling, thrust, and lift logic
+    velocity = (lastPosition - transform.position) / Time::deltaTime;
     transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-    glm::vec3 moveDirection = unrotatedForward * physicsBody.forwardThrust * resource.settings.maxSpeed;
-    glm::vec3 moveOffset = MathUtils::Lerp<glm::vec3>(moveDirection, -GLOBAL_UP * GRAVITY, stallFactor) * (float)Time::deltaTime;
-    transform.position += moveOffset;
+    glm::vec3 momentum = velocity / 100.0f;
+    glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
+    glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
+    glm::vec3 lift = (GLOBAL_UP * GRAVITY) * controls.throttle * MathUtils::Clamp<float>(glm::dot(aircraftUp, GLOBAL_UP), 0.0f, 1.0f);
+
+    lastPosition = transform.position;
+    transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
 
     //more camera controls
     camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;

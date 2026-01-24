@@ -40,7 +40,7 @@ struct AircraftResourceSettings {
     float rudderMaxAngle;
     float throttleIncreaseRate;
     float throttleCruise;
-    float maxSpeed;
+    float maxThrust;
     float cameraRideHeight;
     float cameraDistance;
     float cameraZoomDistance;
@@ -56,10 +56,6 @@ struct AircraftResource {
 
 struct AircraftControls {
     float throttle = 0.5;
-};
-
-struct AircraftPhysicsBody {
-    float forwardThrust = 0.0;
 };
 
 class AircraftExhaustParticleSystem : public ParticleSystem {
@@ -97,6 +93,7 @@ class Aircraft : public Entity {
 
     glm::quat targetRotation;
     float restingRollRotation = 0.0f;
+    glm::vec3 lastPosition;
 
     void ApplyControlSurfaces(float roll);
 
@@ -113,11 +110,12 @@ class Aircraft : public Entity {
 
     public:
     AircraftControls controls;
-    AircraftPhysicsBody physicsBody;
 
     Shader shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
+
+    glm::vec3 velocity;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
 
