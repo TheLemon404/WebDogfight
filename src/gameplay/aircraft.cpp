@@ -35,7 +35,7 @@
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
 
-#define GRAVITY 250.0f
+#define GRAVITY 500.0f
 #define DRAG_COEFFICIENT 0.05f
 
 using json = nlohmann::json;
@@ -68,6 +68,7 @@ void Aircraft::LoadResources() {
     resource.settings.throttleIncreaseRate = JSON["settings"]["throttle-increase-rate"];
     resource.settings.throttleCruise = JSON["settings"]["throttle-increase-rate"];
     resource.settings.maxThrust = JSON["settings"]["max-thrust"];
+    resource.settings.terminalLiftSpeed = JSON["settings"]["terminal-lift-speed"];
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraDistance = JSON["settings"]["camera-distance"];
     resource.settings.cameraZoomDistance = JSON["settings"]["camera-zoom-distance"];
@@ -172,11 +173,11 @@ void Aircraft::Update() {
 
     //stalling, thrust, and lift logic
     velocity = (lastPosition - transform.position) / Time::deltaTime;
+    float speed = glm::length(velocity);
     transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-    glm::vec3 momentum = velocity / 100.0f;
     glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
     glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-    glm::vec3 lift = (GLOBAL_UP * GRAVITY) * controls.throttle * MathUtils::Clamp<float>(glm::dot(aircraftUp, GLOBAL_UP), 0.0f, 1.0f);
+    glm::vec3 lift = (GLOBAL_UP * GRAVITY) * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
 
     lastPosition = transform.position;
     transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;

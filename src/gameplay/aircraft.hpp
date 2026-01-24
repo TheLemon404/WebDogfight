@@ -41,6 +41,7 @@ struct AircraftResourceSettings {
     float throttleIncreaseRate;
     float throttleCruise;
     float maxThrust;
+    float terminalLiftSpeed;
     float cameraRideHeight;
     float cameraDistance;
     float cameraZoomDistance;
