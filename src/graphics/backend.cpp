@@ -328,10 +328,10 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &scr
     glEnableVertexAttribArray(2);
 
     Transform t = Transform();
-    t.position.x = screenPosition.x * WindowManager::widthFraction;
+    t.position.x = screenPosition.x * WindowManager::aspect;
     t.position.y = screenPosition.y;
     t.position.z = -1.0f;
-    t.scale.x = scale.x;
+    t.scale.x = scale.x * WindowManager::aspect;
     t.scale.y = scale.y;
     t.rotation = glm::rotate(t.rotation, glm::radians(rotation), GLOBAL_FORWARD);
 

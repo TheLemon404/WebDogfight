@@ -1,3 +1,4 @@
+#include "gameplay/menu_scene.hpp"
 #include "gameplay/test_scene.hpp"
 #include "gameplay/scene_manager.hpp"
 #include "graphics/loader.hpp"
@@ -55,7 +56,9 @@ int main() {
 #endif
     WindowManager::primaryWindow->title = "Fox2";
 
-    SceneManager::currentScene = std::make_shared<Scene>(TestScene::Create());
+    WindowManager::aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
+
+    SceneManager::currentScene = std::make_shared<Scene>(MenuScene::Create());
     WindowManager::primaryWindow->Open();
 
     AudioBackend::Initialize();

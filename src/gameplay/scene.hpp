@@ -58,8 +58,6 @@ class Scene {
     }
 
     void LoadResources() {
-        environment.skybox = std::make_shared<Skybox>();
-
         for(std::shared_ptr<Entity>& entity : entities) {
             entity->LoadResources();
         }

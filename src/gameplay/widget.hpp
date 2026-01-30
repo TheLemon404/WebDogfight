@@ -32,8 +32,8 @@ class WidgetLayer {
     public:
     std::vector<std::shared_ptr<Widget>> widgets;
 
-    virtual void CreateWidgets() {};
-    virtual void UpdateLayer() {};
+    virtual void CreateWidgets() = 0;
+    virtual void UpdateLayer() = 0;
 
     std::shared_ptr<Widget> GetWidgetByName(const std::string& name);
     std::shared_ptr<Widget> GetWidgetById(const unsigned int id);
@@ -46,6 +46,9 @@ class WidgetLayer {
 };
 
 class RectWidget : public Widget {
+    protected:
+    bool IsHovered();
+
     public:
     int border = 2;
     int cornerBorder = 2;
@@ -66,15 +69,17 @@ class RectWidget : public Widget {
 };
 
 class TextRectWidget : public RectWidget {
+    protected:
     Shader* textShader;
     Mesh textMesh;
     std::string text;
-    bool draw = true;
 
     void RecomputeTextMesh();
 
     public:
     Font font;
+
+    bool centerText = false;
 
     Color fontColor = COLOR_WHITE;
 
@@ -88,6 +93,22 @@ class TextRectWidget : public RectWidget {
     void UnloadResources() override;
 
     TextRectWidget(const std::string& name, Font font) : font(font), RectWidget(name) {}
+};
+
+class TextButtonWidget : public TextRectWidget {
+    public:
+    void Draw() override;
+
+    TextButtonWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}
+};
+
+class InputWidget : public TextRectWidget {
+    public:
+    bool focused = false;
+
+    void Draw() override;
+
+    InputWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}
 };
 
 class CircleWidget : public Widget {

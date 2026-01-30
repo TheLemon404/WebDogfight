@@ -14,6 +14,8 @@ class TestScene {
 
         std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);
+
+        testScene.environment.skybox = std::make_shared<Skybox>();
         return testScene;
     }
 };

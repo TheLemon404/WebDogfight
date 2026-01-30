@@ -109,11 +109,11 @@ class Window {
 
 class WindowManager {
     public:
-    inline static float widthFraction = 1.0f;
+    inline static float aspect = 1.0f;
     inline static std::shared_ptr<Window> primaryWindow;
 
     static glm::mat4 GetUIOrthographicMatrix() {
-        widthFraction = static_cast<float>(primaryWindow->width) / primaryWindow->height;
-        return glm::ortho(-widthFraction, widthFraction, -1.0f, 1.0f, 0.01f, 100.0f);
+        aspect = static_cast<float>(primaryWindow->width) / primaryWindow->height;
+        return glm::ortho(-aspect, aspect, -1.0f, 1.0f, 0.01f, 100.0f);
     }
 };

@@ -35,7 +35,7 @@
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
 
-#define GRAVITY 500.0f
+#define GRAVITY 750.0f
 #define DRAG_COEFFICIENT 0.05f
 
 using json = nlohmann::json;
@@ -177,7 +177,7 @@ void Aircraft::Update() {
     transform.rotation = glm::normalize(unrolledRotation * extraRotation);
     glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
     glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-    glm::vec3 lift = (GLOBAL_UP * GRAVITY) * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
+    glm::vec3 lift = -gravity * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
 
     lastPosition = transform.position;
     transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
@@ -265,9 +265,6 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "- Alt: Free Mouse\n"
                 "- Tab: Free Look\n\n"
                 "Notes:\n"
-                "- Press T to remove\n"
-                "  this window\n"
-                "  (it may increase FPS)\n"
                 "- Stalling is implimented.\n"
                 "- Respawn on terrain\n"
                 "  or boundary collision.\n\n"
@@ -282,7 +279,6 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     //aircraft stats ui
     stats = std::make_shared<TextRectWidget>("stats", font);
-    stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n");
     stats->scale = glm::vec2(0.4, 0.1);
     stats->position = glm::vec2(0.6, -0.8);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -293,7 +289,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
-    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / (WindowManager::widthFraction * 1000.0),
+    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / (WindowManager::aspect * 1000.0),
         #ifdef __EMSCRIPTEN__
         InputManager::mouseDelta.y / 1000.0
         #else
@@ -306,7 +302,7 @@ void AircraftWidgetLayer::UpdateLayer() {
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
-    aim->position.x /= WindowManager::widthFraction;
+    aim->position.x /= WindowManager::aspect;
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraft->transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);
@@ -314,7 +310,8 @@ void AircraftWidgetLayer::UpdateLayer() {
     aim->color.value.a = dot;
 
     stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n"
-        "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n");
+        "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n"
+        "Speed: " + std::to_string(glm::length(aircraft->velocity)) + "\n");
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {

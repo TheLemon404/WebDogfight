@@ -1,4 +1,5 @@
 #include "widget.hpp"
+#include "GLFW/glfw3.h"
 #include "scene_manager.hpp"
 #include <cmath>
 #include "../io/time.hpp"
@@ -50,6 +51,13 @@ void WidgetLayer::UnloadResources() {
     }
 }
 
+bool RectWidget::IsHovered() {
+    glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
+    fractionMousePosition -= glm::vec2(0.5f);
+    fractionMousePosition *= 2.0f;
+    return -scale.x - position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x - position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
+}
+
 void RectWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
     shader = &GraphicsBackend::globalShaders.uiSquare;
@@ -63,7 +71,7 @@ void RectWidget::Draw() {
     GraphicsBackend::UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
     GraphicsBackend::UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
     GraphicsBackend::UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * WindowManager::aspect / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
     GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
@@ -88,7 +96,7 @@ void TextRectWidget::RecomputeTextMesh() {
     float x = 0.0f;
     float y = 0.0f;
 
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
 
     unsigned int indexOffset = 0;
 
@@ -99,12 +107,19 @@ void TextRectWidget::RecomputeTextMesh() {
             continue;
         }
 
-        float yScale = scale.y * 1000.0f;
-        float xScale = scale.x * 1000.0f;
+        float yScale = scale.y / font.fontScale * 1000.0f;
+        float xScale = scale.x * WindowManager::aspect / font.fontScale * 1000.0f;
 
         Character ch = font.characters[*c];
-        float xPos = (x + ch.bearing.x) - xScale + font.tabIn;
-        float yPos = (y + ch.bearing.y - ch.size.y) + yScale - font.lineHeight;
+        float xPos;
+        float yPos;
+        if(centerText) {
+            //---TODO--- impliment font centering
+        }
+        else {
+            xPos = (x + ch.bearing.x) - xScale + font.tabIn;
+            yPos = (y + ch.bearing.y - ch.size.y) + yScale - font.lineHeight;
+        }
         float w = ch.size.x;
         float h = ch.size.y;
 
@@ -134,16 +149,10 @@ void TextRectWidget::RecomputeTextMesh() {
 }
 
 void TextRectWidget::Draw() {
-    // --- IMPORTANT --- THIS IS A BANDAID, REMOVE THIS ASAP!!!
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) draw = !draw;
-    if(!draw) {
-        return;
-    }
-
     GraphicsBackend::SetDepthTest(false);
     RectWidget::Draw();
 
-    glm::vec2 finalScale = scale * font.fontScale;
+    glm::vec2 finalScale = scale;
     GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, finalScale, rotation);
     GraphicsBackend::UploadShaderUniformInt(*textShader, 0, "uFontTexture");
     GraphicsBackend::UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
@@ -158,6 +167,43 @@ void TextRectWidget::UnloadResources() {
     GraphicsBackend::DeleteFont(font);
 }
 
+void TextButtonWidget::Draw() {
+    if(IsHovered()) {
+        if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
+            color.value = glm::vec4(0.2);
+        }
+        else {
+            color.value = glm::vec4(0.3);
+        }
+    }
+    else {
+        color.value = glm::vec4(0.4);
+    }
+
+    TextRectWidget::Draw();
+}
+
+void InputWidget::Draw() {
+    if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
+        if(IsHovered()) {
+            SetText("");
+            focused = true;
+        }
+        else {
+            focused = false;
+        }
+    }
+
+    if(focused) {
+        color.value = glm::vec4(0.2);
+    }
+    else {
+        color.value = glm::vec4(0.4);
+    }
+
+    TextRectWidget::Draw();
+}
+
 void CircleWidget::LoadResources() {
     quad = GraphicsBackend::CreateQuad();
     shader = &GraphicsBackend::globalShaders.uiCircle;
@@ -169,7 +215,7 @@ void CircleWidget::Draw() {
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
     GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::widthFraction, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
     GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }

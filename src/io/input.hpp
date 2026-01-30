@@ -13,7 +13,7 @@ class InputManager {
     inline static int lastKeyStates[GLFW_MAX_KEYS];
 
     public:
-    inline static bool mouseHidden = true;
+    inline static bool mouseHidden = false;
     inline static glm::vec2 mousePosition = glm::vec2(0.0);
     inline static glm::vec2 mouseDelta = glm::vec2(0.0);
     inline static glm::vec2 mouseScroll = glm::vec2(0.0);

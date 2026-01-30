@@ -55,6 +55,8 @@ class GraphicsBackend {
 
     inline static GlobalShaders globalShaders;
 
+    inline static glm::vec3 clearColor = glm::vec3(0.2);
+
     static void LoadResources();
     static Mesh CreateCube();
     static Mesh CreateQuad();
@@ -178,8 +180,7 @@ class GraphicsBackend {
 
     static void ResetState(int viewportWidth, int viewportHeight) {
        	glViewport(0, 0, viewportWidth, viewportHeight);
-        float val = 25.5 / 255.0;
-        glClearColor(val, val, val, 1.0);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
