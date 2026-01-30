@@ -170,13 +170,16 @@ void TextRectWidget::Draw() {
 
 void TextRectWidget::UnloadResources() {
     GraphicsBackend::DeleteMesh(textMesh);
-    GraphicsBackend::DeleteFont(font);
 }
 
 void TextButtonWidget::Draw() {
     if(IsHovered()) {
         if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
             color.value = glm::vec4(0.2);
+            onPressed();
+
+            //this return statement ensures we do not try to draw this widget following a button press, in case of a scene change or some other functionality.
+            return;
         }
         else {
             color.value = glm::vec4(0.3);

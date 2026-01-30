@@ -37,6 +37,10 @@ struct GlobalShaders {
     Shader uiSquare;
 };
 
+struct GlobalFonts {
+    Font defaultFont;
+};
+
 class GraphicsBackend {
     inline static Mesh debugCube;
     inline static Shader debugShader;
@@ -54,6 +58,7 @@ class GraphicsBackend {
     inline static bool debugMode = false;
 
     inline static GlobalShaders globalShaders;
+    inline static GlobalFonts globalFonts;
 
     inline static glm::vec3 clearColor = glm::vec3(0.2);
 

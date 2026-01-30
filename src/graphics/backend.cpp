@@ -19,6 +19,8 @@ void GraphicsBackend::LoadResources() {
     globalShaders.uiCircle = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
     globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
 
+    Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -32,6 +34,8 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.terrain);
     DeleteShader(globalShaders.uiCircle);
     DeleteShader(globalShaders.uiSquare);
+
+    DeleteFont(globalFonts.defaultFont);
 
     DeleteMesh(debugCube);
     DeleteShader(debugShader);

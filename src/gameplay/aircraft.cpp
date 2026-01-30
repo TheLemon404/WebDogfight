@@ -252,9 +252,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     widgets.push_back(mouse);
 
     //demo window ui
-    Font font = Font();
-    Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", font);
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", font);
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
     rect->SetText("Welcome to the Fox2.io\n"
                 "flight controls test!\n\n"
                 "Controls:\n"
@@ -278,7 +276,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     widgets.push_back(rect);
 
     //aircraft stats ui
-    stats = std::make_shared<TextRectWidget>("stats", font);
+    stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
     stats->scale = glm::vec2(0.4, 0.1);
     stats->position = glm::vec2(0.6, -0.8);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);

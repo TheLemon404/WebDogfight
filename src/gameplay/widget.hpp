@@ -81,6 +81,7 @@ class TextRectWidget : public RectWidget {
     public:
     Font font;
 
+    //--- IMPORTANT --- this only works with 1 line text length
     bool centerText = false;
 
     Color fontColor = COLOR_WHITE;
@@ -100,6 +101,8 @@ class TextRectWidget : public RectWidget {
 class TextButtonWidget : public TextRectWidget {
     public:
     void Draw() override;
+
+    std::function<void()> onPressed;
 
     TextButtonWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}
 };

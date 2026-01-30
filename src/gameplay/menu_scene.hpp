@@ -7,7 +7,7 @@
 
 class MenuWidgetLayer : public WidgetLayer {
     void CreateWidgets() override;
-    void UpdateLayer() override;
+    void UpdateLayer() override {};
 };
 
 class MenuScene {
