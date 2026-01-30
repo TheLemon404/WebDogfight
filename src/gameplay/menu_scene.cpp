@@ -7,6 +7,7 @@ void MenuWidgetLayer::CreateWidgets() {
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", font);
 
     std::shared_ptr<InputWidget> codeInput = std::make_shared<InputWidget>("codeInput", font);
+    codeInput->stretchWithAspectRatio = true;
     codeInput->SetText("******");
     codeInput->font.fontScale = 2.0;
     codeInput->scale = glm::vec2(0.2, 0.09);
@@ -17,6 +18,7 @@ void MenuWidgetLayer::CreateWidgets() {
     widgets.push_back(codeInput);
 
     std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("playButton", font);
+    playButton->stretchWithAspectRatio = true;
     playButton->SetText("Play");
     playButton->font.fontScale = 2.0;
     playButton->scale = glm::vec2(0.2, 0.09);
@@ -30,5 +32,4 @@ void MenuWidgetLayer::CreateWidgets() {
 }
 
 void MenuWidgetLayer::UpdateLayer() {
-
 }

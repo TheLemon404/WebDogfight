@@ -50,9 +50,11 @@ int main() {
 #ifdef __EMSCRIPTEN__
     WindowManager::primaryWindow->width = html_get_width();
     WindowManager::primaryWindow->height = html_get_height();
+    WindowManager::aspect = static_cast<float>(WindowManager::primaryWindow->width)/WindowManager::primaryWindow->height;
 #else
     WindowManager::primaryWindow->width = 1600;
     WindowManager::primaryWindow->height = 1000;
+    WindowManager::aspect = static_cast<float>(1600)/1000;
 #endif
     WindowManager::primaryWindow->title = "Fox2";
 

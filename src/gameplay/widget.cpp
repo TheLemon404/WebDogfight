@@ -64,14 +64,16 @@ void RectWidget::LoadResources() {
 }
 
 void RectWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation);
+    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
+
+    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio);
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, border, "uBorder");
     GraphicsBackend::UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
     GraphicsBackend::UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
     GraphicsBackend::UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
     GraphicsBackend::UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * WindowManager::aspect / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : WindowManager::aspect), WindowManager::primaryWindow->height * scale.y);
     GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
@@ -90,13 +92,16 @@ void TextRectWidget::LoadResources() {
 }
 
 void TextRectWidget::RecomputeTextMesh() {
+    //---IMPORTANT--- REMOVE THIS
+    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     float x = 0.0f;
     float y = 0.0f;
 
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * (stretchWithAspectRatio ? WindowManager::aspect : 1.0f), WindowManager::primaryWindow->height * scale.y);
 
     unsigned int indexOffset = 0;
 
@@ -108,7 +113,7 @@ void TextRectWidget::RecomputeTextMesh() {
         }
 
         float yScale = scale.y / font.fontScale * 1000.0f;
-        float xScale = scale.x * WindowManager::aspect / font.fontScale * 1000.0f;
+        float xScale = scale.x / font.fontScale * 1000.0f;
 
         Character ch = font.characters[*c];
         float xPos;
@@ -149,11 +154,12 @@ void TextRectWidget::RecomputeTextMesh() {
 }
 
 void TextRectWidget::Draw() {
+    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
+
     GraphicsBackend::SetDepthTest(false);
     RectWidget::Draw();
 
-    glm::vec2 finalScale = scale;
-    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, finalScale, rotation);
+    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation);
     GraphicsBackend::UploadShaderUniformInt(*textShader, 0, "uFontTexture");
     GraphicsBackend::UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     GraphicsBackend::UseTextureIDSlot(font.atlasTextureID, 0);

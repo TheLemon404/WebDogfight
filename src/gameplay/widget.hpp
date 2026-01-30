@@ -11,7 +11,7 @@ class Widget {
     public:
     Color color;
     float rotation = 0.0;
-    glm::vec2 position;
+    glm::vec2 position = glm::vec2(0.0f);
     glm::vec2 scale = glm::vec2(1.0f);
 
     const std::string name;
@@ -50,6 +50,8 @@ class RectWidget : public Widget {
     bool IsHovered();
 
     public:
+    bool stretchWithAspectRatio = false;
+
     int border = 2;
     int cornerBorder = 2;
     int cornerLength = 10;
