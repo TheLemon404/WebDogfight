@@ -7,4 +7,16 @@ void SceneManager::ChangeToGameScene() {
     currentScene = std::make_shared<Scene>(TestScene::Create());
     currentScene->LoadResources();
     currentScene->Initialize();
+
+    isChangingToGameScene = false;
+}
+
+void SceneManager::FutureChangeToGameScene() {
+    isChangingToGameScene = true;
+}
+
+void SceneManager::Update() {
+    if (isChangingToGameScene) {
+        ChangeToGameScene();
+    }
 }

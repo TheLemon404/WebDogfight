@@ -56,7 +56,6 @@ bool RectWidget::IsHovered() {
     glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
     fractionMousePosition -= glm::vec2(0.5f);
     fractionMousePosition *= 2.0f;
-    std::cout << glm::to_string(InputManager::mousePosition) << " -> " << WindowManager::primaryWindow->width << " : " << WindowManager::primaryWindow->height << std::endl;
     return -scale.x - position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x - position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
 }
 
