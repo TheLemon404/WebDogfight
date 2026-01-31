@@ -4,6 +4,7 @@
 #include "graphics/loader.hpp"
 #include "io/input.hpp"
 #include "io/time.hpp"
+#include "utils/instrumentor.hpp"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -29,20 +30,34 @@ EM_JS(int, html_get_height, (), {
 #endif
 
 void main_loop() {
-    WindowManager::primaryWindow->Poll();
+    FOX2_PROFILE_FUNCTION()
 
-    //--- IMPORTANT --- remove this line from production. Users should not be able to see debug graphics
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) GraphicsBackend::debugMode = !GraphicsBackend::debugMode;
+    {
+        FOX2_PROFILE_SCOPE("Input Polling")
+        WindowManager::primaryWindow->Poll();
 
-    GraphicsBackend::ResetState(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
-    GraphicsBackend::SetDepthTest(true);
-
-    SceneManager::currentScene->Update();
-    SceneManager::currentScene->Draw();
-
-    WindowManager::primaryWindow->SwapBuffers();
-    InputManager::ResetInputState();
-    Time::Tick();
+        //--- IMPORTANT --- remove this line from production. Users should not be able to see debug graphics
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) GraphicsBackend::debugMode = !GraphicsBackend::debugMode;
+    }
+    {
+        FOX2_PROFILE_SCOPE("Graphics State Reset")
+        GraphicsBackend::ResetState(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
+        GraphicsBackend::SetDepthTest(true);
+    }
+    {
+        FOX2_PROFILE_SCOPE("Scene Update")
+        SceneManager::currentScene->Update();
+    }
+    {
+        FOX2_PROFILE_SCOPE("Scene Draw")
+        SceneManager::currentScene->Draw();
+    }
+    {
+        FOX2_PROFILE_SCOPE("Swap buffers and Tick")
+        WindowManager::primaryWindow->SwapBuffers();
+        InputManager::ResetInputState();
+        Time::Tick();
+    }
 }
 
 int main() {

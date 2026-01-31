@@ -1,6 +1,7 @@
 #include "terrain.hpp"
 #include "../graphics/backend.hpp"
 #include "../graphics/loader.hpp"
+#include "../utils/instrumentor.hpp"
 #include "entity.hpp"
 #include "aircraft.hpp"
 #include "scene_manager.hpp"
@@ -74,6 +75,8 @@ void Terrain::Initialize() {
 }
 
 void Terrain::Update() {
+    FOX2_PROFILE_SCOPE("Terrain Draw")
+
     for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
         glm::vec2 uv = glm::vec2(aircraft->transform.position.x, aircraft->transform.position.z) + glm::vec2(TERRAIN_SIZE / 2.0);
         uv /= glm::vec2(TERRAIN_SIZE);
@@ -103,10 +106,10 @@ void Terrain::Update() {
 }
 
 void Terrain::Draw() {
+    FOX2_PROFILE_FUNCTION()
+
     GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
-    GraphicsBackend::UploadShaderUniformInt(*shader, TERRAIN_RESOLUTION, "uResolution");
     GraphicsBackend::UseTextureSlot(heightMap, 0);
     GraphicsBackend::UploadShaderUniformInt(*shader, 0, "uHeightmap");
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");

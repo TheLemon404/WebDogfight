@@ -22,7 +22,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include "glm/geometric.hpp"
-#include "glm/common.hpp"
+#include "../utils/instrumentor.hpp"
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
 #include "../utils/math.hpp"
@@ -126,79 +126,109 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 }
 
 void Aircraft::Update() {
-    //camera controls
+    FOX2_PROFILE_FUNCTION();
     Camera& camera = SceneManager::activeCamera;
-    //this ugly one-liner makes for smooth camera rotation
-    cameraRotationInputValue += InputManager::mouseDelta / 500.0;
-    camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
-    glm::vec3 cameraForward = glm::normalize(camera.target - camera.position);
-    glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
-    glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
+    glm::vec3 cameraForward;
+    {
+        FOX2_PROFILE_SCOPE("Camera Movement")
+        //camera controls
+        //this ugly one-liner makes for smooth camera rotation
+        cameraRotationInputValue += InputManager::mouseDelta / 500.0;
+        camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
+        cameraForward = glm::normalize(camera.target - camera.position);
+        glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
+        glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
+    }
 
+    glm::vec3 aircraftForward;
+    glm::vec3 aircraftUp;
+    glm::quat extraRotation;
+    glm::vec3 unrotatedForward;
+    float rollAngle;
     //aircraft orientation
-    glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
-    glm::vec3 aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
-    glm::quat extraRotation = glm::identity<glm::quat>();
-    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
-        uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
-        targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
+    {
+        FOX2_PROFILE_SCOPE("Aircraft Orientation")
+        aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
+        aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
+        extraRotation = glm::identity<glm::quat>();
+        if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
+            uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
+            targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
+        }
+        if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
+            rollInput -= resource.settings.rollRate * Time::deltaTime;
+            restingRollRotation = 0.0f;
+        }
+        else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
+            rollInput += resource.settings.rollRate * Time::deltaTime;
+            restingRollRotation = 2.0f * PI;
+        }
+        else {
+            rollInput = fmodf(rollInput, 2.0 * PI);
+            rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, Time::deltaTime * 2.0f);
+        }
+        rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
+        extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
+        unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
+        unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
     }
-    if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
-        rollInput -= resource.settings.rollRate * Time::deltaTime;
-        restingRollRotation = 0.0f;
-    }
-    else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
-        rollInput += resource.settings.rollRate * Time::deltaTime;
-        restingRollRotation = 2.0f * PI;
-    }
-    else {
-        rollInput = fmodf(rollInput, 2.0 * PI);
-        rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, Time::deltaTime * 2.0f);
-    }
-    float rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
-    extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
-    unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
-    glm::vec3 unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
     //throttle controls
-    if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-        controls.throttle += resource.settings.throttleIncreaseRate * Time::deltaTime;
-    }
-    else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-        controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
-    }
-    controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
+    {
+        FOX2_PROFILE_SCOPE("Throttle Controls and Audio")
+        if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            controls.throttle += resource.settings.throttleIncreaseRate * Time::deltaTime;
+        }
+        else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+            controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
+        }
+        controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
 
-    AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
+        AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
+    }
 
     //stalling, thrust, and lift logic
-    velocity = (lastPosition - transform.position) / Time::deltaTime;
-    float speed = glm::length(velocity);
-    transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-    glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
-    glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-    glm::vec3 lift = -gravity * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
+    {
+        FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
+        velocity = (lastPosition - transform.position) / Time::deltaTime;
+        float speed = glm::length(velocity);
+        transform.rotation = glm::normalize(unrolledRotation * extraRotation);
+        glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
+        glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
+        glm::vec3 lift = -gravity * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
 
-    lastPosition = transform.position;
-    transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
+        lastPosition = transform.position;
+        transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
+    }
 
     //more camera controls
-    camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
-    camera.position = camera.target + GLOBAL_FORWARD * (InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance);
-    glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
-    camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
+    {
+        FOX2_PROFILE_SCOPE("More Camera Controls")
+        camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
+        camera.position = camera.target + GLOBAL_FORWARD * (InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance);
+        glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
+        camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
+    }
 
     //updating other things
-    ApplyControlSurfaces(rollAngle - rollInput);
-    skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
-    exhaustParticles.aircraftPosition = transform.position;
-    exhaustParticles.Update();
+    {
+        FOX2_PROFILE_SCOPE("Animations")
+        ApplyControlSurfaces(rollAngle - rollInput);
+        skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
+    }
+
+    {
+        FOX2_PROFILE_SCOPE("Particles")
+        exhaustParticles.aircraftPosition = transform.position;
+        exhaustParticles.Update();
+    }
 }
 
 void Aircraft::Draw()  {
+    FOX2_PROFILE_SCOPE("Aircraft Draw")
+
     GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
     GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
 
     if(GraphicsBackend::debugMode){
@@ -287,6 +317,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
+    FOX2_PROFILE_FUNCTION()
     glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / (WindowManager::aspect * 1000.0),
         #ifdef __EMSCRIPTEN__
         InputManager::mouseDelta.y / 1000.0
@@ -327,6 +358,8 @@ void AircraftExhaustParticleSystem::Initialize() {
 }
 
 void AircraftExhaustParticleSystem::Update() {
+    FOX2_PROFILE_FUNCTION()
+
     glm::vec3 toCameraDir = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
         if(particleLifetimes[i] <= 0.0) {

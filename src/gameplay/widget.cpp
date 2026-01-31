@@ -3,6 +3,7 @@
 #include "scene_manager.hpp"
 #include <cmath>
 #include "../io/time.hpp"
+#include "../utils/instrumentor.hpp"
 #include "../graphics/window.hpp"
 
 std::shared_ptr<Widget> WidgetLayer::GetWidgetByName(const std::string& name) {
@@ -65,6 +66,8 @@ void RectWidget::LoadResources() {
 }
 
 void RectWidget::Draw() {
+    FOX2_PROFILE_SCOPE("RectDraw")
+
     if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
 
     GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio);
@@ -218,7 +221,6 @@ void CircleWidget::LoadResources() {
 
 void CircleWidget::Draw() {
     GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation);
-    GraphicsBackend::UploadShaderUniformMat4(*shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
     GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");

@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include "scene_manager.hpp"
+#include "../utils/instrumentor.hpp"
 
 void Scene::LoadResources() {
     environment.skybox = std::make_shared<Skybox>();
@@ -34,6 +35,7 @@ void Scene::Update()  {
 
 void Scene::Draw() {
     if(environment.skybox) {
+        FOX2_PROFILE_SCOPE("skybox")
         GraphicsBackend::SetDepthMask(false);
         GraphicsBackend::SetBackfaceCulling(false);
         GraphicsBackend::DrawSkybox(*environment.skybox, SceneManager::activeCamera);
@@ -41,9 +43,11 @@ void Scene::Draw() {
         GraphicsBackend::SetDepthMask(true);
     }
     for(std::shared_ptr<Entity>& entity : entities) {
+        FOX2_PROFILE_SCOPE(entity->name.c_str())
         entity->Draw();
     }
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
+        FOX2_PROFILE_SCOPE("widget layer")
         widgetLayer->Draw();
     }
 }

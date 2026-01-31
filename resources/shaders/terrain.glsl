@@ -6,7 +6,6 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
 
 uniform mat4 uViewTransform;
-uniform mat4 uTransform;
 uniform mat4 uProjection;
 
 uniform sampler2D uHeightmap;
@@ -55,11 +54,9 @@ in vec2 pUV;
 in vec3 pPos;
 
 uniform vec3 uSunDirection;
-uniform vec3 uSunColor;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
-uniform int uResolution;
 
 uniform vec3 uFogColor;
 

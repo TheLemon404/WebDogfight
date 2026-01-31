@@ -49,10 +49,8 @@ precision highp float;
 in vec3 pNormal;
 
 uniform vec3 uSunDirection;
-uniform vec3 uSunColor;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
-uniform vec3 uShadowColor;
 
 out vec4 FragColor;
 

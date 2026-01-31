@@ -55,7 +55,6 @@ in vec3 pNormal;
 flat in uint pBoneID;
 
 uniform vec3 uSunDirection;
-uniform vec3 uSunColor;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;

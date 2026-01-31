@@ -47,7 +47,6 @@ uniform vec3 uSkyColor;
 uniform vec3 uHorizonColor;
 uniform vec3 uSunColor;
 uniform vec3 uSunDirection;
-uniform float uSunRadius;
 
 out vec4 FragColor;
 

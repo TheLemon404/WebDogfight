@@ -5,6 +5,7 @@
 #include "window.hpp"
 #include "../gameplay/scene_manager.hpp"
 #include "../utils/math.hpp"
+#include "../utils/instrumentor.hpp"
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
@@ -255,7 +256,7 @@ void GraphicsBackend::EndDrawSkeletalMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
+void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -264,13 +265,11 @@ void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, 
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    //vertex uniforms
     glm::mat4 transformMatrix = transform.GetMatrix();
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
     UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
-    UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
+    if(hasTransform) UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
-    //fragment uniforms
     UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
     UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
@@ -308,7 +307,6 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     //fragment uniforms
     UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
-    UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
 }
 
 void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
@@ -323,6 +321,8 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
 }
 
 void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation, bool stretchWithAspectRatio) {
+    FOX2_PROFILE_FUNCTION()
+
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -342,10 +342,6 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &scr
     //vertex uniforms
     UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
     UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
-
-    //fragment uniforms
-    UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
-    UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
 }
 
 void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
@@ -360,6 +356,8 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 }
 
 void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
+    FOX2_PROFILE_FUNCTION()
+
     glUseProgram(skybox.shader->programID);
 
     glBindVertexArray(skybox.mesh.vao);
@@ -368,16 +366,13 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    //vertex uniforms
     UploadShaderUniformMat4(*skybox.shader, camera.GetProjectionMatrix(), "uProjection");
     UploadShaderUniformMat4(*skybox.shader, glm::mat4(glm::mat3(camera.GetViewMatrix())), "uView");
 
-    //fragment uniforms
     UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
     UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
     UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
     UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    UploadShaderUniformFloat(*skybox.shader, SceneManager::currentScene->environment.sunRadius, "uSunRadius");
 
     glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 
