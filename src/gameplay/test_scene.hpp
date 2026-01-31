@@ -4,12 +4,14 @@
 #include "aircraft.hpp"
 #include "terrain.hpp"
 #include "widget.hpp"
+#include "../graphics/window.hpp"
 #include "../io/input.hpp"
 
 class TestScene {
     public:
     static Scene Create() {
         InputManager::mouseHidden = true;
+        glfwSetInputMode(WindowManager::primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
         Scene testScene = Scene();
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));

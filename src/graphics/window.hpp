@@ -26,9 +26,12 @@ class Window {
 #ifdef __EMSCRIPTEN__
     static EM_BOOL EmscriptenResizeCallback(int event_type, const EmscriptenUiEvent *event, void *user_data) {
         Window* window = static_cast<Window*>(user_data);
+        double cssWidth, cssHeight;
         if(window){
-            window->width = event->windowInnerWidth;
-            window->height = event->windowInnerHeight;
+            emscripten_get_element_css_size("#canvas", &cssWidth, &cssHeight);
+            emscripten_set_canvas_element_size("#canvas", (int)cssWidth, (int)cssHeight);
+            window->width = cssWidth;
+            window->height = cssHeight;
             return 1;
         }
         return 0;

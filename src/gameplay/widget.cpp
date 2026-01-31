@@ -55,6 +55,7 @@ bool RectWidget::IsHovered() {
     glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
     fractionMousePosition -= glm::vec2(0.5f);
     fractionMousePosition *= 2.0f;
+    std::cout << glm::to_string(InputManager::mousePosition) << " -> " << WindowManager::primaryWindow->width << " : " << WindowManager::primaryWindow->height << std::endl;
     return -scale.x - position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x - position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
 }
 
@@ -173,13 +174,12 @@ void TextRectWidget::UnloadResources() {
 }
 
 void TextButtonWidget::Draw() {
+    TextRectWidget::Draw();
+
     if(IsHovered()) {
         if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
             color.value = glm::vec4(0.2);
             onPressed();
-
-            //this return statement ensures we do not try to draw this widget following a button press, in case of a scene change or some other functionality.
-            return;
         }
         else {
             color.value = glm::vec4(0.3);
@@ -188,8 +188,6 @@ void TextButtonWidget::Draw() {
     else {
         color.value = glm::vec4(0.4);
     }
-
-    TextRectWidget::Draw();
 }
 
 void InputWidget::Draw() {
