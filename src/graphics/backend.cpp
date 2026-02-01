@@ -12,10 +12,11 @@ void GraphicsBackend::LoadResources() {
     debugShader = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
 
     globalShaders.flat = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
+    globalShaders.font = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
+    globalShaders.trails = Loader::LoadShaderFromGLSL("resources/shaders/trails.glsl");
     globalShaders.particles = Loader::LoadShaderFromGLSL("resources/shaders/particles.glsl");
     globalShaders.skeletal = Loader::LoadShaderFromGLSL("resources/shaders/skeletal.glsl");
     globalShaders.skybox = Loader::LoadShaderFromGLSL("resources/shaders/skybox.glsl");
-    globalShaders.font = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
     globalShaders.terrain = Loader::LoadShaderFromGLSL("resources/shaders/terrain.glsl");
     globalShaders.uiCircle = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
     globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
@@ -28,10 +29,11 @@ void GraphicsBackend::LoadResources() {
 
 void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.flat);
+    DeleteShader(globalShaders.font);
+    DeleteShader(globalShaders.trails);
     DeleteShader(globalShaders.particles);
     DeleteShader(globalShaders.skeletal);
     DeleteShader(globalShaders.skeletal);
-    DeleteShader(globalShaders.font);
     DeleteShader(globalShaders.terrain);
     DeleteShader(globalShaders.uiCircle);
     DeleteShader(globalShaders.uiSquare);
@@ -320,7 +322,7 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation, bool stretchWithAspectRatio) {
+void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation, bool stretchWithAspectRatio, bool moveWithAspectRatio) {
     FOX2_PROFILE_FUNCTION()
 
     glUseProgram(shader.programID);
@@ -332,7 +334,7 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &scr
     glEnableVertexAttribArray(2);
 
     Transform t = Transform();
-    t.position.x = screenPosition.x;
+    t.position.x = screenPosition.x * (moveWithAspectRatio ? WindowManager::aspect : 1.0f);
     t.position.y = screenPosition.y;
     t.position.z = -1.0f;
     t.scale.x = scale.x * (stretchWithAspectRatio ? WindowManager::aspect : 1.0f);

@@ -70,7 +70,7 @@ void RectWidget::Draw() {
 
     if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
 
-    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio);
+    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, border, "uBorder");
     GraphicsBackend::UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
@@ -181,7 +181,7 @@ void TextRectWidget::Draw() {
     GraphicsBackend::SetDepthTest(false);
     RectWidget::Draw();
 
-    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation);
+    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
     GraphicsBackend::UploadShaderUniformInt(*textShader, 0, "uFontTexture");
     GraphicsBackend::UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     GraphicsBackend::UseTextureIDSlot(font.atlasTextureID, 0);
@@ -199,15 +199,15 @@ void TextButtonWidget::Draw() {
 
     if(IsHovered()) {
         if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
-            color.value = glm::vec4(0.2);
+            color.value = glm::vec4(0.05);
             onPressed();
         }
         else {
-            color.value = glm::vec4(0.3);
+            color.value = glm::vec4(0.1);
         }
     }
     else {
-        color.value = glm::vec4(0.4);
+        color.value = glm::vec4(0.2);
     }
 }
 
@@ -222,10 +222,10 @@ void InputWidget::Draw() {
     }
 
     if(focused) {
-        color.value = glm::vec4(0.2);
+        color.value = glm::vec4(0.1);
     }
     else {
-        color.value = glm::vec4(0.4);
+        color.value = glm::vec4(0.2);
     }
 
     TextRectWidget::Draw();

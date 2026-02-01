@@ -51,6 +51,7 @@ class RectWidget : public Widget {
 
     public:
     bool stretchWithAspectRatio = false;
+    bool moveWithAspectRatio = false;
 
     int border = 2;
     int cornerBorder = 2;

@@ -84,6 +84,17 @@ class AircraftExhaustParticleSystem : public ParticleSystem {
     }
 };
 
+class AircraftTrails {
+    Mesh mesh;
+    Shader* shader;
+
+    public:
+    void LoadResources();
+    void Initialize();
+    void Update();
+    void Draw();
+};
+
 class Aircraft : public Entity {
     const std::string resourcePath;
     AircraftResource resource;
@@ -109,6 +120,7 @@ class Aircraft : public Entity {
     const glm::quat downQuaternion = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
     AircraftExhaustParticleSystem exhaustParticles;
+    AircraftTrails trails;
 
     //audio
     Sound engineSound = Sound();

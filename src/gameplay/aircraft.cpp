@@ -89,6 +89,9 @@ void Aircraft::LoadResources() {
     exhaustParticles = AircraftExhaustParticleSystem();
     exhaustParticles.LoadResources();
 
+    trails = AircraftTrails();
+    trails.LoadResources();
+
     AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
 }
 
@@ -99,6 +102,7 @@ void Aircraft::Initialize() {
     skeletalMesh.material.albedo = glm::vec3(0.7f);
 
     exhaustParticles.Initialize();
+    trails.Initialize();
 
     AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
 }
@@ -107,7 +111,11 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     glm::quat diffQuat = transform.rotation * glm::inverse(targetRotation);
     glm::vec3 eulerAngles = glm::eulerAngles(diffQuat);
     float rollDelta = MathUtils::Clamp<float>(roll, -1.0, 1.0);
+    #ifdef __EMSCRIPTEN__
+    float pitchDelta = MathUtils::Clamp<float>(-eulerAngles.x, -1.0, 1.0);
+    #else
     float pitchDelta = MathUtils::Clamp<float>(eulerAngles.x, -1.0, 1.0);
+    #endif
     float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
 
     //testing for flaps
@@ -129,7 +137,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 
     skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
 
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 10);
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 15);
 
     float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_THRESHOLD, 0.0f) / 8.0f, 1.0f);
     skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesL].scale = glm::vec3(pressureScale);
@@ -139,6 +147,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 void Aircraft::Update() {
     FOX2_PROFILE_FUNCTION();
     Camera& camera = SceneManager::activeCamera;
+
     glm::vec3 cameraForward;
     {
         FOX2_PROFILE_SCOPE("Camera Movement")
@@ -207,11 +216,12 @@ void Aircraft::Update() {
         float speed = glm::length(velocity);
         transform.rotation = glm::normalize(unrolledRotation * extraRotation);
         glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
+        glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
         glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-        glm::vec3 lift = -gravity * controls.throttle * MathUtils::Clamp<float>(glm::abs(glm::dot(aircraftUp, GLOBAL_UP)) + (!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f), 0.0f, 1.0f);
+        glm::vec3 lift = -gravity * MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
 
         lastPosition = transform.position;
-        transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
+        transform.position += (thrust + gravity + lift + brake) * (float)Time::deltaTime;
     }
     {
         FOX2_PROFILE_SCOPE("More Camera Controls")
@@ -222,13 +232,14 @@ void Aircraft::Update() {
     }
     {
         FOX2_PROFILE_SCOPE("Animations")
-        ApplyControlSurfaces(rollAngle - rollInput);
+        ApplyControlSurfaces(rollAngle);
         skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
     }
     {
         FOX2_PROFILE_SCOPE("Particles")
         exhaustParticles.aircraftPosition = transform.position;
         exhaustParticles.Update();
+        trails.Update();
     }
 }
 
@@ -248,6 +259,7 @@ void Aircraft::Draw()  {
     }
 
     exhaustParticles.Draw();
+    trails.Draw();
 }
 
 void Aircraft::UnloadResources()  {
@@ -264,13 +276,11 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
     glm::vec3 aircraftUpVector = glm::normalize(glm::rotate(rotation, GLOBAL_UP));
     glm::vec3 aircraftLeftVector = glm::normalize(glm::rotate(rotation, GLOBAL_LEFT));
 
-    glm::vec3 localLeftVector = glm::normalize(glm::rotate(aircraftForwardVector, glm::radians(90.0f), aircraftUpVector));
-    glm::vec3 localUpVector = glm::normalize(glm::rotate(aircraftForwardVector, glm::radians(90.0f), aircraftLeftVector));
     glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
-    float x = glm::dot(localLeftVector, cameraForward);
-    float y = glm::dot(localUpVector, cameraForward);
+    float x = glm::dot(aircraftLeftVector, cameraForward);
+    float y = glm::dot(-aircraftUpVector, cameraForward);
 
     return glm::vec2(x, y);
 }
@@ -285,8 +295,9 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->rotation = 45.0;
     mouse->scale = glm::vec2(0.02);
     mouse->color.value.a = 0.0;
-    mouse->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
-    mouse->cornerColor.value = mouse->borderColor.value;
+    mouse->borderColor.value = glm::vec4(0.0);
+    mouse->cornerLength = 7;
+    mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     widgets.push_back(mouse);
 
     //demo window ui
@@ -307,6 +318,7 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "- YouTube: @thelemon9300\n"
                 "- X: @MichaelTeschner7");
     rect->position = glm::vec2(-0.7, 0.2);
+    rect->moveWithAspectRatio = true;
     rect->scale = glm::vec2(0.4, 0.7);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
@@ -314,6 +326,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     //aircraft stats ui
     stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
+    stats->moveWithAspectRatio = true;
     stats->scale = glm::vec2(0.4, 0.13);
     stats->position = glm::vec2(0.6, -0.8);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -394,4 +407,19 @@ void AircraftExhaustParticleSystem::Draw() {
 
 void AircraftExhaustParticleSystem::UnloadResources() {
     GraphicsBackend::DeleteMesh(mesh);
+}
+
+void AircraftTrails::LoadResources() {
+    shader = &GraphicsBackend::globalShaders.trails;
+    mesh = GraphicsBackend::CreateQuad();
+}
+
+void AircraftTrails::Initialize() {
+}
+
+void AircraftTrails::Update() {
+}
+
+void AircraftTrails::Draw() {
+
 }

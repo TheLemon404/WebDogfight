@@ -29,6 +29,7 @@ enum ShaderReadMode {
 struct GlobalShaders {
     Shader flat;
     Shader font;
+    Shader trails;
     Shader particles;
     Shader skeletal;
     Shader skybox;
@@ -180,7 +181,7 @@ class GraphicsBackend {
     static void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
     static void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);
 
-    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, bool stretchWithAspectRatio = false);
+    static void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
     static void EndDrawMesh2D(Mesh& mesh);
 
     static void ResetState(int viewportWidth, int viewportHeight) {
