@@ -57,9 +57,9 @@ void main_loop() {
         WindowManager::primaryWindow->SwapBuffers();
         InputManager::ResetInputState();
         Time::Tick();
-
-        SceneManager::Update();
     }
+
+    SceneManager::Update();
 }
 
 int main() {

@@ -13,6 +13,7 @@ void MenuWidgetLayer::CreateWidgets() {
 
     std::shared_ptr<InputWidget> codeInput = std::make_shared<InputWidget>("codeInput", GraphicsBackend::globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;
+    codeInput->centerText = true;
     codeInput->SetText("******");
     codeInput->font.fontScale = 2.0;
     codeInput->scale = glm::vec2(0.2, 0.09);
@@ -24,6 +25,7 @@ void MenuWidgetLayer::CreateWidgets() {
 
     std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("playButton", GraphicsBackend::globalFonts.defaultFont);
     playButton->stretchWithAspectRatio = true;
+    playButton->centerText = true;
     playButton->SetText("Join");
     playButton->font.fontScale = 2.0;
     playButton->scale = glm::vec2(0.2, 0.09);

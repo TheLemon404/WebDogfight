@@ -37,6 +37,8 @@
 
 #define GRAVITY 750.0f
 #define DRAG_COEFFICIENT 0.05f
+#define GFORCE_COEFFICIENT 0.7f
+#define GFORCE_THRESHOLD 7
 
 using json = nlohmann::json;
 
@@ -53,6 +55,7 @@ void Aircraft::LoadResources() {
     resource.description.shaderResourcePath = JSON["description"]["shader-resource-path"];
     resource.description.meshResourcePath = JSON["description"]["mesh-resource-path"];
     resource.description.boneMappings.root = JSON["description"]["bone-mappings"]["root"];
+    resource.description.boneMappings.burner = JSON["description"]["bone-mappings"]["burner"];
     resource.description.boneMappings.brake = JSON["description"]["bone-mappings"]["brake"];
     resource.description.boneMappings.wingL = JSON["description"]["bone-mappings"]["wing.l"];
     resource.description.boneMappings.wingR = JSON["description"]["bone-mappings"]["wing.r"];
@@ -60,6 +63,8 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.tailR = JSON["description"]["bone-mappings"]["tail.r"];
     resource.description.boneMappings.rudderL = JSON["description"]["bone-mappings"]["rudder.l"];
     resource.description.boneMappings.rudderR = JSON["description"]["bone-mappings"]["rudder.r"];
+    resource.description.boneMappings.pressureVorticesL = JSON["description"]["bone-mappings"]["pressureVortices.l"];
+    resource.description.boneMappings.pressureVorticesR = JSON["description"]["bone-mappings"]["pressureVortices.r"];
 
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
@@ -123,6 +128,12 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     }
 
     skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
+
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 10);
+
+    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_THRESHOLD, 0.0f) / 8.0f, 1.0f);
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesL].scale = glm::vec3(pressureScale);
+    skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesR].scale = glm::vec3(pressureScale);
 }
 
 void Aircraft::Update() {
@@ -145,7 +156,7 @@ void Aircraft::Update() {
     glm::quat extraRotation;
     glm::vec3 unrotatedForward;
     float rollAngle;
-    //aircraft orientation
+
     {
         FOX2_PROFILE_SCOPE("Aircraft Orientation")
         aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
@@ -171,9 +182,13 @@ void Aircraft::Update() {
         extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
         unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
         unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
-    }
 
-    //throttle controls
+        float acos = 2 * glm::acos(abs(glm::dot(unrolledRotation, lastRotation)));
+        float deltaAngle = isnan(acos) ? 0.0f : acos;
+        gForce = deltaAngle * glm::length(velocity) * GFORCE_COEFFICIENT;
+
+        lastRotation = unrolledRotation;
+    }
     {
         FOX2_PROFILE_SCOPE("Throttle Controls and Audio")
         if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
@@ -186,8 +201,6 @@ void Aircraft::Update() {
 
         AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
     }
-
-    //stalling, thrust, and lift logic
     {
         FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
         velocity = (lastPosition - transform.position) / Time::deltaTime;
@@ -200,8 +213,6 @@ void Aircraft::Update() {
         lastPosition = transform.position;
         transform.position += (thrust + gravity + lift) * (float)Time::deltaTime;
     }
-
-    //more camera controls
     {
         FOX2_PROFILE_SCOPE("More Camera Controls")
         camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
@@ -209,14 +220,11 @@ void Aircraft::Update() {
         glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
         camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
     }
-
-    //updating other things
     {
         FOX2_PROFILE_SCOPE("Animations")
         ApplyControlSurfaces(rollAngle - rollInput);
         skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
     }
-
     {
         FOX2_PROFILE_SCOPE("Particles")
         exhaustParticles.aircraftPosition = transform.position;
@@ -293,7 +301,6 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "- Alt: Free Mouse\n"
                 "- Tab: Free Look\n\n"
                 "Notes:\n"
-                "- Stalling is implimented.\n"
                 "- Respawn on terrain\n"
                 "  or boundary collision.\n\n"
                 "Follow development at:\n"
@@ -307,7 +314,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     //aircraft stats ui
     stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
-    stats->scale = glm::vec2(0.4, 0.1);
+    stats->scale = glm::vec2(0.4, 0.13);
     stats->position = glm::vec2(0.6, -0.8);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
@@ -340,7 +347,8 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n"
         "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n"
-        "Speed: " + std::to_string(glm::length(aircraft->velocity)) + "\n");
+        "Speed: " + std::to_string(glm::length(aircraft->velocity)) + "\n"
+        "G-Force: " + std::to_string(glm::length(aircraft->gForce)) + "\n");
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {

@@ -3,3 +3,4 @@ cmake-build-web
 __cmake_systeminformation
 .cache
 stream_goals.txt
+startup.json

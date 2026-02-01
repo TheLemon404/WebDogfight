@@ -4,14 +4,17 @@
     "shader-resource-path": "resources/shaders/skeletal.glsl",
     "mesh-resource-path": "resources/meshes/demo_jet.gltf",
     "bone-mappings": {
-      "root": 5,
+      "root": 8,
+      "burner": 7,
       "brake": 4,
       "wing.l": 0,
       "wing.r": 2,
       "tail.l": 1,
       "tail.r": 3,
       "rudder.l": 1,
-      "rudder.r": 3
+      "rudder.r": 3,
+      "pressureVortices.l": 5,
+      "pressureVortices.r": 6
     }
   },
   "settings": {

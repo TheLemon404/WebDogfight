@@ -108,6 +108,13 @@ void TextRectWidget::RecomputeTextMesh() {
 
     unsigned int indexOffset = 0;
 
+    float fullTextLength = 0.0f;
+
+    for(std::string::const_iterator c = text.begin(); c != text.end(); c++) {
+        Character ch = font.characters[*c];
+        fullTextLength += ch.advance >> 6;
+    }
+
     for(std::string::const_iterator c = text.begin(); c != text.end(); c++) {
         if(*c == '\n'){
             y -= font.lineHeight;
@@ -119,10 +126,11 @@ void TextRectWidget::RecomputeTextMesh() {
         float xScale = scale.x / font.fontScale * 1000.0f;
 
         Character ch = font.characters[*c];
-        float xPos;
-        float yPos;
+        float xPos = 0;
+        float yPos = 0;
         if(centerText) {
-            //---TODO--- impliment font centering
+            xPos = (x + ch.bearing.x) - (fullTextLength / 2.0f);
+            yPos = (y + ch.bearing.y - ch.size.y) + yScale - font.lineHeight;
         }
         else {
             xPos = (x + ch.bearing.x) - xScale + font.tabIn;
@@ -195,7 +203,6 @@ void TextButtonWidget::Draw() {
 void InputWidget::Draw() {
     if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
         if(IsHovered()) {
-            SetText("");
             focused = true;
         }
         else {

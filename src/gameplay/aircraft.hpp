@@ -17,6 +17,7 @@
 
 struct AircraftResourceDescriptionBoneMappings {
     int root;
+    int burner;
     int brake;
     int wingL;
     int wingR;
@@ -24,6 +25,8 @@ struct AircraftResourceDescriptionBoneMappings {
     int tailR;
     int rudderL;
     int rudderR;
+    int pressureVorticesL;
+    int pressureVorticesR;
 };
 
 struct AircraftResourceDescription {
@@ -94,7 +97,8 @@ class Aircraft : public Entity {
 
     glm::quat targetRotation;
     float restingRollRotation = 0.0f;
-    glm::vec3 lastPosition;
+    glm::vec3 lastPosition = glm::vec3(0.0f);
+    glm::quat lastRotation = glm::identity<glm::quat>();
 
     void ApplyControlSurfaces(float roll);
 
@@ -116,7 +120,8 @@ class Aircraft : public Entity {
     SkeletalMesh skeletalMesh;
     Transform transform;
 
-    glm::vec3 velocity;
+    glm::vec3 velocity = glm::vec3(0.0);
+    float gForce = 0.0f;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
 
