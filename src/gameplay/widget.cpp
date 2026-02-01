@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "scene_manager.hpp"
 #include <cmath>
+#include <vector>
 #include "../io/time.hpp"
 #include "../utils/instrumentor.hpp"
 #include "../graphics/window.hpp"
@@ -108,17 +109,27 @@ void TextRectWidget::RecomputeTextMesh() {
 
     unsigned int indexOffset = 0;
 
-    float fullTextLength = 0.0f;
+    std::vector<float> lineLengths = {0.0f};
+    int i = 0;
 
     for(std::string::const_iterator c = text.begin(); c != text.end(); c++) {
         Character ch = font.characters[*c];
-        fullTextLength += ch.advance >> 6;
+        if(*c == '\n') {
+            lineLengths.push_back(0.0f);
+            i++;
+        }
+        else{
+            lineLengths[i] += ch.advance >> 6;
+        }
     }
+
+    i = 0;
 
     for(std::string::const_iterator c = text.begin(); c != text.end(); c++) {
         if(*c == '\n'){
             y -= font.lineHeight;
             x = 0.0f;
+            i++;
             continue;
         }
 
@@ -129,7 +140,7 @@ void TextRectWidget::RecomputeTextMesh() {
         float xPos = 0;
         float yPos = 0;
         if(centerText) {
-            xPos = (x + ch.bearing.x) - (fullTextLength / 2.0f);
+            xPos = (x + ch.bearing.x) - (lineLengths[i] / 2.0f);
             yPos = (y + ch.bearing.y - ch.size.y) + yScale - font.lineHeight;
         }
         else {
