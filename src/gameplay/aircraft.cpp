@@ -37,8 +37,9 @@
 
 #define GRAVITY 750.0f
 #define DRAG_COEFFICIENT 0.05f
-#define GFORCE_COEFFICIENT 0.7f
-#define GFORCE_THRESHOLD 7
+#define GFORCE_COEFFICIENT 25000.0f
+#define GFORCE_BODY_THRESHOLD 7
+#define GFORCE_TRAIL_THRESHOLD 9
 
 using json = nlohmann::json;
 
@@ -148,7 +149,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 
     skeletalMesh.skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 15);
 
-    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_THRESHOLD, 0.0f) / 8.0f, 1.0f);
+    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_BODY_THRESHOLD, 0.0f) / 8.0f, 1.0f);
     skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesL].scale = glm::vec3(pressureScale);
     skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesR].scale = glm::vec3(pressureScale);
 }
@@ -174,6 +175,10 @@ void Aircraft::Update() {
     glm::quat extraRotation;
     glm::vec3 unrotatedForward;
     float rollAngle;
+
+    velocity = (transform.position - lastPosition) / Time::deltaTime;
+    float speed = glm::length(velocity);
+    float terminalLiftFactor = MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
 
     {
         FOX2_PROFILE_SCOPE("Aircraft Orientation")
@@ -203,7 +208,7 @@ void Aircraft::Update() {
 
         float acos = 2 * glm::acos(abs(glm::dot(unrolledRotation, lastRotation)));
         float deltaAngle = isnan(acos) ? 0.0f : acos;
-        gForce = deltaAngle * glm::length(velocity) * GFORCE_COEFFICIENT;
+        gForce = pow(deltaAngle * terminalLiftFactor, 2) * GFORCE_COEFFICIENT;
 
         lastRotation = unrolledRotation;
     }
@@ -221,13 +226,11 @@ void Aircraft::Update() {
     }
     {
         FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
-        velocity = (lastPosition - transform.position) / Time::deltaTime;
-        float speed = glm::length(velocity);
         transform.rotation = glm::normalize(unrolledRotation * extraRotation);
         glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
         glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
         glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-        glm::vec3 lift = -gravity * MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
+        glm::vec3 lift = -gravity * terminalLiftFactor;
 
         lastPosition = transform.position;
         transform.position += (thrust + gravity + lift + brake) * (float)Time::deltaTime;
@@ -473,7 +476,7 @@ void AircraftTrails::GenerateMesh() {
 }
 
 void AircraftTrails::RecomputeMesh() {
-    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_THRESHOLD, 0.0f) / 8.0f, 1.0f);
+    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_TRAIL_THRESHOLD, 0.0f) / 8.0f, 1.0f);
 
     vertices[0].position = (aircraftRotation * glm::vec3(-trailWidth * pressureScale/ 2.0f, 0.0f, 0.0f)) + aircraftPosition;
     vertices[1].position = (aircraftRotation * glm::vec3(trailWidth * pressureScale / 2.0f, 0.0f, 0.0f)) + aircraftPosition;
