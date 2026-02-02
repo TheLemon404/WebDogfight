@@ -80,6 +80,8 @@ void Aircraft::LoadResources() {
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
     resource.settings.rollMagnifier = JSON["settings"]["roll-magnifier"];
     resource.settings.rollRate = JSON["settings"]["roll-rate"];
+    resource.settings.wingTipL = { JSON["settings"]["wing-tip-l"][0], JSON["settings"]["wing-tip-l"][1], JSON["settings"]["wing-tip-l"][2] };
+    resource.settings.wingTipR = { JSON["settings"]["wing-tip-r"][0], JSON["settings"]["wing-tip-r"][1], JSON["settings"]["wing-tip-r"][2] };
 
     shader = Loader::LoadShaderFromGLSL(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
@@ -89,8 +91,11 @@ void Aircraft::LoadResources() {
     exhaustParticles = AircraftExhaustParticleSystem();
     exhaustParticles.LoadResources();
 
-    trails = AircraftTrails();
-    trails.LoadResources();
+    leftTrails = AircraftTrails();
+    leftTrails.LoadResources();
+
+    rightTrails = AircraftTrails();
+    rightTrails.LoadResources();
 
     AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
 }
@@ -102,7 +107,11 @@ void Aircraft::Initialize() {
     skeletalMesh.material.albedo = glm::vec3(0.7f);
 
     exhaustParticles.Initialize();
-    trails.Initialize();
+
+    leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
+    rightTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipR);
+    leftTrails.Initialize();
+    rightTrails.Initialize();
 
     AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
 }
@@ -239,7 +248,14 @@ void Aircraft::Update() {
         FOX2_PROFILE_SCOPE("Particles")
         exhaustParticles.aircraftPosition = transform.position;
         exhaustParticles.Update();
-        trails.Update();
+        leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
+        leftTrails.aircraftRotation = transform.rotation;
+        leftTrails.gForce = gForce;
+        leftTrails.Update();
+        rightTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipR);
+        rightTrails.aircraftRotation = transform.rotation;
+        rightTrails.gForce = gForce;
+        rightTrails.Update();
     }
 }
 
@@ -258,8 +274,9 @@ void Aircraft::Draw()  {
         GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, t);
     }
 
+    leftTrails.Draw();
+    rightTrails.Draw();
     exhaustParticles.Draw();
-    trails.Draw();
 }
 
 void Aircraft::UnloadResources()  {
@@ -269,6 +286,9 @@ void Aircraft::UnloadResources()  {
     GraphicsBackend::DeleteShader(shader);
 
     exhaustParticles.UnloadResources();
+
+    leftTrails.UnloadResources();
+    rightTrails.UnloadResources();
 }
 
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
@@ -409,17 +429,92 @@ void AircraftExhaustParticleSystem::UnloadResources() {
     GraphicsBackend::DeleteMesh(mesh);
 }
 
+void AircraftTrails::GenerateMesh() {
+    // Create 4 quads in a line along the Z-axis
+    // Each quad needs 4 vertices, total = 20 vertices (5 positions × 2 sides)
+    // But we can share vertices between quads for efficiency
+
+    // Generate vertices (2 vertices per cross-section, 5 cross-sections for 4 quads)
+    for(int i = 0; i < trailResolution; i++) {
+        float z = i * trailLength;
+        float v = i / 4.0f;  // UV coordinate along trail
+
+        // Left vertex
+        vertices.push_back({
+            glm::vec3(-trailWidth / 2.0f, 0.0f, z) + aircraftPosition,      // Position
+            {0.0f, 1.0f, 0.0f},                 // Normal (pointing up)
+            {0.0f, v}                           // UV
+        });
+
+        // Right vertex
+        vertices.push_back({
+            glm::vec3(trailWidth / 2.0f, 0.0f, z) + aircraftPosition,       // Position
+            {0.0f, 1.0f, 0.0f},                 // Normal (pointing up)
+            {1.0f, v}                           // UV
+        });
+    }
+
+    // Generate indices for 4 quads
+    for(unsigned int i = 0; i < 4; i++) {
+        unsigned int baseIndex = i * 2;
+
+        // First triangle
+        indices.push_back(baseIndex + 0);  // Bottom-left
+        indices.push_back(baseIndex + 2);  // Top-left
+        indices.push_back(baseIndex + 1);  // Bottom-right
+
+        // Second triangle
+        indices.push_back(baseIndex + 1);  // Bottom-right
+        indices.push_back(baseIndex + 2);  // Top-left
+        indices.push_back(baseIndex + 3);  // Top-right
+    }
+
+    GraphicsBackend::UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+}
+
+void AircraftTrails::RecomputeMesh() {
+    float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_THRESHOLD, 0.0f) / 8.0f, 1.0f);
+
+    vertices[0].position = (aircraftRotation * glm::vec3(-trailWidth * pressureScale/ 2.0f, 0.0f, 0.0f)) + aircraftPosition;
+    vertices[1].position = (aircraftRotation * glm::vec3(trailWidth * pressureScale / 2.0f, 0.0f, 0.0f)) + aircraftPosition;
+
+    if(vertexLifetime <= 0.0) {
+        for(int i = trailResolution - 1; i >= 1; i--) {
+            vertices[(i * 2)].position = vertices[(i - 1) * 2].position;
+            vertices[(i * 2) + 1].position = vertices[((i - 1) * 2) + 1].position;
+        }
+        vertexLifetime = vertexStartLifetime;
+    }
+    else {
+        vertexLifetime -= Time::deltaTime;
+    }
+
+    GraphicsBackend::UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+}
+
 void AircraftTrails::LoadResources() {
     shader = &GraphicsBackend::globalShaders.trails;
     mesh = GraphicsBackend::CreateQuad();
+    mesh.material.albedo = glm::vec3(1.0f);
+    mesh.material.shadowColor = glm::vec3(1.0f);
 }
 
 void AircraftTrails::Initialize() {
+    GenerateMesh();
 }
 
 void AircraftTrails::Update() {
+    RecomputeMesh();
 }
 
 void AircraftTrails::Draw() {
+    Transform t = Transform();
+    GraphicsBackend::SetBackfaceCulling(false);
+    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, t, false);
+    GraphicsBackend::EndDrawMesh(mesh);
+    GraphicsBackend::SetBackfaceCulling(true);
+}
 
+void AircraftTrails::UnloadResources() {
+    GraphicsBackend::DeleteMesh(mesh);
 }

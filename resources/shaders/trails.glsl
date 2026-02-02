@@ -10,6 +10,7 @@ uniform mat4 uView;
 uniform mat4 uProjection;
 
 out vec3 pNormal;
+out vec2 pUV;
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -36,6 +37,8 @@ void main()
     gl_Position = uProjection * worldPosition;
 
     pNormal = aNormal;
+
+    pUV = aUV;
 }
 
 #fragment
@@ -43,6 +46,7 @@ void main()
 precision highp float;
 
 in vec3 pNormal;
+in vec2 pUV;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
@@ -54,5 +58,5 @@ out vec4 FragColor;
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha * pow(1.0 - pUV.y, 0.5f));
 }

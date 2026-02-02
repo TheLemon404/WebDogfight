@@ -3,6 +3,7 @@
 #include "../graphics/types.hpp"
 #include "entity.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "widget.hpp"
 #include <cstdlib>
@@ -51,6 +52,8 @@ struct AircraftResourceSettings {
     float controlSurfaceTweenStep;
     float rollMagnifier;
     float rollRate;
+    glm::vec3 wingTipL;
+    glm::vec3 wingTipR;
 };
 
 struct AircraftResource {
@@ -88,11 +91,29 @@ class AircraftTrails {
     Mesh mesh;
     Shader* shader;
 
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    float vertexStartLifetime = 0.05f;
+    float trailWidth = 0.5f;
+    float vertexLifetime = vertexStartLifetime;
+
+    void GenerateMesh();
+    void RecomputeMesh();
+
     public:
+    glm::vec3 aircraftPosition = glm::vec3(0.0f);
+    glm::quat aircraftRotation = glm::identity<glm::quat>();
+    float gForce = 0.0f;
+
+    unsigned int trailResolution = 15;
+    float trailLength = 30.0f;
+
     void LoadResources();
     void Initialize();
     void Update();
     void Draw();
+    void UnloadResources();
 };
 
 class Aircraft : public Entity {
@@ -120,7 +141,8 @@ class Aircraft : public Entity {
     const glm::quat downQuaternion = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
     AircraftExhaustParticleSystem exhaustParticles;
-    AircraftTrails trails;
+    AircraftTrails leftTrails;
+    AircraftTrails rightTrails;
 
     //audio
     Sound engineSound = Sound();

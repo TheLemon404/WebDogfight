@@ -267,10 +267,15 @@ void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, 
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glm::mat4 transformMatrix = transform.GetMatrix();
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
-    UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
-    if(hasTransform) UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
+    if(hasTransform) {
+        glm::mat4 transformMatrix = transform.GetMatrix();
+        UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
+        UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
+    }
+    else {
+        UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
+    }
 
     UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");

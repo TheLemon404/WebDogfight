@@ -6,6 +6,7 @@
 struct TerrainAssets {
     std::string shader;
     std::string heightmap;
+    std::string discolorationmap;
 };
 
 struct TerrainResource {
@@ -18,6 +19,7 @@ class Terrain : public Entity {
     Transform transform = Transform();
     TerrainResource resource;
     Texture heightMap;
+    Texture discolorationMap;
 
     const std::string terrainResourcePath;
 

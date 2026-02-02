@@ -60,6 +60,8 @@ uniform vec3 uShadowColor;
 
 uniform vec3 uFogColor;
 
+uniform sampler2D uDiscolorationMap;
+
 out vec4 FragColor;
 
 #define NEAR 0.4
@@ -77,7 +79,7 @@ void main()
     vec3 normal = normalize(cross(dFdx(pPos), dFdy(pPos)));
     float dot = clamp(dot(normal, -uSunDirection), 0.0, 1.0);
 
-    vec3 color = mix(uShadowColor, uAlbedo, dot);
+    vec3 color = mix(uShadowColor, uAlbedo + texture(uDiscolorationMap, pUV).r, dot);
 
     float distanceLerp = clamp(linearizeDepth(gl_FragCoord.z) / FALLOFF, 0.0, 1.0);
 

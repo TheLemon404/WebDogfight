@@ -176,7 +176,7 @@ class GraphicsBackend {
 
     static void BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform);
     static void EndDrawSkeletalMesh(Mesh& mesh);
-    static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform = false);
+    static void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform = true);
     static void EndDrawMesh(Mesh& mesh);
     static void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
     static void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);

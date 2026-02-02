@@ -31,6 +31,8 @@
     "camera-zoom-distance": 20,
     "control-surface-tween-step": 1,
     "roll-magnifier": 2.0,
-    "roll-rate": 4.0
+    "roll-rate": 4.0,
+    "wing-tip-l": [6.5, 0.0, -3.0],
+    "wing-tip-r": [-6.5, 0.0, -3.0]
   }
 }

@@ -24,9 +24,11 @@ void Terrain::LoadResources() {
     json JSON = json::parse(resourceFileText);
     resource.assets.shader = JSON["assets"]["shader"];
     resource.assets.heightmap = JSON["assets"]["heightmap"];
+    resource.assets.discolorationmap = JSON["assets"]["discolorationmap"];
 
     shader = &GraphicsBackend::globalShaders.terrain;
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
+    discolorationMap = Loader::LoadTextureFromFile(resource.assets.discolorationmap.c_str());
 }
 
 void Terrain::Initialize() {
@@ -112,6 +114,8 @@ void Terrain::Draw() {
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UseTextureSlot(heightMap, 0);
     GraphicsBackend::UploadShaderUniformInt(*shader, 0, "uHeightmap");
+    GraphicsBackend::UseTextureSlot(discolorationMap, 1);
+    GraphicsBackend::UploadShaderUniformInt(*shader, 1, "uDiscolorationMap");
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::ResetTextureSlots();

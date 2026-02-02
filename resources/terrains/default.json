@@ -1,6 +1,7 @@
 {
   "assets": {
     "shader": "resources/shaders/terrain.glsl",
-    "heightmap": "resources/textures/heightmap.png"
+    "heightmap": "resources/textures/heightmap.png",
+    "discolorationmap": "resources/textures/noiseTexture.png"
   }
 }
