@@ -30,6 +30,10 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, in
     keyStates[key] = action;
 }
 
+void InputManager::GLFWCharCallback(GLFWwindow *window, unsigned int codepoint) {
+    lastChar = codepoint;
+}
+
 void InputManager::ResetInputState() {
     mouseDelta.x = 0.0;
     mouseDelta.y = 0.0;
@@ -73,4 +77,10 @@ bool InputManager::IsMouseButtonPressed(unsigned int button) {
 bool InputManager::IsMouseButtonJustReleased(unsigned int button) {
     if(mouseButtonStates[button] == GLFW_RELEASE && (lastMouseButtonStates[button] == GLFW_PRESS || lastMouseButtonStates[button] == GLFW_REPEAT)) return true;
     return false;
+}
+
+char InputManager::GetChar() {
+    unsigned int ch = lastChar;
+    lastChar = 0;
+    return ch;
 }

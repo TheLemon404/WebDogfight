@@ -68,8 +68,6 @@ void RectWidget::LoadResources() {
 void RectWidget::Draw() {
     FOX2_PROFILE_SCOPE("RectDraw")
 
-    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
-
     GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, border, "uBorder");
@@ -96,9 +94,6 @@ void TextRectWidget::LoadResources() {
 }
 
 void TextRectWidget::RecomputeTextMesh() {
-    //---IMPORTANT--- REMOVE THIS
-    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
-
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -176,8 +171,6 @@ void TextRectWidget::RecomputeTextMesh() {
 }
 
 void TextRectWidget::Draw() {
-    if(InputManager::IsKeyPressed(GLFW_KEY_T)) return;
-
     GraphicsBackend::SetDepthTest(false);
     RectWidget::Draw();
 
@@ -222,6 +215,21 @@ void InputWidget::Draw() {
     }
 
     if(focused) {
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_BACKSPACE)) {
+            if(text.length() > 0) {
+                PopChar();
+            }
+        }
+        else{
+            char c = InputManager::GetChar();
+            if(c != 0 && text.length() < maxCharacters) {
+                std::string text(1, c);
+                AppendText(text);
+            }
+        }
+    }
+
+    if(focused) {
         color.value = glm::vec4(0.1);
     }
     else {
@@ -237,7 +245,7 @@ void CircleWidget::LoadResources() {
 }
 
 void CircleWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation);
+    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, false, moveWithAspectRatio);
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
     GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");

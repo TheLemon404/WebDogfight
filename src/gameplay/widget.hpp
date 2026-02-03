@@ -13,6 +13,7 @@ class Widget {
     float rotation = 0.0;
     glm::vec2 position = glm::vec2(0.0f);
     glm::vec2 scale = glm::vec2(1.0f);
+    bool moveWithAspectRatio = false;
 
     const std::string name;
     const unsigned int id = rand();
@@ -51,7 +52,6 @@ class RectWidget : public Widget {
 
     public:
     bool stretchWithAspectRatio = false;
-    bool moveWithAspectRatio = false;
 
     int border = 2;
     int cornerBorder = 2;
@@ -87,8 +87,27 @@ class TextRectWidget : public RectWidget {
 
     Color fontColor = COLOR_WHITE;
 
+    std::string GetText() {
+        return text;
+    }
+
     void SetText(const std::string& text) {
         this->text = text;
+        RecomputeTextMesh();
+    }
+
+    void AppendText(const std::string& text) {
+        this->text += text;
+        RecomputeTextMesh();
+    }
+
+    void ClearText() {
+        this->text = "";
+        RecomputeTextMesh();
+    }
+
+    void PopChar() {
+        text.pop_back();
         RecomputeTextMesh();
     }
 
@@ -111,6 +130,8 @@ class TextButtonWidget : public TextRectWidget {
 class InputWidget : public TextRectWidget {
     public:
     bool focused = false;
+
+    int maxCharacters = 10;
 
     void Draw() override;
 

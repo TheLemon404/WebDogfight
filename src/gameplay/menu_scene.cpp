@@ -1,4 +1,5 @@
 #include "menu_scene.hpp"
+#include "GLFW/glfw3.h"
 #include "scene_manager.hpp"
 #include "widget.hpp"
 #include "../graphics/window.hpp"
@@ -11,10 +12,11 @@ void MenuWidgetLayer::CreateWidgets() {
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     widgets.push_back(background);
 
-    std::shared_ptr<InputWidget> codeInput = std::make_shared<InputWidget>("codeInput", GraphicsBackend::globalFonts.defaultFont);
+    codeInput = std::make_shared<InputWidget>("codeInput", GraphicsBackend::globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;
     codeInput->moveWithAspectRatio = true;
     codeInput->centerText = true;
+    codeInput->maxCharacters = 6;
     codeInput->SetText("******");
     codeInput->font.fontScale = 2.0;
     codeInput->scale = glm::vec2(0.2, 0.09);
@@ -37,4 +39,20 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->cornerColor.value = glm::vec4(0.7);
     playButton->onPressed = SceneManager::FutureChangeToGameScene;
     widgets.push_back(playButton);
+
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
+    rect->SetText("Welcome to the Fox2.io\n"
+                "flight controls test!\n\n"
+                "This is in the very early\n"
+                "stages of development.\n\n"
+                "Follow development at:\n"
+                "- YouTube: @thelemon9300\n"
+                "- X: @MichaelTeschner7");
+    rect->position = glm::vec2(-0.7, 0.2);
+    rect->moveWithAspectRatio = true;
+    rect->scale = glm::vec2(0.4, 0.3);
+    rect->color.value = glm::vec4(0.2);
+    rect->borderColor.value = glm::vec4(0.4);
+    rect->cornerColor.value = glm::vec4(0.7);
+    widgets.push_back(rect);
 }

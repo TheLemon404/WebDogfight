@@ -12,6 +12,8 @@ class InputManager {
     inline static int lastMouseButtonStates[GLFW_MAX_MOUSE_BUTTONS];
     inline static int lastKeyStates[GLFW_MAX_KEYS];
 
+    inline static char lastChar;
+
     public:
     inline static bool mouseHidden = false;
     inline static glm::vec2 mousePosition = glm::vec2(0.0);
@@ -25,6 +27,7 @@ class InputManager {
     static void GLFWMouseScrollCallback(GLFWwindow* window, double x, double y);
     static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void GLFWKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods);
+    static void GLFWCharCallback(GLFWwindow* window, unsigned int codepoint);
     static void ResetInputState();
 
     static bool IsKeyJustPressed(unsigned int key);
@@ -34,4 +37,6 @@ class InputManager {
     static bool IsMouseButtonJustPressed(unsigned int button);
     static bool IsMouseButtonPressed(unsigned int button);
     static bool IsMouseButtonJustReleased(unsigned int button);
+
+    static char GetChar();
 };

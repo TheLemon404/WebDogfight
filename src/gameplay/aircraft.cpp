@@ -312,6 +312,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     //aircraft aiming ui
     aim = std::make_shared<CircleWidget>("aimWidget");
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    aim->moveWithAspectRatio = true;
     widgets.push_back(aim);
 
     mouse = std::make_shared<RectWidget>("mouseWidget");
@@ -325,8 +326,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     //demo window ui
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
-    rect->SetText("Welcome to the Fox2.io\n"
-                "flight controls test!\n\n"
+    rect->SetText(
                 "Controls:\n"
                 "- Shift: Thottle Up\n"
                 "- Ctrl: Thottle Down\n"
@@ -336,13 +336,10 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "- Tab: Free Look\n\n"
                 "Notes:\n"
                 "- Respawn on terrain\n"
-                "  or boundary collision.\n\n"
-                "Follow development at:\n"
-                "- YouTube: @thelemon9300\n"
-                "- X: @MichaelTeschner7");
+                "  or boundary collision.");
     rect->position = glm::vec2(-0.7, 0.2);
     rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.7);
+    rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(rect);
@@ -361,7 +358,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 
 void AircraftWidgetLayer::UpdateLayer() {
     FOX2_PROFILE_FUNCTION()
-    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / (WindowManager::aspect * 1000.0),
+    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / 1000.0f,
         #ifdef __EMSCRIPTEN__
         InputManager::mouseDelta.y / 1000.0
         #else
@@ -369,7 +366,7 @@ void AircraftWidgetLayer::UpdateLayer() {
         #endif
     );
 
-    mouse->position += targetDelta;
+    mouse->position += targetDelta * Time::deltaTime * 70.0f;
     mouse->position *= 0.95f;
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 

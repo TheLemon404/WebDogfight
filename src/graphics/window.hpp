@@ -72,6 +72,7 @@ class Window {
         glfwSetCursorPosCallback(window, InputManager::GLFWMouseCursorPosCallback);
         glfwSetMouseButtonCallback(window, InputManager::GLFWMouseButtonCallback);
         glfwSetKeyCallback(window, InputManager::GLFWKeyCallback);
+        glfwSetCharCallback(window, InputManager::GLFWCharCallback);
 
         if (!window) {
             glfwTerminate();

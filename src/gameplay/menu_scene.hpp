@@ -6,6 +6,8 @@
 #include "widget.hpp"
 
 class MenuWidgetLayer : public WidgetLayer {
+    std::shared_ptr<InputWidget> codeInput;
+
     void CreateWidgets() override;
     void UpdateLayer() override {};
 };
