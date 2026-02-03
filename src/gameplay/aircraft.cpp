@@ -233,9 +233,8 @@ void Aircraft::Update() {
         glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
         glm::vec3 lift = -gravity * terminalLiftFactor;
 
-        glm::vec3 acceleration = thrust + gravity + lift + brake;
+        glm::vec3 acceleration = thrust + gravity + lift + brake - (velocity * DRAG_COEFFICIENT);
         velocity += acceleration * (float)Time::deltaTime;
-        velocity -= velocity * DRAG_COEFFICIENT * (float)Time::deltaTime;
 
         speed = glm::length(velocity);
 
