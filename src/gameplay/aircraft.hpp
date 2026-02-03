@@ -95,7 +95,7 @@ class AircraftTrails {
     std::vector<unsigned int> indices;
 
     float vertexStartLifetime = 0.05f;
-    float trailWidth = 0.5f;
+    float trailWidth = 0.3f;
     float vertexLifetime = vertexStartLifetime;
 
     void GenerateMesh();
@@ -130,6 +130,7 @@ class Aircraft : public Entity {
     glm::quat targetRotation;
     float restingRollRotation = 0.0f;
     glm::vec3 lastPosition = glm::vec3(0.0f);
+    glm::vec3 lastVelocity = glm::vec3(0.0f);
     glm::quat lastRotation = glm::identity<glm::quat>();
 
     void ApplyControlSurfaces(float roll);
@@ -155,6 +156,7 @@ class Aircraft : public Entity {
     Transform transform;
 
     glm::vec3 velocity = glm::vec3(0.0);
+    float speed = 0.0f;
     float gForce = 0.0f;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
