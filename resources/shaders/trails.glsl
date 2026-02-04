@@ -58,5 +58,6 @@ out vec4 FragColor;
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha * pow(1.0 - pUV.y, 0.5f));
+    float alphaUVFactor = (1.0f - (abs(pUV.y - 0.4f) * 2.0f)) * (1.0f - (abs(pUV.x - 0.5f) * 2.0f));
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha * alphaUVFactor);
 }
