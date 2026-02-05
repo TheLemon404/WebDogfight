@@ -1,7 +1,8 @@
 {
   "assets": {
     "shader": "resources/shaders/terrain.glsl",
-    "heightmap": "resources/textures/heightmap.png",
+    "heightmap": "resources/textures/islandHeightmap.png",
+    "heightFactor": 1.0,
     "discolorationmap": "resources/textures/noiseTexture.png"
   }
 }

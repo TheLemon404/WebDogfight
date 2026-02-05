@@ -137,4 +137,4 @@ private:
 #define FOX2_PROFILE_BEGIN_SESSION(name, filepath) Instrumentor::Get().BeginSession(name, filepath);
 #define FOX2_PROFILE_END_SESSION() Instrumentor::Get().EndSession();
 #define FOX2_PROFILE_SCOPE(name) InstrumentationTimer timer##__LINE__(name);
-#define FOX2_PROFILE_FUNCTION() FOX2_PROFILE_SCOPE(__FUNCTION__)
+#define FOX2_PROFILE_FUNCTION() FOX2_PROFILE_SCOPE(__PRETTY_FUNCTION__)

@@ -35,7 +35,7 @@ void Scene::Update()  {
 
 void Scene::Draw() {
     if(environment.skybox) {
-        FOX2_PROFILE_SCOPE("skybox")
+        FOX2_PROFILE_FUNCTION()
         GraphicsBackend::SetDepthMask(false);
         GraphicsBackend::SetBackfaceCulling(false);
         GraphicsBackend::DrawSkybox(*environment.skybox, SceneManager::activeCamera);

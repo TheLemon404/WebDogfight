@@ -66,7 +66,7 @@ void RectWidget::LoadResources() {
 }
 
 void RectWidget::Draw() {
-    FOX2_PROFILE_SCOPE("RectDraw")
+    FOX2_PROFILE_FUNCTION()
 
     GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");

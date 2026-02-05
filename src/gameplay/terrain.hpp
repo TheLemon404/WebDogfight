@@ -6,6 +6,7 @@
 struct TerrainAssets {
     std::string shader;
     std::string heightmap;
+    float heightFactor;
     std::string discolorationmap;
 };
 

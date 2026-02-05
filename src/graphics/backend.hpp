@@ -34,6 +34,7 @@ struct GlobalShaders {
     Shader skeletal;
     Shader skybox;
     Shader terrain;
+    Shader water;
     Shader uiCircle;
     Shader uiSquare;
 };

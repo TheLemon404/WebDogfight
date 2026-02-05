@@ -269,7 +269,7 @@ void Aircraft::Update() {
 }
 
 void Aircraft::Draw()  {
-    FOX2_PROFILE_SCOPE("Aircraft Draw")
+    FOX2_PROFILE_FUNCTION()
 
     GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
@@ -353,8 +353,8 @@ void AircraftWidgetLayer::CreateWidgets() {
     //aircraft stats ui
     stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
     stats->moveWithAspectRatio = true;
-    stats->scale = glm::vec2(0.4, 0.13);
-    stats->position = glm::vec2(0.6, -0.8);
+    stats->scale = glm::vec2(0.4, 0.16);
+    stats->position = glm::vec2(0.6, -0.6);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
@@ -387,6 +387,7 @@ void AircraftWidgetLayer::UpdateLayer() {
     stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n"
         "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n"
         "Speed: " + std::to_string(glm::length(aircraft->velocity)) + "\n"
+        "Altitude: " + std::to_string(aircraft->transform.position.y) + "\n"
         "G-Force: " + std::to_string(glm::length(aircraft->gForce)) + "\n");
 }
 

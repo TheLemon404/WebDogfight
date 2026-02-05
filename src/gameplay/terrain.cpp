@@ -24,6 +24,7 @@ void Terrain::LoadResources() {
     json JSON = json::parse(resourceFileText);
     resource.assets.shader = JSON["assets"]["shader"];
     resource.assets.heightmap = JSON["assets"]["heightmap"];
+    resource.assets.heightFactor = JSON["assets"]["heightFactor"];
     resource.assets.discolorationmap = JSON["assets"]["discolorationmap"];
 
     shader = &GraphicsBackend::globalShaders.terrain;
@@ -41,15 +42,31 @@ void Terrain::Initialize() {
             float x = static_cast<float>(i) / ((float)TERRAIN_RESOLUTION - 1);
             float z = static_cast<float>(j) / ((float)TERRAIN_RESOLUTION - 1);
 
-            glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, 0, z * TERRAIN_SIZE);
-            position -= glm::vec3((TERRAIN_SIZE) / 2.0, 0, (TERRAIN_SIZE) / 2.0);
+            glm::vec2 uv = glm::vec2(x, z);
+            glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
+            int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
+            unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
 
+            float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.assets.heightFactor;
+            glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, height, z * TERRAIN_SIZE);
+            position -= glm::vec3((TERRAIN_SIZE) / 2.0, 0, (TERRAIN_SIZE) / 2.0);
 
             vertices.push_back({
                 position,
                 GLOBAL_UP_VECTOR,
                 {static_cast<float>(i) / (TERRAIN_RESOLUTION - 1), static_cast<float>(j) / (TERRAIN_RESOLUTION - 1)}
             });
+        }
+    }
+
+    for(int i = 0; i < TERRAIN_RESOLUTION; i++) {
+        for(int j = 0; j < TERRAIN_RESOLUTION; j++) {
+            glm::vec3 position = vertices[i * TERRAIN_RESOLUTION + j].position;
+            glm::vec3 leftPosition = i + 1 < TERRAIN_RESOLUTION ? vertices[(i + 1) * TERRAIN_RESOLUTION + j].position : position;
+            glm::vec3 upPosition = j + 1 < TERRAIN_RESOLUTION ? vertices[i * TERRAIN_RESOLUTION + j + 1].position : position;
+
+            glm::vec3 normal = glm::normalize(glm::cross(upPosition - position, leftPosition - position));
+            vertices[i * TERRAIN_RESOLUTION + j].normal = normal;
         }
     }
 
@@ -77,7 +94,7 @@ void Terrain::Initialize() {
 }
 
 void Terrain::Update() {
-    FOX2_PROFILE_SCOPE("Terrain Draw")
+    FOX2_PROFILE_FUNCTION()
 
     for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
         glm::vec2 uv = glm::vec2(aircraft->transform.position.x, aircraft->transform.position.z) + glm::vec2(TERRAIN_SIZE / 2.0);
@@ -86,7 +103,7 @@ void Terrain::Update() {
         glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
         int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
         unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
-        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT;
+        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.assets.heightFactor;
 
         //boundaries and terrain collision
         if(aircraft->transform.position.y < height) {
@@ -110,7 +127,7 @@ void Terrain::Update() {
 void Terrain::Draw() {
     FOX2_PROFILE_FUNCTION()
 
-    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform);
+    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform, false);
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UseTextureSlot(heightMap, 0);
     GraphicsBackend::UploadShaderUniformInt(*shader, 0, "uHeightmap");
