@@ -1,6 +1,7 @@
 #include "water.hpp"
 #include "../graphics/backend.hpp"
 #include "scene_manager.hpp"
+#include "../utils/instrumentor.hpp"
 
 #define WATER_PLANE_SIZE 100000.0f
 #define WATER_LEVEL 3000.0f
@@ -11,6 +12,7 @@ void Water::LoadResources() {
 }
 
 void Water::Initialize() {
+    FOX2_PROFILE_FUNCTION();
     std::vector<Vertex> vertices = {
         {{-WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 0
         {{ WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 1
@@ -32,6 +34,7 @@ void Water::Update() {
 }
 
 void Water::Draw() {
+    FOX2_PROFILE_FUNCTION();
     GraphicsBackend::SetBackfaceCulling(false);
     GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform, false);
     GraphicsBackend::EndDrawMesh(mesh);
