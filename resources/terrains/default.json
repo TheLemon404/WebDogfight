@@ -2,7 +2,13 @@
   "assets": {
     "shader": "resources/shaders/terrain.glsl",
     "heightmap": "resources/textures/islandHeightmap.png",
-    "heightFactor": 1.0,
     "discolorationmap": "resources/textures/noiseTexture.png"
+  },
+  "settings": {
+    "heightFactor": 1.0,
+    "top-color": [1.0, 1.0, 1.0],
+    "middle-color": [0.48, 0.63, 0.35],
+    "slope-color": [0.4, 0.3, 0.3],
+    "base-color": [0.5, 0.5, 0.5]
   }
 }

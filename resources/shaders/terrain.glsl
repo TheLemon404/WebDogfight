@@ -8,8 +8,6 @@ layout(location = 2) in vec2 aUV;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
-uniform sampler2D uHeightmap;
-
 out vec2 pUV;
 out vec3 pNormal;
 out vec3 pPos;
@@ -37,13 +35,19 @@ uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
 
+uniform vec3 uTopColor;
+uniform vec3 uMiddleColor;
+uniform vec3 uSlopeColor;
+uniform vec3 uBaseColor;
+
 uniform vec3 uFogColor;
 
 uniform sampler2D uDiscolorationMap;
+uniform sampler2D uHeightmap;
 
 out vec4 FragColor;
 
-#define NEAR 0.4
+#define NEAR 10.0
 #define FAR 100000.0
 #define FALLOFF 60000.0
 
@@ -57,7 +61,10 @@ void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
 
-    vec3 color = mix(uShadowColor, uAlbedo + texture(uDiscolorationMap, pUV).r, dot);
+    vec3 baseAlbedo = mix(uBaseColor, uMiddleColor, pow(texture(uHeightmap, pUV).r, 0.3));
+    vec3 heightAlbedo = mix(baseAlbedo, uTopColor, pow(texture(uHeightmap, pUV).r, 4.0));
+    vec3 finalAlbedo = mix(heightAlbedo, uSlopeColor, max(1.0 - abs(dot(pNormal, vec3(0.0, 1.0, 0.0))), 0.0));
+    vec3 color = mix(uShadowColor, finalAlbedo, dot);
 
     float distanceLerp = clamp(linearizeDepth(gl_FragCoord.z) / FALLOFF, 0.0, 1.0);
 

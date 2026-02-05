@@ -6,12 +6,20 @@
 struct TerrainAssets {
     std::string shader;
     std::string heightmap;
-    float heightFactor;
     std::string discolorationmap;
+};
+
+struct TerrainSettings {
+    float heightFactor;
+    glm::vec3 topColor;
+    glm::vec3 middleColor;
+    glm::vec3 slopeColor;
+    glm::vec3 baseColor;
 };
 
 struct TerrainResource {
     TerrainAssets assets;
+    TerrainSettings settings;
 };
 
 class Terrain : public Entity {

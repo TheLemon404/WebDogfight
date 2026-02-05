@@ -37,6 +37,7 @@ void Water::Draw() {
     FOX2_PROFILE_FUNCTION();
     GraphicsBackend::SetBackfaceCulling(false);
     GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform, false);
+    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::SetBackfaceCulling(true);
 }

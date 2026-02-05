@@ -24,8 +24,12 @@ void Terrain::LoadResources() {
     json JSON = json::parse(resourceFileText);
     resource.assets.shader = JSON["assets"]["shader"];
     resource.assets.heightmap = JSON["assets"]["heightmap"];
-    resource.assets.heightFactor = JSON["assets"]["heightFactor"];
     resource.assets.discolorationmap = JSON["assets"]["discolorationmap"];
+    resource.settings.heightFactor = JSON["settings"]["heightFactor"];
+    resource.settings.topColor = {JSON["settings"]["top-color"][0], JSON["settings"]["top-color"][1], JSON["settings"]["top-color"][2]};
+    resource.settings.middleColor = {JSON["settings"]["middle-color"][0], JSON["settings"]["middle-color"][1], JSON["settings"]["middle-color"][2]};
+    resource.settings.slopeColor = {JSON["settings"]["slope-color"][0], JSON["settings"]["slope-color"][1], JSON["settings"]["slope-color"][2]};
+    resource.settings.baseColor = {JSON["settings"]["base-color"][0], JSON["settings"]["base-color"][1], JSON["settings"]["base-color"][2]};
 
     shader = &GraphicsBackend::globalShaders.terrain;
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
@@ -47,7 +51,7 @@ void Terrain::Initialize() {
             int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
             unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
 
-            float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.assets.heightFactor;
+            float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.settings.heightFactor;
             glm::vec3 position = glm::vec3(x * TERRAIN_SIZE, height, z * TERRAIN_SIZE);
             position -= glm::vec3((TERRAIN_SIZE) / 2.0, 0, (TERRAIN_SIZE) / 2.0);
 
@@ -103,7 +107,7 @@ void Terrain::Update() {
         glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
         int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
         unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
-        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.assets.heightFactor;
+        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.settings.heightFactor;
 
         //boundaries and terrain collision
         if(aircraft->transform.position.y < height) {
@@ -134,6 +138,10 @@ void Terrain::Draw() {
     GraphicsBackend::UseTextureSlot(discolorationMap, 1);
     GraphicsBackend::UploadShaderUniformInt(*shader, 1, "uDiscolorationMap");
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.topColor, "uTopColor");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.middleColor, "uMiddleColor");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.slopeColor, "uSlopeColor");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.baseColor, "uBaseColor");
     GraphicsBackend::EndDrawMesh(mesh);
     GraphicsBackend::ResetTextureSlots();
 }
