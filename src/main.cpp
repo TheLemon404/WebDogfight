@@ -13,7 +13,6 @@
 #include "graphics/backend.hpp"
 #include "graphics/window.hpp"
 #include <memory>
-
 #include "audio/backend.hpp"
 
 #define GLFW_INCLUDE_NONE
