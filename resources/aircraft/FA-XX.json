@@ -1,7 +1,7 @@
 {
   "description": {
     "name": "FA-XX",
-    "shader-resource-path": "resources/shaders/skeletal.glsl",
+    "shader-resource-path": "resources/shaders/aircraft.glsl",
     "mesh-resource-path": "resources/meshes/demo_jet.gltf",
     "bone-mappings": {
       "root": 8,

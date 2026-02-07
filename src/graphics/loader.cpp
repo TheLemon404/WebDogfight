@@ -250,6 +250,49 @@ Shader Loader::LoadShaderFromGLSL(const std::string& resourcePath) {
     return Shader(programID);
 }
 
+
+Texture Loader::LoadTextureFromFile(const char* resourcePath) {
+    Texture texture = Texture();
+
+    std::cout << "Attemping to read Texture file at: " << resourcePath << std::endl;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char *data = stbi_load(resourcePath, &texture.width, &texture.height, &texture.channels, 0);
+    if(data) {
+        if(texture.channels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 2) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, texture.width, texture.height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else if(texture.channels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+
+        texture.data = data;
+    }
+    else {
+        std::cout << "Failed to loat texture resource from file: " << resourcePath << std::endl;
+    }
+
+    return texture;
+}
+
+
 Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     std::string text = Files::ReadResourceString(resourcePath);
     json JSON = json::parse(text);
@@ -286,6 +329,10 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     }
 
     Mesh mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
+    for(size_t i = 0; i < JSON["images"].size(); i++) {
+        std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
+        mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
+    }
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
     return mesh;
 }
@@ -390,49 +437,12 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
 
     SkeletalMesh mesh = SkeletalMesh(0, 0, 0, vertices.size(), indices.size());
     mesh.skeleton = skeleton;
+    for(size_t i = 0; i < JSON["images"].size(); i++) {
+        std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
+        mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
+    }
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
     return mesh;
-}
-
-Texture Loader::LoadTextureFromFile(const char* resourcePath) {
-    Texture texture = Texture();
-
-    std::cout << "Attemping to read Texture file at: " << resourcePath << std::endl;
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    unsigned char *data = stbi_load(resourcePath, &texture.width, &texture.height, &texture.channels, 0);
-    if(data) {
-        if(texture.channels == 1) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else if(texture.channels == 2) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, texture.width, texture.height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else if(texture.channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else if(texture.channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8I, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-
-        texture.data = data;
-    }
-    else {
-        std::cout << "Failed to loat texture resource from file: " << resourcePath << std::endl;
-    }
-
-    return texture;
 }
 
 void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {

@@ -15,6 +15,8 @@ uniform mat4 uProjection;
 uniform mat4 uJointTransforms[MAX_BONES];
 
 out vec3 pNormal;
+out vec2 pUV;
+out vec4 pWorldPos;
 flat out uint pBoneID;
 
 mat3 extractRotation(mat4 transformation) {
@@ -38,13 +40,14 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uViewTransform * uJointTransforms[int(aBoneID)] * vec4(aPos, 1.0f);
-    gl_Position = uProjection * worldPosition;
+    pWorldPos = uViewTransform * uJointTransforms[int(aBoneID)] * vec4(aPos, 1.0f);
+    gl_Position = uProjection * pWorldPos;
 
     mat3 rotationMatrix = extractRotation(uTransform) * extractRotation(uJointTransforms[int(aBoneID)]);
     pNormal = rotationMatrix * aNormal;
 
     pBoneID = aBoneID;
+    pUV = aUV;
 }
 
 #fragment
@@ -52,17 +55,33 @@ void main()
 precision highp float;
 
 in vec3 pNormal;
+in vec2 pUV;
+out vec4 pWorldPos;
 flat in uint pBoneID;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
+uniform vec3 uCameraPosition;
+
+uniform sampler2D uAlbedoTexture;
+uniform sampler2D uRoughnessTexture;
+uniform sampler2D uEmmissionTexture;
 
 out vec4 FragColor;
 
 void main()
 {
-    float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
+    float diffuse = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
+    vec3 albedo = texture(uAlbedoTexture, pUV).rgb;
+    float alpha = texture(uAlbedoTexture, pUV).a;
+
+    vec3 viewDir = normalize(uCameraPosition - pWorldPos.xyz);
+    vec3 reflectDir = normalize(reflect(uSunDirection, pNormal));
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+    spec *= 1.0 - texture(uRoughnessTexture, pUV).r;
+
+    vec4 nonEmmissive = vec4(mix(uShadowColor * albedo, albedo, diffuse + spec), alpha);
+    FragColor = mix(nonEmmissive, vec4(albedo, alpha), texture(uEmmissionTexture, pUV).r);
 }

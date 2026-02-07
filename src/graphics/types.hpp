@@ -144,6 +144,7 @@ class Skeleton {
 
 class Mesh {
     public:
+    std::unordered_map<std::string, Texture> textureMap;
     Material material;
 
     unsigned int vao = 0;

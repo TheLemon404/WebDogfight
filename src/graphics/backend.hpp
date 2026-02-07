@@ -31,7 +31,6 @@ struct GlobalShaders {
     Shader font;
     Shader trails;
     Shader particles;
-    Shader skeletal;
     Shader skybox;
     Shader terrain;
     Shader water;
@@ -62,7 +61,7 @@ class GraphicsBackend {
     inline static GlobalShaders globalShaders;
     inline static GlobalFonts globalFonts;
 
-    inline static glm::vec3 clearColor = glm::vec3(0.2);
+    inline static glm::vec3 clearColor = glm::vec3(1.0f);
 
     static void LoadResources();
     static Mesh CreateCube();
@@ -114,6 +113,12 @@ class GraphicsBackend {
                 break;
             case 1:
                 glActiveTexture(GL_TEXTURE1);
+                break;
+            case 2:
+                glActiveTexture(GL_TEXTURE2);
+                break;
+            case 3:
+                glActiveTexture(GL_TEXTURE3);
                 break;
         }
         glBindTexture(GL_TEXTURE_2D, texture.id);

@@ -33,9 +33,9 @@ class Loader{
     inline static FT_Library freetypeLibrary;
 
     public:
+    static Texture LoadTextureFromFile(const char* resourcePath);
     static Shader LoadShaderFromGLSL(const std::string& resourcePath);
     static Mesh LoadMeshFromGLTF(const char* resourcePath);
     static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath);
-    static Texture LoadTextureFromFile(const char* resourcePath);
     static void LoadFontFromTTF(const char* resourcePath, Font& font);
 };

@@ -105,7 +105,8 @@ void Aircraft::Initialize() {
     aimWidget = SceneManager::currentScene->GetWidgetByName("aimWidget");
     mouseWidget = SceneManager::currentScene->GetWidgetByName("mouseWidget");
 
-    skeletalMesh.material.albedo = glm::vec3(0.7f);
+    skeletalMesh.material.albedo = glm::vec3(0.1f);
+    skeletalMesh.material.shadowColor = glm::vec3(0.5f);
 
     exhaustParticles.Initialize();
 
@@ -231,7 +232,7 @@ void Aircraft::Update() {
         glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
         glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
         glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-        glm::vec3 lift = -gravity * terminalLiftFactor;
+        glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - glm::abs(glm::dot(aircraftForward, GLOBAL_UP)));
 
         glm::vec3 acceleration = thrust + gravity + lift + brake - (velocity * DRAG_COEFFICIENT);
         velocity += acceleration * (float)Time::deltaTime;
@@ -273,7 +274,15 @@ void Aircraft::Draw()  {
 
     GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::activeCamera.position, "uCameraPosition");
+    GraphicsBackend::UploadShaderUniformInt(shader, 0, "uAlbedoTexture");
+    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
+    GraphicsBackend::UploadShaderUniformInt(shader, 1, "uRoughnessTexture");
+    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["roughness"], 1);
+    GraphicsBackend::UploadShaderUniformInt(shader, 2, "uEmmissionTexture");
+    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["emmission"], 2);
     GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
+    GraphicsBackend::ResetTextureSlots();
 
     if(GraphicsBackend::debugMode){
         Transform t = Transform();
