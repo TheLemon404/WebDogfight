@@ -26,7 +26,7 @@ void Water::Initialize() {
         2, 3, 0,
     };
 
-    mesh.material.albedo = glm::vec3(0.4f, 0.4f, 0.8f);
+    mesh.material.albedo = glm::vec3(0.8f, 0.9f, 1.0f);
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 

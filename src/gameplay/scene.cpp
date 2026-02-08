@@ -5,6 +5,10 @@
 void Scene::LoadResources() {
     environment.skybox = std::make_shared<Skybox>();
 
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.LoadResources();
+    }
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->LoadResources();
     }
@@ -15,6 +19,10 @@ void Scene::LoadResources() {
 }
 
 void Scene::Initialize()  {
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.Initialize();
+    }
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->Initialize();
     }
@@ -24,6 +32,10 @@ void Scene::Initialize()  {
 }
 
 void Scene::Update()  {
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.Update();
+    }
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->Update();
     }
@@ -42,6 +54,10 @@ void Scene::Draw() {
         GraphicsBackend::SetBackfaceCulling(true);
         GraphicsBackend::SetDepthMask(true);
     }
+
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.Draw();
+    }
     for(std::shared_ptr<Entity>& entity : entities) {
         FOX2_PROFILE_SCOPE(entity->name.c_str())
         entity->Draw();
@@ -53,6 +69,10 @@ void Scene::Draw() {
 }
 
 void Scene::UnloadResources()  {
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.UnloadResources();
+    }
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->UnloadResources();
     }

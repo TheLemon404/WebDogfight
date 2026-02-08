@@ -18,6 +18,8 @@ class TestScene {
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));
         testScene.entities.push_back(std::make_shared<Water>("water"));
         testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
+        CloudsVolume clouds = CloudsVolume();
+        testScene.environment.cloudVolumes.push_back(clouds);
 
         std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);

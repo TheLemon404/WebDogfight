@@ -177,6 +177,21 @@ struct Skybox {
     ~Skybox();
 };
 
+class CloudsVolume {
+    Mesh boundsMesh;
+    Shader* shader;
+
+    public:
+    Transform transform = Transform();
+    Color color = Color();
+
+    void LoadResources();
+    void Initialize();
+    void Update() {};
+    void Draw();
+    void UnloadResources();
+};
+
 class ParticleSystem {
     protected:
     Mesh mesh;

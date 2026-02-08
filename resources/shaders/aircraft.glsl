@@ -56,7 +56,7 @@ precision highp float;
 
 in vec3 pNormal;
 in vec2 pUV;
-out vec4 pWorldPos;
+in vec4 pWorldPos;
 flat in uint pBoneID;
 
 uniform vec3 uSunDirection;

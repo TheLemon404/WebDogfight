@@ -18,6 +18,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.skybox = Loader::LoadShaderFromGLSL("resources/shaders/skybox.glsl");
     globalShaders.terrain = Loader::LoadShaderFromGLSL("resources/shaders/terrain.glsl");
     globalShaders.water = Loader::LoadShaderFromGLSL("resources/shaders/water.glsl");
+    globalShaders.clouds = Loader::LoadShaderFromGLSL("resources/shaders/clouds.glsl");
     globalShaders.uiCircle = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
     globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
 
@@ -35,6 +36,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.skybox);
     DeleteShader(globalShaders.terrain);
     DeleteShader(globalShaders.water);
+    DeleteShader(globalShaders.clouds);
     DeleteShader(globalShaders.uiCircle);
     DeleteShader(globalShaders.uiSquare);
 

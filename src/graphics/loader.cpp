@@ -265,6 +265,7 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     unsigned char *data = stbi_load(resourcePath, &texture.width, &texture.height, &texture.channels, 0);
+
     if(data) {
         if(texture.channels == 1) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, data);

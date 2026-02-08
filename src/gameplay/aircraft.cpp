@@ -35,7 +35,7 @@
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
 
-#define GRAVITY 10000.0f
+#define GRAVITY 17000.0f
 #define DRAG_COEFFICIENT 50.0f
 #define GFORCE_COEFFICIENT 150.0f
 #define GFORCE_BODY_THRESHOLD 7
@@ -165,6 +165,7 @@ void Aircraft::Update() {
         //camera controls
         //this ugly one-liner makes for smooth camera rotation
         cameraRotationInputValue += InputManager::mouseDelta / 500.0;
+        cameraRotationInputValue.y = MathUtils::Clamp<float>(cameraRotationInputValue.y, (-PI/2) + 0.00001f , (PI/2) - 0.00001f);
         camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
         cameraForward = glm::normalize(camera.target - camera.position);
         glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
