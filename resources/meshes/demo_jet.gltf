@@ -190,15 +190,18 @@
 				1,
 				1
 			],
+			"emissiveTexture":{
+				"index":0
+			},
 			"name":"Material",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.800000011920929,
-					0.800000011920929,
-					0.800000011920929,
-					1
-				],
-				"metallicFactor":0
+				"baseColorTexture":{
+					"index":1
+				},
+				"metallicFactor":0,
+				"metallicRoughnessTexture":{
+					"index":2
+				}
 			}
 		}
 	],
@@ -220,16 +223,30 @@
 			]
 		}
 	],
-	"images":[
+	"textures":[
 		{
-			"mimeType":"image/png",
-			"name":"albedo",
-			"uri":"albedo.png"
+			"sampler":0,
+			"source":0
 		},
+		{
+			"sampler":0,
+			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
+		}
+	],
+	"images":[
 		{
 			"mimeType":"image/png",
 			"name":"emmission",
 			"uri":"emmission.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"albedo",
+			"uri":"albedo.png"
 		},
 		{
 			"mimeType":"image/png",
@@ -349,6 +366,12 @@
 			"buffer":0,
 			"byteLength":576,
 			"byteOffset":72624
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
