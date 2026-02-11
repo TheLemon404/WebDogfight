@@ -50,11 +50,31 @@ uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec3 uShadowColor;
+uniform vec2 uScreenResolution;
+uniform mat4 uProjection;
+uniform mat4 uView;
 
 out vec4 FragColor;
+
+vec3 extractPosition(mat4 viewMatrix) {
+    return inverse(viewMatrix)[3].xyz;
+}
+
+vec3 getRayWorldDirection() {
+    vec2 screenUV = gl_FragCoord.xy / uScreenResolution;
+    vec4 clip = vec4(screenUV * 2.0 - 1.0, 1.0, 1.0);
+    vec4 viewRay = inverse(uProjection) * clip;
+    viewRay /= viewRay.w;
+    vec4 worldDirection = inverse(uView) * vec4(viewRay.xyz, 0.0);
+    return normalize(worldDirection.xyz);
+}
+
+vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
+    return vec4(rayDirection, 1.0);
+}
 
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha);
+    FragColor = traverseVolume(extractPosition(uView), getRayWorldDirection());
 }

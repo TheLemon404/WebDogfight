@@ -75,7 +75,7 @@ void RectWidget::Draw() {
     GraphicsBackend::UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
     GraphicsBackend::UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
     GraphicsBackend::UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : WindowManager::aspect), WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : WindowManager::primaryWindow->aspect), WindowManager::primaryWindow->height * scale.y);
     GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }
@@ -100,7 +100,7 @@ void TextRectWidget::RecomputeTextMesh() {
     float x = 0.0f;
     float y = 0.0f;
 
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * (stretchWithAspectRatio ? WindowManager::aspect : 1.0f), WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * (stretchWithAspectRatio ? WindowManager::primaryWindow->aspect : 1.0f), WindowManager::primaryWindow->height * scale.y);
 
     unsigned int indexOffset = 0;
 
@@ -249,7 +249,7 @@ void CircleWidget::Draw() {
     GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
     GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
     GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::aspect, WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::primaryWindow->aspect, WindowManager::primaryWindow->height * scale.y);
     GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     GraphicsBackend::EndDrawMesh2D(quad);
 }

@@ -74,7 +74,7 @@ out vec4 FragColor;
 void main()
 {
     float diffuse = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    vec3 albedo = texture(uAlbedoTexture, pUV).rgb;
+    vec4 albedo = texture(uAlbedoTexture, pUV);
     float alpha = texture(uAlbedoTexture, pUV).a;
 
     vec3 viewDir = normalize(uCameraPosition - pWorldPos.xyz);
@@ -82,6 +82,6 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
     spec *= 1.0 - texture(uRoughnessTexture, pUV).r;
 
-    vec4 nonEmmissive = vec4(mix(uShadowColor * albedo, albedo, diffuse + spec), alpha);
-    FragColor = mix(nonEmmissive, vec4(albedo, alpha), texture(uEmmissionTexture, pUV).r);
+    vec4 nonEmmissive = vec4(mix(uShadowColor * albedo.rgb, albedo.rgb, diffuse + spec), alpha);
+    FragColor = mix(nonEmmissive, albedo, texture(uEmmissionTexture, pUV).r);
 }

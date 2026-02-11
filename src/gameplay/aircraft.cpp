@@ -387,7 +387,7 @@ void AircraftWidgetLayer::UpdateLayer() {
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
-    aim->position.x /= WindowManager::aspect;
+    aim->position.x /= WindowManager::primaryWindow->aspect;
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraft->transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);

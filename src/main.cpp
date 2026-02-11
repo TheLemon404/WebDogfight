@@ -18,16 +18,6 @@
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 
-#ifdef __EMSCRIPTEN__
-EM_JS(int, html_get_width, (), {
-    return window.innerWidth;
-})
-
-EM_JS(int, html_get_height, (), {
-    return window.innerHeight;
-})
-#endif
-
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
 
@@ -63,18 +53,7 @@ void main_loop() {
 
 int main() {
     WindowManager::primaryWindow = std::make_shared<Window>();
-#ifdef __EMSCRIPTEN__
-    WindowManager::primaryWindow->width = html_get_width();
-    WindowManager::primaryWindow->height = html_get_height();
-    WindowManager::aspect = static_cast<float>(WindowManager::primaryWindow->width)/WindowManager::primaryWindow->height;
-#else
-    WindowManager::primaryWindow->width = 1600;
-    WindowManager::primaryWindow->height = 1000;
-    WindowManager::aspect = static_cast<float>(1600)/1000;
-#endif
     WindowManager::primaryWindow->title = "Fox2";
-
-    WindowManager::aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
 
     SceneManager::currentScene = std::make_shared<Scene>(MenuScene::Create());
     WindowManager::primaryWindow->Open();

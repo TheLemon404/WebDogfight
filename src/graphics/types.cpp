@@ -2,6 +2,7 @@
 #include "backend.hpp"
 #include "loader.hpp"
 #include "../gameplay/scene_manager.hpp"
+#include "window.hpp"
 
 void Skeleton::UpdateGlobalBoneTransforms()  {
     cachedGlobalBoneTransforms.resize(bones.size());
@@ -42,6 +43,8 @@ void CloudsVolume::Initialize() {
 
 void CloudsVolume::Draw() {
     GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform);
+    GraphicsBackend::UploadShaderUniformVec2(*shader, glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height), "uScreenResolution");
+    GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetViewMatrix(), "uView");
     GraphicsBackend::EndDrawMesh(boundsMesh);
 }
 
