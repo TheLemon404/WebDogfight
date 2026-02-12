@@ -37,8 +37,8 @@ void CloudsVolume::LoadResources() {
 }
 
 void CloudsVolume::Initialize() {
-    transform.position.y = 12000.0f;
-    transform.scale = glm::vec3(100000.0f, 1000.0f, 100000.0f);
+    transform.position.y = 8000.0f;
+    transform.scale = glm::vec3(1000.0f, 1000.0f, 1000.0f);
 }
 
 void CloudsVolume::Draw() {

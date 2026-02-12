@@ -55,13 +55,15 @@ void Scene::Draw() {
         GraphicsBackend::SetDepthMask(true);
     }
 
-    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
-        cloudVolume.Draw();
-    }
     for(std::shared_ptr<Entity>& entity : entities) {
         FOX2_PROFILE_SCOPE(entity->name.c_str())
         entity->Draw();
     }
+
+    for(CloudsVolume& cloudVolume : environment.cloudVolumes) {
+        cloudVolume.Draw();
+    }
+
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
         FOX2_PROFILE_SCOPE("widget layer")
         widgetLayer->Draw();

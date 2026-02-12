@@ -53,8 +53,11 @@ uniform vec3 uShadowColor;
 uniform vec2 uScreenResolution;
 uniform mat4 uProjection;
 uniform mat4 uView;
+uniform mat4 uTransform;
 
 out vec4 FragColor;
+
+#define ABSORBTION 1.0f
 
 vec3 extractPosition(mat4 viewMatrix) {
     return inverse(viewMatrix)[3].xyz;
@@ -69,8 +72,83 @@ vec3 getRayWorldDirection() {
     return normalize(worldDirection.xyz);
 }
 
+float rayAABBEnter(const vec3 b_min, const vec3 b_max, vec3 rayOrigin, vec3 rayDirection)
+{
+    float tmin = 0.0, tmax = 1e30f;
+
+    for (int axis = 0; axis < 3; axis++)
+    {
+        if (abs(rayDirection[axis]) < 1e-8f) {
+            if (rayOrigin[axis] < b_min[axis] || rayOrigin[axis] > b_max[axis]) {
+                return 1e30f;
+            }
+            continue;
+        }
+
+        float t1 = (b_min[axis] - rayOrigin[axis]) / rayDirection[axis];
+        float t2 = (b_max[axis] - rayOrigin[axis]) / rayDirection[axis];
+
+        float dmin = min(t1, t2);
+        float dmax = max(t1, t2);
+
+        tmin = max(dmin, tmin);
+        tmax = min(dmax, tmax);
+    }
+
+    if (tmax >= tmin && tmin >= 0.0) return tmin;
+
+    return 1e30f;
+}
+
+float rayAABBExit(const vec3 b_min, const vec3 b_max, vec3 rayOrigin, vec3 rayDirection)
+{
+    float tmin = 0.0, tmax = 1e30f;
+
+    for (int axis = 0; axis < 3; axis++)
+    {
+        if (abs(rayDirection[axis]) < 1e-8f) {
+            if (rayOrigin[axis] < b_min[axis] || rayOrigin[axis] > b_max[axis]) {
+                return 1e30f;
+            }
+            continue;
+        }
+
+        float t1 = (b_min[axis] - rayOrigin[axis]) / rayDirection[axis];
+        float t2 = (b_max[axis] - rayOrigin[axis]) / rayDirection[axis];
+
+        float dmin = min(t1, t2);
+        float dmax = max(t1, t2);
+
+        tmin = max(dmin, tmin);
+        tmax = min(dmax, tmax);
+    }
+
+    if (tmax >= tmin && tmin >= 0.0) return tmax;
+
+    return 1e30f;
+}
+
 vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
-    return vec4(rayDirection, 1.0);
+    mat4 invTransform = inverse(uTransform);
+    vec3 boxSpaceRayOrigin = (invTransform * vec4(rayOrigin, 1.0)).xyz;
+    vec3 boxSpaceRayDirection = normalize((invTransform * vec4(rayDirection, 0.0)).xyz);
+
+    vec3 cubeMin = vec3(-1.0);
+    vec3 cubeMax = vec3(1.0);
+
+    float entryT = rayAABBEnter(cubeMin, cubeMax, boxSpaceRayOrigin, boxSpaceRayDirection);
+    float exitT = rayAABBExit(cubeMin, cubeMax, boxSpaceRayOrigin, boxSpaceRayDirection);
+
+    vec3 boxSpaceEnterPosition = boxSpaceRayOrigin + boxSpaceRayDirection * entryT;
+    vec3 boxSpaceExitPosition = boxSpaceRayOrigin + boxSpaceRayDirection * exitT;
+
+    if (entryT == 1e30f) {
+        return vec4(rayDirection, 1.0);
+    }
+
+    float dist = distance(boxSpaceEnterPosition, boxSpaceExitPosition);
+
+    return vec4(1.0 - exp(-dist * ABSORBTION));
 }
 
 void main()
