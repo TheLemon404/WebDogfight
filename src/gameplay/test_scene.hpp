@@ -18,8 +18,11 @@ class TestScene {
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));
         testScene.entities.push_back(std::make_shared<Water>("water"));
         testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
-        CloudsVolume clouds = CloudsVolume();
-        testScene.environment.cloudVolumes.push_back(clouds);
+
+        CloudsVolume cloud = CloudsVolume();
+        cloud.transform.position.y = 10000.0f;
+        cloud.transform.scale = glm::vec3(10000.0f, 3000.0f, 10000.0f);
+        testScene.environment.cloudVolumes.emplace_back(cloud);
 
         std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);

@@ -1,6 +1,8 @@
 #include "types.hpp"
 #include "backend.hpp"
+#include "glm/matrix.hpp"
 #include "loader.hpp"
+#include "../utils/math.hpp"
 #include "../gameplay/scene_manager.hpp"
 #include "window.hpp"
 
@@ -37,15 +39,18 @@ void CloudsVolume::LoadResources() {
 }
 
 void CloudsVolume::Initialize() {
-    transform.position.y = 8000.0f;
-    transform.scale = glm::vec3(1000.0f, 1000.0f, 1000.0f);
+    boundsMesh.material.albedo = glm::vec3(0.58f, 0.75f, 0.80f);
 }
 
 void CloudsVolume::Draw() {
+    GraphicsBackend::SetDepthMask(false);
+    GraphicsBackend::SetBackfaceCulling(false);
     GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec2(*shader, glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height), "uScreenResolution");
     GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetViewMatrix(), "uView");
     GraphicsBackend::EndDrawMesh(boundsMesh);
+    GraphicsBackend::SetBackfaceCulling(true);
+    GraphicsBackend::SetDepthMask(true);
 }
 
 void CloudsVolume::UnloadResources() {

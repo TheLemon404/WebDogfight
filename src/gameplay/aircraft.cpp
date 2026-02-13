@@ -374,16 +374,16 @@ void AircraftWidgetLayer::CreateWidgets() {
 
 void AircraftWidgetLayer::UpdateLayer() {
     FOX2_PROFILE_FUNCTION()
-    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / 1000.0f,
+    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
         #ifdef __EMSCRIPTEN__
-        InputManager::mouseDelta.y / 1000.0
+        InputManager::mouseDelta.y / WindowManager::primaryWindow->height
         #else
-        -InputManager::mouseDelta.y / 1000.0
+        -InputManager::mouseDelta.y / WindowManager::primaryWindow->height
         #endif
     );
 
     mouse->position += targetDelta * Time::deltaTime * 70.0f;
-    mouse->position *= 0.95f;
+    mouse->position *= 0.85f;
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);

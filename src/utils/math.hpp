@@ -35,6 +35,13 @@ class MathUtils {
         return val;
     }
 
+    static bool PointWithinAABB(const glm::vec3 point, const glm::vec3 min, const glm::vec3 max) {
+        bool x = point.x <= min.x || point.x >= max.x;
+        bool y = point.y <= min.y || point.y >= max.y;
+        bool z = point.z <= min.z || point.z >= max.z;
+
+        return !x && !y && !z;
+    }
 
     static glm::vec3 RotatePointAroundPoint(const glm::vec3& pointToRotate, const glm::vec3& center, float angleRadians, const glm::vec3& axis) {
         // 1. Translate the point to the origin (relative to the center)
