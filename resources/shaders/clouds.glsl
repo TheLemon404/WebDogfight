@@ -219,7 +219,7 @@ vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
             continue;
         }
 
-        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay / 2.0 + extractPosition(uTransform), vec3(0.0)), 0.0);
+        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay * vec3(3.0f, 1.0f, 3.0f) + extractPosition(uTransform), vec3(0.0)), 0.0);
 
         dens += val;
         color += val / distanceToSunFalloff;
