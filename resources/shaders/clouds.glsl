@@ -57,9 +57,9 @@ uniform mat4 uTransform;
 
 out vec4 FragColor;
 
-#define ABSORBTION 300.0f
+#define ABSORBTION 100.0f
 
-#define STEPS 100
+#define STEPS 10
 #define OCTAVES 3
 
 float hash(vec3 p)
