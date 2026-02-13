@@ -163,8 +163,12 @@ void Aircraft::Update() {
     {
         FOX2_PROFILE_SCOPE("Camera Movement")
         //camera controls
+        glm::vec2 targetDelta = glm::vec2(
+            InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
+            InputManager::mouseDelta.y / WindowManager::primaryWindow->height
+        );
         //this ugly one-liner makes for smooth camera rotation
-        cameraRotationInputValue += InputManager::mouseDelta / 500.0;
+        cameraRotationInputValue += targetDelta * Time::deltaTime * 100.0f;
         cameraRotationInputValue.y = MathUtils::Clamp<float>(cameraRotationInputValue.y, (-PI/2) + 0.00001f , (PI/2) - 0.00001f);
         camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
         cameraForward = glm::normalize(camera.target - camera.position);
@@ -382,7 +386,7 @@ void AircraftWidgetLayer::UpdateLayer() {
         #endif
     );
 
-    mouse->position += targetDelta * Time::deltaTime * 70.0f;
+    mouse->position += targetDelta / Time::deltaTime * .004f;
     mouse->position *= 0.85f;
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 

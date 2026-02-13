@@ -61,6 +61,7 @@ out vec4 FragColor;
 
 #define STEPS 10
 #define OCTAVES 3
+#define RADIUS 1.0
 
 float hash(vec3 p)
 {
@@ -104,9 +105,7 @@ float fbm(vec3 p, const int octaves)
 
 float densityFunc(const vec3 p, const vec3 center)
 {
-    vec3 q = p;
-    q += vec3(0.0, 0.10, 1.0); // step 1 clouds move
-    float f = fbm(q, OCTAVES);
+    float f = fbm(p, OCTAVES);
     return clamp(2.0 * f - 1.0, 0.0, 1.0);
 }
 
@@ -179,7 +178,7 @@ float rayAABBExit(const vec3 b_min, const vec3 b_max, vec3 rayOrigin, vec3 rayDi
     return 1e30f;
 }
 
-float traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
+vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
     mat4 invTransform = inverse(uTransform);
     vec3 boxSpaceRayOrigin = (invTransform * vec4(rayOrigin, 1.0)).xyz;
     vec3 boxSpaceRayDirection = normalize((invTransform * vec4(rayDirection, 0.0)).xyz);
@@ -196,7 +195,7 @@ float traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
         boxSpaceEnterPosition = boxSpaceRayOrigin;
     }
     else if (entryT == 1e30f) {
-        return 0.0;
+        return vec4(0.0);
     }
 
     float exitT = rayAABBExit(cubeMin, cubeMax, boxSpaceRayOrigin, boxSpaceRayDirection);
@@ -207,21 +206,34 @@ float traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
     float stepDistance = length(stepVector);
     vec3 stepRay = boxSpaceEnterPosition;
 
-    float dist = 0.0;
+    float dens = 0.0;
+    float color = 0.0;
 
-    for (int n = 0; n < STEPS; n++) {
-        float distanceFalloff = 0.7f - distance(stepRay, vec3(0.0f));
-        dist += max(stepDistance * densityFunc(stepRay + extractPosition(uTransform), vec3(0.0)) * distanceFalloff, 0.0);
-        stepRay += stepVector;
+    for (int n = 0; n < STEPS; n++, stepRay += stepVector) {
+        float toSunExitT = rayAABBExit(cubeMin, cubeMax, stepRay, -uSunDirection);
+        vec3 toSunExitPoint = stepRay + (-uSunDirection * toSunExitT);
+        float distanceToSunFalloff = pow(distance(stepRay, toSunExitPoint), 3.0);
+        float distanceFalloff = RADIUS - distance(stepRay, vec3(0.0f));
+
+        if (distanceFalloff <= 0.0 || dens >= 1.0) {
+            continue;
+        }
+
+        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay / 2.0 + extractPosition(uTransform), vec3(0.0)), 0.0);
+
+        dens += val;
+        color += val / distanceToSunFalloff;
     }
 
-    return 1.0 - exp(-dist * ABSORBTION);
+    float densityFinal = 1.0 - exp(-dens * ABSORBTION);
+    float colorColorFinal = 1.0 - exp(-color * ABSORBTION);
+
+    return vec4(colorColorFinal, colorColorFinal, colorColorFinal, densityFinal);
 }
 
 void main()
 {
-    float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    float traversal = traverseVolume(extractPosition(uView), getRayWorldDirection());
-    vec3 color = mix(vec3(1.0), uAlbedo, 1.0 - traversal);
-    FragColor = vec4(color, traversal);
+    vec4 traversal = traverseVolume(extractPosition(uView), getRayWorldDirection());
+    vec3 color = mix(vec3(1.0), uAlbedo, 1.0 - traversal.r);
+    FragColor = vec4(color, traversal.a);
 }

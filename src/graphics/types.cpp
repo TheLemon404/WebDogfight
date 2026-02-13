@@ -48,6 +48,7 @@ void CloudsVolume::Draw() {
     GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec2(*shader, glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height), "uScreenResolution");
     GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetViewMatrix(), "uView");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::EndDrawMesh(boundsMesh);
     GraphicsBackend::SetBackfaceCulling(true);
     GraphicsBackend::SetDepthMask(true);
