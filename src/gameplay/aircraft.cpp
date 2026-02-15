@@ -105,7 +105,6 @@ void Aircraft::Initialize() {
     aimWidget = SceneManager::currentScene->GetWidgetByName("aimWidget");
     mouseWidget = SceneManager::currentScene->GetWidgetByName("mouseWidget");
 
-    skeletalMesh.material.albedo = glm::vec3(0.1f);
     skeletalMesh.material.shadowColor = glm::vec3(0.5f);
 
     exhaustParticles.Initialize();

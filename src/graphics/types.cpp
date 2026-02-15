@@ -4,6 +4,7 @@
 #include "loader.hpp"
 #include "../utils/math.hpp"
 #include "../gameplay/scene_manager.hpp"
+#include "../utils/instrumentor.hpp"
 #include "window.hpp"
 
 void Skeleton::UpdateGlobalBoneTransforms()  {
@@ -43,12 +44,16 @@ void CloudsVolume::Initialize() {
 }
 
 void CloudsVolume::Draw() {
+    FOX2_PROFILE_FUNCTION()
+
     GraphicsBackend::SetDepthMask(false);
     GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform);
+    GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform, true, true);
     GraphicsBackend::UploadShaderUniformVec2(*shader, glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height), "uScreenResolution");
     GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetViewMatrix(), "uView");
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    GraphicsBackend::UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
+    GraphicsBackend::UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
     GraphicsBackend::EndDrawMesh(boundsMesh);
     GraphicsBackend::SetBackfaceCulling(true);
     GraphicsBackend::SetDepthMask(true);

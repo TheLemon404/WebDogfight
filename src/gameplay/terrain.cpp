@@ -93,7 +93,6 @@ void Terrain::Initialize() {
     }
 
     mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
-    mesh.material.albedo = glm::vec3(0.48f, 0.63f, 0.35f);
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 

@@ -17,7 +17,6 @@ uniform mat4 uJointTransforms[MAX_BONES];
 out vec3 pNormal;
 out vec2 pUV;
 out vec4 pWorldPos;
-flat out uint pBoneID;
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -46,7 +45,6 @@ void main()
     mat3 rotationMatrix = extractRotation(uTransform) * extractRotation(uJointTransforms[int(aBoneID)]);
     pNormal = rotationMatrix * aNormal;
 
-    pBoneID = aBoneID;
     pUV = aUV;
 }
 
@@ -57,7 +55,6 @@ precision highp float;
 in vec3 pNormal;
 in vec2 pUV;
 in vec4 pWorldPos;
-flat in uint pBoneID;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
@@ -74,8 +71,8 @@ out vec4 FragColor;
 void main()
 {
     float diffuse = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    vec4 albedo = texture(uAlbedoTexture, pUV);
-    float alpha = texture(uAlbedoTexture, pUV).a;
+    vec4 albedo = texture(uAlbedoTexture, pUV) * vec4(uAlbedo, 1.0);
+    float alpha = texture(uAlbedoTexture, pUV).a * uAlpha;
 
     vec3 viewDir = normalize(uCameraPosition - pWorldPos.xyz);
     vec3 reflectDir = normalize(reflect(uSunDirection, pNormal));

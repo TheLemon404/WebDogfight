@@ -52,6 +52,7 @@ void main_loop() {
 }
 
 int main() {
+    FOX2_PROFILE_BEGIN_SESSION("Fox2", "startup.json")
     WindowManager::primaryWindow = std::make_shared<Window>();
     WindowManager::primaryWindow->title = "Fox2";
 
@@ -79,6 +80,7 @@ int main() {
     SceneManager::currentScene->UnloadResources();
     GraphicsBackend::UnloadResources();
     WindowManager::primaryWindow->Close();
+    FOX2_PROFILE_END_SESSION()
 
     return 0;
 }

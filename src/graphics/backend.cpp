@@ -260,7 +260,7 @@ void GraphicsBackend::EndDrawSkeletalMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform) {
+void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform, bool ignoreDefaultMaterialProps) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -279,9 +279,11 @@ void GraphicsBackend::BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, 
         UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
     }
 
-    UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
-    UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
-    UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
+    if(!ignoreDefaultMaterialProps) {
+        UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
+        UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
+        UploadShaderUniformVec3(shader, mesh.material.shadowColor, "uShadowColor");
+    }
 }
 
 void GraphicsBackend::EndDrawMesh(Mesh& mesh) {

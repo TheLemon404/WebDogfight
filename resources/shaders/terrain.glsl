@@ -63,7 +63,7 @@ void main()
 
     vec3 baseAlbedo = mix(uBaseColor, uMiddleColor, pow(texture(uHeightmap, pUV).r, 0.3));
     vec3 heightAlbedo = mix(baseAlbedo, uTopColor, pow(texture(uHeightmap, pUV).r, 4.0));
-    vec3 finalAlbedo = mix(heightAlbedo, uSlopeColor, max(1.0 - abs(dot(pNormal, vec3(0.0, 1.0, 0.0))), 0.0));
+    vec3 finalAlbedo = mix(heightAlbedo, uSlopeColor, max(1.0 - abs(dot(pNormal, vec3(0.0, 1.0, 0.0))), 0.0)) * uAlbedo * (1.0 - texture(uDiscolorationMap, pUV * 10.0f).r / 15.0f);
     vec3 color = mix(uShadowColor, finalAlbedo, lightingDot);
 
     float distanceLerp = clamp(linearizeDepth(gl_FragCoord.z) / FALLOFF, 0.0, 1.0);

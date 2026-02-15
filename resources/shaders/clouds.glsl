@@ -49,7 +49,6 @@ in vec3 pNormal;
 uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
-uniform vec3 uShadowColor;
 uniform vec2 uScreenResolution;
 uniform mat4 uProjection;
 uniform mat4 uView;
@@ -235,5 +234,5 @@ void main()
 {
     vec4 traversal = traverseVolume(extractPosition(uView), getRayWorldDirection());
     vec3 color = mix(vec3(1.0), uAlbedo, 1.0 - traversal.r);
-    FragColor = vec4(color, traversal.a);
+    FragColor = vec4(color, traversal.a * uAlpha);
 }

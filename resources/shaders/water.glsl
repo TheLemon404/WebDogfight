@@ -8,15 +8,20 @@ layout(location = 2) in vec2 aUV;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out vec3 pNormal;
+
 void main()
 {
     vec4 worldPosition = uView * vec4(aPos, 1.0f);
     gl_Position = uProjection * worldPosition;
+    pNormal = aNormal;
 }
 
 #fragment
 #version 300 es
 precision highp float;
+
+in vec3 pNormal;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
@@ -38,7 +43,8 @@ float linearizeDepth(float depth)
 
 void main()
 {
+    float lightingDot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
     float distanceLerp = clamp(linearizeDepth(gl_FragCoord.z) / FALLOFF, 0.0, 1.0);
-
-    FragColor = vec4(mix(uAlbedo, uFogColor, distanceLerp), uAlpha);
+    vec3 color = mix(uAlbedo, uFogColor, distanceLerp);
+    FragColor = vec4(mix(color, uShadowColor, lightingDot), uAlpha);
 }
