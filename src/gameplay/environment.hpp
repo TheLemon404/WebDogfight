@@ -5,7 +5,6 @@
 #include <memory>
 
 struct Environment {
-    std::vector<CloudsVolume> cloudVolumes;
     std::shared_ptr<Skybox> skybox = nullptr;
     glm::vec3 sunDirection = glm::vec3(-1,-1,-1);
     glm::vec3 sunColor = glm::vec3(1.0f, 0.95f, 0.9f);
