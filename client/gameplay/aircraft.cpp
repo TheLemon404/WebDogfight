@@ -377,12 +377,9 @@ void AircraftWidgetLayer::CreateWidgets() {
 
 void AircraftWidgetLayer::UpdateLayer() {
     FOX2_PROFILE_FUNCTION()
-    glm::vec2 targetDelta = glm::vec2(InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
-        #ifdef __EMSCRIPTEN__
-        InputManager::mouseDelta.y / WindowManager::primaryWindow->height
-        #else
+    glm::vec2 targetDelta = glm::vec2(
+        InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
         -InputManager::mouseDelta.y / WindowManager::primaryWindow->height
-        #endif
     );
 
     mouse->position += targetDelta / Time::deltaTime * .004f;

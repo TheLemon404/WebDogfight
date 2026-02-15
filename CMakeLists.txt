@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project("WebDogfight")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -31,15 +32,15 @@ if(EMSCRIPTEN)
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
 
-
     # Only add GLM for Emscripten (skip GLFW since it's provided)
     add_subdirectory("vendor/glm")
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
+    file(GLOB_RECURSE src CONFIGURE_DEPENDS "client/*.cpp" "client/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/stb_image/stb_image.h"
+        "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
     )
 
@@ -53,10 +54,11 @@ else()
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
+    file(GLOB_RECURSE src CONFIGURE_DEPENDS "client/*.cpp" "client/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/glad/src/glad.c"
         "vendor/stb_image/stb_image.h"
+        "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
     )
 
