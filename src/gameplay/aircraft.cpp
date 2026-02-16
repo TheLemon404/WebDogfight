@@ -37,7 +37,7 @@
 
 #define GRAVITY 17000.0f
 #define DRAG_COEFFICIENT 50.0f
-#define GFORCE_COEFFICIENT 150.0f
+#define GFORCE_COEFFICIENT 1.5f
 #define GFORCE_BODY_THRESHOLD 7
 #define GFORCE_TRAIL_THRESHOLD 9
 
@@ -212,10 +212,9 @@ void Aircraft::Update() {
         glm::vec3 velocityChange = velocity - lastVelocity;
         float lateralAcceleration = glm::length(velocityChange - glm::dot(velocityChange, unrotatedForward) * unrotatedForward);
 
-        gForce = MathUtils::Lerp<float>(gForce, lateralAcceleration / (GFORCE_COEFFICIENT * Time::deltaTime), Time::deltaTime * 5.0f);
+        gForce = MathUtils::Lerp<float>(gForce, lateralAcceleration / GFORCE_COEFFICIENT, Time::deltaTime * 5.0f);
 
         lastVelocity = velocity;
-
         lastRotation = unrolledRotation;
     }
     {
