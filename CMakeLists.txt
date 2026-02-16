@@ -37,7 +37,7 @@ if(EMSCRIPTEN)
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "client/*.cpp" "client/*.hpp")
+    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
@@ -54,7 +54,7 @@ else()
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "client/*.cpp" "client/*.hpp")
+    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/glad/src/glad.c"
         "vendor/stb_image/stb_image.h"
