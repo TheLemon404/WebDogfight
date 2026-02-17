@@ -191,16 +191,15 @@ void TextButtonWidget::Draw() {
     TextRectWidget::Draw();
 
     if(IsHovered()) {
-        if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
-            color.value = glm::vec4(0.05);
-            onPressed();
+        if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
+            color.value -= glm::vec4(0.15);
+            if(onPressed){
+                onPressed();
+            }
         }
-        else {
-            color.value = glm::vec4(0.1);
+        else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
+            color.value += glm::vec4(0.15);
         }
-    }
-    else {
-        color.value = glm::vec4(0.2);
     }
 }
 
