@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "scene_manager.hpp"
 #include <cmath>
+#include <memory>
 #include <vector>
 #include "../io/time.hpp"
 #include "../utils/instrumentor.hpp"
@@ -255,4 +256,14 @@ void CircleWidget::Draw() {
 
 void CircleWidget::UnloadResources() {
     GraphicsBackend::DeleteMesh(quad);
+}
+
+void ContainerWidget::Update() {
+    glm::vec2 center = glm::vec2(0.0);
+    int count = 0;
+    for(std::shared_ptr<Widget> child : children) {
+        center += child->position;
+        count++;
+    }
+    center /= count;
 }
