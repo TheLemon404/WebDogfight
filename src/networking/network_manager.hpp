@@ -1,17 +1,15 @@
 #pragma once
 
+#include <enet/enet.h>
 #include <vector>
 
-struct NetworkEntity {
-    unsigned int id;
-};
-
-struct Lobby {
-    std::vector<NetworkEntity> networkEntities;
-};
-
 class NetworkManager {
+    inline static ENetHost* client = nullptr;
+
     public:
+    static void Initialize();
+    static void ConnectToServer();
     static void CreateLobby();
     static void JoinLobby(int lobbyCode);
+    static void Shutdown();
 };

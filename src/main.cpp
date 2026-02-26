@@ -4,6 +4,9 @@
 #include "graphics/loader.hpp"
 #include "io/input.hpp"
 #include "io/time.hpp"
+#define ENET_IMPLEMENTATION
+#include <enet/enet.h>
+#include "networking/network_manager.hpp"
 #include "utils/instrumentor.hpp"
 
 #ifdef __EMSCRIPTEN__
@@ -65,6 +68,9 @@ int main() {
 
     SceneManager::currentScene->LoadResources();
     SceneManager::currentScene->Initialize();
+
+    NetworkManager::Initialize();
+    NetworkManager::ConnectToServer();
 
     GraphicsBackend::SetBackfaceCulling(true);
 
