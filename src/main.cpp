@@ -25,6 +25,10 @@ void main_loop() {
     FOX2_PROFILE_FUNCTION()
 
     {
+        FOX2_PROFILE_SCOPE("Network Polling")
+        NetworkManager::Poll();
+    }
+    {
         FOX2_PROFILE_SCOPE("Input Polling")
         WindowManager::primaryWindow->Poll();
 
@@ -66,11 +70,11 @@ int main() {
 
     GraphicsBackend::LoadResources();
 
-    SceneManager::currentScene->LoadResources();
-    SceneManager::currentScene->Initialize();
-
     NetworkManager::Initialize();
     NetworkManager::ConnectToServer();
+
+    SceneManager::currentScene->LoadResources();
+    SceneManager::currentScene->Initialize();
 
     GraphicsBackend::SetBackfaceCulling(true);
 
@@ -82,6 +86,7 @@ int main() {
     }
 #endif
 
+    NetworkManager::Shutdown();
     AudioBackend::Shutdown();
     SceneManager::currentScene->UnloadResources();
     GraphicsBackend::UnloadResources();

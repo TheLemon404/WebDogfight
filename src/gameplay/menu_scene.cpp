@@ -3,6 +3,7 @@
 #include "scene_manager.hpp"
 #include "widget.hpp"
 #include "../graphics/window.hpp"
+#include "../networking/network_manager.hpp"
 
 void MenuWidgetLayer::CreateWidgets() {
     std::shared_ptr<RectWidget> background = std::make_shared<RectWidget>("background");
@@ -82,5 +83,15 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->color.value = glm::vec4(0.2);
     rect->borderColor.value = glm::vec4(0.4);
     rect->cornerColor.value = glm::vec4(0.7);
+    widgets.push_back(rect);
+
+    std::shared_ptr<TextRectWidget> connectionStatus = std::make_shared<TextRectWidget>("connectionStatus", GraphicsBackend::globalFonts.defaultFont);
+    rect->SetText(NetworkManager::connected ? "connected to server" : "no server connection");
+    rect->position = glm::vec2(0.8, -1.0);
+    rect->moveWithAspectRatio = true;
+    rect->scale = glm::vec2(0.4, 0.3);
+    rect->color.value = glm::vec4(0.0);
+    rect->borderColor.value = glm::vec4(0.0);
+    rect->cornerColor.value = glm::vec4(0.0);
     widgets.push_back(rect);
 }
