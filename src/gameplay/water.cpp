@@ -2,6 +2,7 @@
 #include "../graphics/backend.hpp"
 #include "scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
+#include "aircraft.hpp"
 
 #define WATER_PLANE_SIZE 100000.0f
 #define WATER_LEVEL 3000.0f
@@ -31,6 +32,11 @@ void Water::Initialize() {
 }
 
 void Water::Update() {
+    for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
+        if(aircraft->transform.position.y < WATER_LEVEL) {
+            aircraft->transform.position.y += 6000.0;
+        }
+    }
 }
 
 void Water::Draw() {

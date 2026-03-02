@@ -74,6 +74,7 @@ void Aircraft::LoadResources() {
     resource.settings.throttleIncreaseRate = JSON["settings"]["throttle-increase-rate"];
     resource.settings.throttleCruise = JSON["settings"]["throttle-increase-rate"];
     resource.settings.maxThrust = JSON["settings"]["max-thrust"];
+    resource.settings.maxTurnRate = JSON["settings"]["max-turn-rate"];
     resource.settings.terminalLiftSpeed = JSON["settings"]["terminal-lift-speed"];
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
     resource.settings.cameraDistance = JSON["settings"]["camera-distance"];

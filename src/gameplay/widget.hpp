@@ -149,5 +149,14 @@ class CircleWidget : public Widget {
     void Draw() override;
     void UnloadResources() override;
 
-    CircleWidget(const std::string& name) : Widget(name) {};
+    CircleWidget(const std::string& name) : Widget(name) {}
+};
+
+class ContainerWidget : public RectWidget {
+    public:
+    std::vector<std::shared_ptr<Widget>> children;
+
+    void Update() override;
+
+    ContainerWidget(const std::string& name) : RectWidget(name) {}
 };

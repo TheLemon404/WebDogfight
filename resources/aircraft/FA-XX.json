@@ -25,6 +25,7 @@
     "throttle-increase-rate": 0.3,
     "throttle-cruise": 0.5,
     "max-thrust": 50000,
+    "max-turn-rate": 1,
     "terminal-lift-speed": 450,
     "camera-ride-height": 6,
     "camera-distance": 60,

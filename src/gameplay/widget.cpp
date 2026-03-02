@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "scene_manager.hpp"
 #include <cmath>
+#include <memory>
 #include <vector>
 #include "../io/time.hpp"
 #include "../utils/instrumentor.hpp"
@@ -191,16 +192,15 @@ void TextButtonWidget::Draw() {
     TextRectWidget::Draw();
 
     if(IsHovered()) {
-        if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1)){
-            color.value = glm::vec4(0.05);
-            onPressed();
+        if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
+            color.value -= glm::vec4(0.15);
+            if(onPressed){
+                onPressed();
+            }
         }
-        else {
-            color.value = glm::vec4(0.1);
+        else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
+            color.value += glm::vec4(0.15);
         }
-    }
-    else {
-        color.value = glm::vec4(0.2);
     }
 }
 
@@ -256,4 +256,14 @@ void CircleWidget::Draw() {
 
 void CircleWidget::UnloadResources() {
     GraphicsBackend::DeleteMesh(quad);
+}
+
+void ContainerWidget::Update() {
+    glm::vec2 center = glm::vec2(0.0);
+    int count = 0;
+    for(std::shared_ptr<Widget> child : children) {
+        center += child->position;
+        count++;
+    }
+    center /= count;
 }

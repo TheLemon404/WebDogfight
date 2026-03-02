@@ -26,7 +26,7 @@ void MenuWidgetLayer::CreateWidgets() {
     codeInput->cornerColor.value = glm::vec4(0.7);
     widgets.push_back(codeInput);
 
-    std::shared_ptr<TextButtonWidget> joinButton = std::make_shared<TextButtonWidget>("playButton", GraphicsBackend::globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> joinButton = std::make_shared<TextButtonWidget>("joinButton", GraphicsBackend::globalFonts.defaultFont);
     joinButton->stretchWithAspectRatio = true;
     joinButton->moveWithAspectRatio = true;
     joinButton->centerText = true;
@@ -37,10 +37,10 @@ void MenuWidgetLayer::CreateWidgets() {
     joinButton->color.value = glm::vec4(0.2);
     joinButton->borderColor.value = glm::vec4(0.4);
     joinButton->cornerColor.value = glm::vec4(0.7);
-    joinButton->onPressed = SceneManager::FutureChangeToGameScene;
+    joinButton->onPressed = nullptr;
     widgets.push_back(joinButton);
 
-    std::shared_ptr<TextButtonWidget> createButton = std::make_shared<TextButtonWidget>("playButton", GraphicsBackend::globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> createButton = std::make_shared<TextButtonWidget>("createButton", GraphicsBackend::globalFonts.defaultFont);
     createButton->stretchWithAspectRatio = true;
     createButton->moveWithAspectRatio = true;
     createButton->centerText = true;
@@ -51,8 +51,22 @@ void MenuWidgetLayer::CreateWidgets() {
     createButton->color.value = glm::vec4(0.2);
     createButton->borderColor.value = glm::vec4(0.4);
     createButton->cornerColor.value = glm::vec4(0.7);
-    createButton->onPressed = SceneManager::FutureChangeToGameScene;
+    createButton->onPressed = nullptr;
     widgets.push_back(createButton);
+
+    std::shared_ptr<TextButtonWidget> offlineButton = std::make_shared<TextButtonWidget>("offlineButton", GraphicsBackend::globalFonts.defaultFont);
+    offlineButton->stretchWithAspectRatio = true;
+    offlineButton->moveWithAspectRatio = true;
+    offlineButton->centerText = true;
+    offlineButton->SetText("Offline");
+    offlineButton->font.fontScale = 2.0;
+    offlineButton->scale = glm::vec2(0.2, 0.09);
+    offlineButton->position.y = -0.5f;
+    offlineButton->color.value = glm::vec4(0.2);
+    offlineButton->borderColor.value = glm::vec4(0.4);
+    offlineButton->cornerColor.value = glm::vec4(0.7);
+    offlineButton->onPressed = SceneManager::FutureChangeToGameScene;
+    widgets.push_back(offlineButton);
 
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
     rect->SetText("Welcome to the Fox2.io\n"

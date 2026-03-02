@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../io/time.hpp"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/scalar_multiplication.hpp>
 
