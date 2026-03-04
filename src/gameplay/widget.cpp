@@ -189,9 +189,18 @@ void TextRectWidget::UnloadResources() {
 }
 
 void TextButtonWidget::Draw() {
+    bool hoveredState = IsHovered();
+
     TextRectWidget::Draw();
 
-    if(IsHovered()) {
+    if(hoveredState && !lastHoveredState) {
+        color.value -= glm::vec4(0.15);
+    }
+    else if(!hoveredState && lastHoveredState) {
+        color.value += glm::vec4(0.15);
+    }
+
+    if(hoveredState) {
         if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
             color.value -= glm::vec4(0.15);
             if(onPressed){
@@ -202,6 +211,8 @@ void TextButtonWidget::Draw() {
             color.value += glm::vec4(0.15);
         }
     }
+
+    lastHoveredState = hoveredState;
 }
 
 void InputWidget::Draw() {

@@ -119,6 +119,8 @@ class TextRectWidget : public RectWidget {
 };
 
 class TextButtonWidget : public TextRectWidget {
+    bool lastHoveredState = false;
+
     public:
     void Draw() override;
 
