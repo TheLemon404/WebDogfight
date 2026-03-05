@@ -59,57 +59,14 @@ out vec4 FragColor;
 #define ABSORBTION 100.0f
 
 #define STEPS 10
-#define OCTAVES 3
 #define RADIUS 1.0
 
-float hash(vec3 p)
-{
-    p = fract(p * 0.3183099 + .1);
-    p *= 17.0;
-    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+vec3 extractPosition(mat4 matrix) {
+    return inverse(matrix)[3].xyz;
 }
 
-float noise(in vec3 x)
-{
-    x *= 2.0;
-    //#ifdef noise3D_glsl
-    //	return snoise(x * 0.25); //enable: slower but more "fractal"
-    //#endif
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-    f = f * f * (3.0 - 2.0 * f);
-
-    return mix(mix(mix(hash(p + vec3(0, 0, 0)),
-                hash(p + vec3(1, 0, 0)), f.x),
-            mix(hash(p + vec3(0, 1, 0)),
-                hash(p + vec3(1, 1, 0)), f.x), f.y),
-        mix(mix(hash(p + vec3(0, 0, 1)),
-                hash(p + vec3(1, 0, 1)), f.x),
-            mix(hash(p + vec3(0, 1, 1)),
-                hash(p + vec3(1, 1, 1)), f.x), f.y), f.z);
-}
-
-float fbm(vec3 p, const int octaves)
-{
-    float f = 0.0;
-    float weight = 0.5;
-    for (int i = 0; i < octaves; ++i)
-    {
-        f += weight * noise(p);
-        weight *= 0.5;
-        p *= 2.0;
-    }
-    return f;
-}
-
-float densityFunc(const vec3 p, const vec3 center)
-{
-    float f = fbm(p, OCTAVES);
-    return clamp(2.0 * f - 1.0, 0.0, 1.0);
-}
-
-vec3 extractPosition(mat4 viewMatrix) {
-    return inverse(viewMatrix)[3].xyz;
+vec3 extractScale(mat4 matrix) {
+    return vec3(matrix[0].xyz.length(), matrix[1].xyz.length(), matrix[2].xyz.length());
 }
 
 vec3 getRayWorldDirection() {
@@ -218,7 +175,7 @@ vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
             continue;
         }
 
-        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay * vec3(3.0f, 1.0f, 3.0f) + extractPosition(uTransform), vec3(0.0)), 0.0);
+        float val = max(stepDistance * min(distanceFalloff, 1.0), 0.0);
 
         dens += val;
         color += val / distanceToSunFalloff;
