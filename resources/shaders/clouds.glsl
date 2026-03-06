@@ -54,57 +54,24 @@ uniform mat4 uProjection;
 uniform mat4 uView;
 uniform mat4 uTransform;
 
+uniform sampler3D noiseTexture;
+
 out vec4 FragColor;
 
 #define ABSORBTION 100.0f
 
 #define STEPS 18
-#define OCTAVES 6
 #define RADIUS 1.0
 
-float hash(vec3 p)
+float noise3D(vec3 p)
 {
-    p = fract(p * 0.3183099 + .1);
-    p *= 17.0;
-    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
-}
-
-float noise(in vec3 x)
-{
-    x *= 2.0;
-    //#ifdef noise3D_glsl
-    //	return snoise(x * 0.25); //enable: slower but more "fractal"
-    //#endif
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-    f = f * f * (3.0 - 2.0 * f);
-
-    return mix(mix(mix(hash(p + vec3(0, 0, 0)),
-                hash(p + vec3(1, 0, 0)), f.x),
-            mix(hash(p + vec3(0, 1, 0)),
-                hash(p + vec3(1, 1, 0)), f.x), f.y),
-        mix(mix(hash(p + vec3(0, 0, 1)),
-                hash(p + vec3(1, 0, 1)), f.x),
-            mix(hash(p + vec3(0, 1, 1)),
-                hash(p + vec3(1, 1, 1)), f.x), f.y), f.z);
-}
-
-float fbm(vec3 p, const int octaves)
-{
-    float f = 0.0;
-    float weight = 0.5;
-    for (int i = 0; i < octaves; ++i)
-    {
-        f += weight * noise(p);
-        weight *= 0.5;
-        p *= 2.0;
-    }
-    return f;
+    return texture(noiseTexture, p).r;
 }
 
 float densityFunc(const vec3 p, const vec3 center)
 {
-    float f = fbm(p, OCTAVES);
+    vec3 uvSpaceP = (p + vec3(1.0)) / 2.0;
+    float f = noise3D(uvSpaceP);
     return clamp(2.0 * f - 1.0, 0.0, 1.0);
 }
 
@@ -216,7 +183,7 @@ vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
             continue;
         }
 
-        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay * vec3(5.0f, 1.0f, 5.0f) + extractPosition(uTransform), vec3(0.0)), 0.0);
+        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay, vec3(0.0)), 0.0);
 
         dens += val;
         color += val;

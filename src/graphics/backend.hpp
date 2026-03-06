@@ -43,6 +43,10 @@ struct GlobalFonts {
     Font defaultFont;
 };
 
+struct GlobalTextures {
+    Texture3D noiseTexture3D;
+};
+
 class GraphicsBackend {
     inline static Mesh debugCube;
     inline static Shader debugShader;
@@ -61,6 +65,7 @@ class GraphicsBackend {
 
     inline static GlobalShaders globalShaders;
     inline static GlobalFonts globalFonts;
+    inline static GlobalTextures globalTextures;
 
     inline static glm::vec3 clearColor = glm::vec3(1.0f);
 
@@ -125,6 +130,24 @@ class GraphicsBackend {
         glBindTexture(GL_TEXTURE_2D, texture.id);
     }
 
+    static void UseTexture3DSlot(const Texture3D& texture, unsigned int slot) {
+        switch (slot) {
+            case 0:
+                glActiveTexture(GL_TEXTURE0);
+                break;
+            case 1:
+                glActiveTexture(GL_TEXTURE1);
+                break;
+            case 2:
+                glActiveTexture(GL_TEXTURE2);
+                break;
+            case 3:
+                glActiveTexture(GL_TEXTURE3);
+                break;
+        }
+        glBindTexture(GL_TEXTURE_3D, texture.id);
+    }
+
     static void UseTextureIDSlot(const unsigned int textureID, unsigned int slot) {
         switch (slot) {
             case 0:
@@ -171,6 +194,11 @@ class GraphicsBackend {
     }
 
     static void DeleteTexture(Texture& texture) {
+        glDeleteTextures(1, &texture.id);
+        stbi_image_free(texture.data);
+    }
+
+    static void DeleteTexture3D(Texture3D& texture) {
         glDeleteTextures(1, &texture.id);
         stbi_image_free(texture.data);
     }

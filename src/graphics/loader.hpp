@@ -34,6 +34,7 @@ class Loader{
 
     public:
     static Texture LoadTextureFromFile(const char* resourcePath);
+    static Texture3D LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth);
     static Shader LoadShaderFromGLSL(const std::string& resourcePath);
     static Mesh LoadMeshFromGLTF(const char* resourcePath);
     static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath);

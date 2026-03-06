@@ -25,7 +25,10 @@ void CloudsVolume::Draw() {
     GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
     GraphicsBackend::UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
+    GraphicsBackend::UseTexture3DSlot(GraphicsBackend::globalTextures.noiseTexture3D, 0);
+    GraphicsBackend::UploadShaderUniformInt(*shader, 0, "noiseTexture");
     GraphicsBackend::EndDrawMesh(boundsMesh);
+    GraphicsBackend::ResetTextureSlots();
     GraphicsBackend::SetBackfaceCulling(true);
     GraphicsBackend::SetDepthMask(true);
 }

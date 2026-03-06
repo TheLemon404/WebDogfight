@@ -111,6 +111,17 @@ class Texture {
     unsigned char* data;
 };
 
+class Texture3D {
+    public:
+    unsigned int id;
+    int width;
+    int height;
+    int depth;
+    int channels = 3;
+
+    unsigned char* data;
+};
+
 class Bone {
     public:
     glm::quat restingRotation;

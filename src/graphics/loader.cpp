@@ -4,6 +4,7 @@
 #include "freetype/freetype.h"
 #include "freetype/ftmodapi.h"
 #include "types.hpp"
+#include <valarray>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -293,6 +294,68 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     return texture;
 }
 
+Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth) {
+    Texture3D texture = Texture3D();
+
+    std::cout << "Attemping to read 3D Texture file at: " << resourcePath << std::endl;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_3D, texture.id);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int tempWidth = 0;
+    int tempHeight = 0;
+    unsigned char *data = stbi_load(resourcePath, &tempWidth, &tempHeight, &texture.channels, 1);
+
+    texture.width = width;
+    texture.height = height;
+    texture.depth = depth;
+
+    if(data) {
+        int sliceColumns = tempWidth / width;
+        std::vector<unsigned char> vol(width * height * depth);
+        for(int z = 0; z < depth; z++) {
+            int atlasColumn = (z % sliceColumns) * width;
+            int atlasRow = (z / sliceColumns) * height;
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    int src = (atlasRow + y) * tempWidth + (atlasColumn + x);
+                    int dst = z * width * height + y * width + x;
+                    vol[dst] = data[src];
+                }
+            }
+        }
+
+        if(texture.channels == 1) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+            glGenerateMipmap(GL_TEXTURE_3D);
+        }
+        else if(texture.channels == 2) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+            glGenerateMipmap(GL_TEXTURE_3D);
+        }
+        else if(texture.channels == 3) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+            glGenerateMipmap(GL_TEXTURE_3D);
+        }
+        else if(texture.channels == 4) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+            glGenerateMipmap(GL_TEXTURE_3D);
+        }
+
+        texture.data = nullptr;
+    }
+    else {
+        std::cout << "Failed to loat 3D texture resource from file: " << resourcePath << std::endl;
+    }
+
+    return texture;
+}
 
 Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     std::string text = Files::ReadResourceString(resourcePath);
