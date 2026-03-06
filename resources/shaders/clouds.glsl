@@ -43,6 +43,7 @@ void main()
 #fragment
 #version 300 es
 precision highp float;
+precision lowp sampler3D;
 
 in vec3 pNormal;
 
