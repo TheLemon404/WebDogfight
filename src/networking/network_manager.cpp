@@ -7,6 +7,7 @@
 #define CONNECTION_WAIT_TIME 1000
 
 void NetworkManager::Initialize() {
+#ifndef __EMSCRIPTEN__
     if(enet_initialize() != 0){
         throw std::runtime_error("Failed to initialize ENet");
     }
@@ -17,9 +18,11 @@ void NetworkManager::Initialize() {
     address.port = SERVER_PORT;
 
     std::cout << "Succesfully initialized ENet" << std::endl;
+#endif
 }
 
 void NetworkManager::ConnectToServer() {
+#ifndef __EMSCRIPTEN__
     client = enet_host_create(NULL, 1, 2, 0, 0);
 
     if(client == nullptr) {
@@ -40,6 +43,7 @@ void NetworkManager::ConnectToServer() {
         enet_peer_reset(peer);
         std::cout << "failed to connect to server" << std::endl;
     }
+#endif
 }
 
 void NetworkManager::CreateLobby() {
@@ -51,6 +55,7 @@ void NetworkManager::JoinLobby(int lobbyCode) {
 }
 
 void NetworkManager::Poll() {
+#ifndef __EMSCRIPTEN__
     ENetEvent event;
         while(enet_host_service(client, &event, 0) > 0) {
             switch(event.type) {
@@ -65,9 +70,12 @@ void NetworkManager::Poll() {
                     break;
             }
         }
+#endif
 }
 
+
 void NetworkManager::Shutdown() {
+#ifndef __EMSCRIPTEN__
     if(peer && connected) {
             enet_peer_disconnect(peer, 0);
             ENetEvent event;
@@ -77,4 +85,5 @@ void NetworkManager::Shutdown() {
             }
         }
     enet_host_destroy(client);
+#endif
 }

@@ -30,6 +30,10 @@ if(EMSCRIPTEN)
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
+    # readable debug output
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s ASSERTIONS=2")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s SAFE_HEAP=1")
+
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
 
     # Only add GLM for Emscripten (skip GLFW since it's provided)
@@ -46,7 +50,7 @@ if(EMSCRIPTEN)
     )
 
     target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor" "vendor/freetype/include")
-    target_link_libraries(WebDogfight glm nlohmann_json freetype ws2_32 winmm)
+    target_link_libraries(WebDogfight glm nlohmann_json freetype)
 else()
     message(STATUS "Building for GLFW")
 

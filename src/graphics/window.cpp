@@ -17,6 +17,7 @@ EM_BOOL Window::EmscriptenResizeCallback(int event_type, const EmscriptenUiEvent
         userWindow->width = html_get_width();
         userWindow->height = html_get_height();
         userWindow->aspect = (float)userWindow->width / userWindow->height;
+        glfwSetWindowSize(userWindow->window, userWindow->width, userWindow->height);
         return 1;
     }
     return 0;

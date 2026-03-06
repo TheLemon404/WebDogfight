@@ -58,8 +58,8 @@ out vec4 FragColor;
 
 #define ABSORBTION 100.0f
 
-#define STEPS 10
-#define OCTAVES 3
+#define STEPS 18
+#define OCTAVES 6
 #define RADIUS 1.0
 
 float hash(vec3 p)
@@ -108,8 +108,8 @@ float densityFunc(const vec3 p, const vec3 center)
     return clamp(2.0 * f - 1.0, 0.0, 1.0);
 }
 
-vec3 extractPosition(mat4 viewMatrix) {
-    return inverse(viewMatrix)[3].xyz;
+vec3 extractPosition(mat4 matrix) {
+    return inverse(matrix)[3].xyz;
 }
 
 vec3 getRayWorldDirection() {
@@ -205,23 +205,21 @@ vec4 traverseVolume(vec3 rayOrigin, vec3 rayDirection) {
     float stepDistance = length(stepVector);
     vec3 stepRay = boxSpaceEnterPosition;
 
+    //storing seperate variables for possible future features
     float dens = 0.0;
     float color = 0.0;
 
     for (int n = 0; n < STEPS; n++, stepRay += stepVector) {
-        float toSunExitT = rayAABBExit(cubeMin, cubeMax, stepRay, -uSunDirection);
-        vec3 toSunExitPoint = stepRay + (-uSunDirection * toSunExitT);
-        float distanceToSunFalloff = pow(distance(stepRay, toSunExitPoint), 3.0);
         float distanceFalloff = RADIUS - distance(stepRay, vec3(0.0f));
 
         if (distanceFalloff <= 0.0 || dens >= 1.0) {
             continue;
         }
 
-        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay * vec3(3.0f, 1.0f, 3.0f) + extractPosition(uTransform), vec3(0.0)), 0.0);
+        float val = max(stepDistance * min(distanceFalloff, 1.0) * densityFunc(stepRay * vec3(5.0f, 1.0f, 5.0f) + extractPosition(uTransform), vec3(0.0)), 0.0);
 
         dens += val;
-        color += val / distanceToSunFalloff;
+        color += val;
     }
 
     float densityFinal = 1.0 - exp(-dens * ABSORBTION);
