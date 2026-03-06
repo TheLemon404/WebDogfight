@@ -24,7 +24,7 @@ void GraphicsBackend::LoadResources() {
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
-    globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 256, 256, 256);
+    globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 64, 64, 64);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

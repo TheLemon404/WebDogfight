@@ -178,6 +178,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<TextRectWidget> stats;
 
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
+
     void CreateWidgets() override;
     void UpdateLayer() override;
 };
