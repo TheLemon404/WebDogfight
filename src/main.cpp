@@ -4,8 +4,6 @@
 #include "graphics/loader.hpp"
 #include "io/input.hpp"
 #include "io/time.hpp"
-#define ENET_IMPLEMENTATION
-#include <enet/enet.h>
 #include "networking/network_manager.hpp"
 #include "utils/instrumentor.hpp"
 

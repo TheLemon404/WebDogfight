@@ -46,7 +46,6 @@ if(EMSCRIPTEN)
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
-        "vendor/enet/enet.h"
     )
 
     target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor" "vendor/freetype/include")
@@ -65,11 +64,10 @@ else()
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
-        "vendor/enet/enet.h"
     )
 
     target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/stb_image" "vendor" "vendor/miniaudio" "vendor/freetype/include")
-    target_link_libraries(WebDogfight glfw glm nlohmann_json freetype ws2_32 winmm)
+    target_link_libraries(WebDogfight glfw glm nlohmann_json freetype)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
