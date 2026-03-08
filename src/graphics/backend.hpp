@@ -178,6 +178,10 @@ class GraphicsBackend {
     }
 
     static void DeleteMesh(Mesh& mesh) {
+        for(auto pair : mesh.textureMap) {
+            DeleteTexture(pair.second);
+        }
+
         glDeleteVertexArrays(1, &mesh.vao);
         glDeleteBuffers(1, &mesh.vbo);
         glDeleteBuffers(1, &mesh.ebo);

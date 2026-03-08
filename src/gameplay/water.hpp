@@ -8,6 +8,8 @@ class Water : public Entity {
     Shader* shader;
     Transform transform = Transform();
 
+    Texture noiseTexture;
+
     public:
     Water(const std::string& name) : Entity(name) {};
 

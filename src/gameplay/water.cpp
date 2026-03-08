@@ -10,6 +10,7 @@
 void Water::LoadResources() {
     shader = &GraphicsBackend::globalShaders.water;
     mesh = GraphicsBackend::CreateQuad();
+    noiseTexture = Loader::LoadTextureFromFile("resources/textures/waterNormal.png");
 }
 
 void Water::Initialize() {
@@ -49,4 +50,6 @@ void Water::Draw() {
 }
 
 void Water::UnloadResources() {
+    GraphicsBackend::DeleteMesh(mesh);
+    GraphicsBackend::DeleteTexture(noiseTexture);
 }

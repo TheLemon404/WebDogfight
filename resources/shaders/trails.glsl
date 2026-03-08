@@ -55,9 +55,12 @@ uniform vec3 uShadowColor;
 
 out vec4 FragColor;
 
+#define NUM_CEL_BANDS 3
+
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    float alphaUVFactor = (1.0f - (abs(pUV.y - 0.4f) * 2.0f)) * (1.0f - (abs(pUV.x - 0.5f) * 2.0f));
-    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha * alphaUVFactor);
+    float alphaUVFactor = (1.0f - (abs(pUV.y - 0.4f))) * (1.0f - (abs(pUV.x - 0.5f)));
+    float celAlphaUVFactor = floor(alphaUVFactor * float(NUM_CEL_BANDS)) / float(NUM_CEL_BANDS);
+    FragColor = vec4(mix(uShadowColor, uAlbedo, dot), uAlpha * celAlphaUVFactor);
 }

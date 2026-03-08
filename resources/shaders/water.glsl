@@ -9,12 +9,14 @@ uniform mat4 uView;
 uniform mat4 uProjection;
 
 out vec3 pNormal;
+out vec2 pUV;
 
 void main()
 {
     vec4 worldPosition = uView * vec4(aPos, 1.0f);
     gl_Position = uProjection * worldPosition;
     pNormal = aNormal;
+    pUV = aUV;
 }
 
 #fragment
@@ -22,6 +24,7 @@ void main()
 precision highp float;
 
 in vec3 pNormal;
+in vec2 pUV;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;

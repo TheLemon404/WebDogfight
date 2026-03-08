@@ -73,7 +73,6 @@ void NetworkManager::Poll() {
 #endif
 }
 
-
 void NetworkManager::Shutdown() {
 #ifndef __EMSCRIPTEN__
     if(peer && connected) {

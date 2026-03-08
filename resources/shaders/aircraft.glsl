@@ -63,10 +63,11 @@ uniform vec3 uShadowColor;
 uniform vec3 uCameraPosition;
 
 uniform sampler2D uAlbedoTexture;
-uniform sampler2D uRoughnessTexture;
 uniform sampler2D uEmmissionTexture;
 
 out vec4 FragColor;
+
+#define NUM_CEL_BANDS 2
 
 void main()
 {
@@ -76,9 +77,8 @@ void main()
 
     vec3 viewDir = normalize(uCameraPosition - pWorldPos.xyz);
     vec3 reflectDir = normalize(reflect(uSunDirection, pNormal));
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-    spec *= 1.0 - texture(uRoughnessTexture, pUV).r;
 
-    vec4 nonEmmissive = vec4(mix(uShadowColor * albedo.rgb, albedo.rgb, diffuse + spec), alpha);
+    float celDiffuse = floor(diffuse * float(NUM_CEL_BANDS)) / float(NUM_CEL_BANDS);
+    vec4 nonEmmissive = vec4(mix(uShadowColor * albedo.rgb, albedo.rgb, celDiffuse), alpha);
     FragColor = mix(nonEmmissive, albedo, texture(uEmmissionTexture, pUV).r);
 }

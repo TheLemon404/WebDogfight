@@ -235,6 +235,10 @@
 		{
 			"sampler":0,
 			"source":2
+		},
+		{
+			"sampler":0,
+			"source":3
 		}
 	],
 	"images":[
@@ -245,13 +249,18 @@
 		},
 		{
 			"mimeType":"image/png",
-			"name":"albedo",
-			"uri":"albedo.png"
+			"name":"ao",
+			"uri":"ao.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"roughness",
 			"uri":"roughness.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"albedo",
+			"uri":"albedo.png"
 		}
 	],
 	"skins":[
