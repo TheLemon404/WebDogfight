@@ -13,8 +13,8 @@
   },
   {
     "label": "Run Web",
-    "command": "emrun",
-    "args": ["cmake-build-web/WebDogfight.html"],
+    "command": "python",
+    "args": ["cmake-build-web/serve.py"],
     "use_new_terminal": false,
   },
   {

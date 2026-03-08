@@ -27,6 +27,7 @@ if(EMSCRIPTEN)
     # compile resources to .data file
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/resources@/resources")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lwebsocket.js")
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
@@ -41,12 +42,16 @@ if(EMSCRIPTEN)
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
+    #--IMPORTANT-- we only use IXWebSocket for the desktop build
+
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
     )
+
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/serve.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
     target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor" "vendor/freetype/include")
     target_link_libraries(WebDogfight glm nlohmann_json freetype)
@@ -58,6 +63,13 @@ else()
     add_subdirectory("vendor/json")
     add_subdirectory("vendor/freetype")
 
+    #disable unuseed ixwebsocket functionality
+    set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+    set(USE_TLS OFF CACHE BOOL "" FORCE)
+    set(USE_ZLIB OFF CACHE BOOL "" FORCE)
+
+    add_subdirectory("vendor/IXWebSocket")
+
     file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
     add_executable(WebDogfight ${src}
         "vendor/glad/src/glad.c"
@@ -67,7 +79,7 @@ else()
     )
 
     target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/stb_image" "vendor" "vendor/miniaudio" "vendor/freetype/include")
-    target_link_libraries(WebDogfight glfw glm nlohmann_json freetype)
+    target_link_libraries(WebDogfight glfw glm nlohmann_json freetype ixwebsocket)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()

@@ -94,4 +94,6 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->borderColor.value = glm::vec4(0.0);
     rect->cornerColor.value = glm::vec4(0.0);
     widgets.push_back(rect);
+
+    NetworkManager::ConnectToServer();
 }
