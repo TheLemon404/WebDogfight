@@ -26,6 +26,7 @@
 #include "scene_manager.hpp"
 #include "../graphics/window.hpp"
 #include "../utils/math.hpp"
+#include "../utils/misc.hpp"
 #include <math.h>
 #include <nlohmann/json.hpp>
 
@@ -394,11 +395,11 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     aim->color.value.a = dot;
 
-    stats->SetText("FPS: " + std::to_string(1/Time::deltaTime) + "\n"
-        "Throttle: " + std::to_string(aircraft->controls.throttle) + "\n"
-        "Speed: " + std::to_string(glm::length(aircraft->velocity)) + "\n"
-        "Altitude: " + std::to_string(aircraft->transform.position.y) + "\n"
-        "G-Force: " + std::to_string(glm::length(aircraft->gForce)) + "\n");
+    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/Time::deltaTime), 4) + "\n"
+        "Throttle: " + MiscUtils::Truncate(std::to_string(aircraft->controls.throttle), 4) + "\n"
+        "Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraft->velocity)), 4) + "m/s\n"
+        "Altitude: " + MiscUtils::Truncate(std::to_string(aircraft->transform.position.y), 4) + "m\n"
+        "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraft->gForce)), 4) + "gs\n");
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {
