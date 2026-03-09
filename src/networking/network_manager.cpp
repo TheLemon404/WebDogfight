@@ -14,6 +14,9 @@
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
     std::cout << "Connected to server (emscripten)" << std::endl;
     connected = true;
+
+    emscripten_websocket_send_utf8_text(state->socket, "hello world!");
+
     return EM_TRUE;
 }
 
@@ -73,6 +76,7 @@ void NetworkManager::ConnectToServer() {
         switch(msg->type) {
             case ix::WebSocketMessageType::Open:
                 std::cout << "Connected to server (ixwebsocket)" << std::endl;
+                state->socket.sendText("hello world!");
                 connected = true;
                 break;
             case ix::WebSocketMessageType::Close:
@@ -83,7 +87,7 @@ void NetworkManager::ConnectToServer() {
                 OnMessageRecieved(msg->str);
                 break;
             case ix::WebSocketMessageType::Error:
-                std::cerr << "WebSocket error (ixwebsocket)" << std::endl;
+                std::cerr << "WebSocket error (ixwebsocket) reason: " << msg->errorInfo.reason << std::endl;
                 break;
         }
     });
