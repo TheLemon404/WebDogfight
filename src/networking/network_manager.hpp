@@ -19,7 +19,9 @@ class NetworkManager {
     inline static std::unique_ptr<NetworkManagerState> state = nullptr;
 
     static void OnConnectedToServer();
+    static void OnDisconnectedFromServer();
     static void OnMessageRecieved(const std::string& msg);
+    static void OnError(const std::string& msg);
 
     #ifdef __EMSCRIPTEN__
     static EM_BOOL OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud);

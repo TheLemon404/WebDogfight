@@ -12,15 +12,12 @@
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
-    std::cout << "Connected to server (emscripten)" << std::endl;
     OnConnectedToServer();
-
     return EM_TRUE;
 }
 
 EM_BOOL NetworkManager::OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud) {
-    std::cout << "Disconnected from server (emscripten)" << std::endl;
-    connected = false;
+    OnDisconnectedFromServer();
     return EM_TRUE;
 }
 
@@ -32,7 +29,8 @@ EM_BOOL NetworkManager::OnEMMessage(int type, const EmscriptenWebSocketMessageEv
 }
 
 EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud) {
-    std::cerr << "WebSocket error (emscripten)" << std::endl;
+    std::string data(e->data, e->data + e->numBytes);
+    OnError(data);
     return EM_TRUE;
 }
 #endif
@@ -48,8 +46,16 @@ void NetworkManager::OnConnectedToServer() {
     connected = true;
 }
 
+void NetworkManager::OnDisconnectedFromServer() {
+    connected = false;
+}
+
 void NetworkManager::OnMessageRecieved(const std::string& msg) {
-    std::cout << "message recieved" << std::endl;
+
+}
+
+void NetworkManager::OnError(const std::string& msg) {
+    std::cout << "Network Error: " << msg << std::endl;
 }
 
 void NetworkManager::Initialize() {
@@ -83,18 +89,16 @@ void NetworkManager::ConnectToServer() {
     state->socket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
         switch(msg->type) {
             case ix::WebSocketMessageType::Open:
-                std::cout << "Connected to server (ixwebsocket)" << std::endl;
                 OnConnectedToServer();
                 break;
             case ix::WebSocketMessageType::Close:
-                std::cout << "Disconnected from server (ixwebsocket)" << std::endl;
-                connected = false;
+                OnDisconnectedFromServer();
                 break;
             case ix::WebSocketMessageType::Message:
                 OnMessageRecieved(msg->str);
                 break;
             case ix::WebSocketMessageType::Error:
-                std::cerr << "WebSocket error (ixwebsocket) reason: " << msg->errorInfo.reason << std::endl;
+                OnError(msg->errorInfo.reason);
                 break;
         }
     });
@@ -102,7 +106,6 @@ void NetworkManager::ConnectToServer() {
     std::cout << "websocket created and connected to server" << std::endl;
 
     state->socket.start();
-    state->socket.send("hello world!");
 #endif
 }
 
