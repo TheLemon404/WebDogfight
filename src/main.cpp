@@ -55,6 +55,9 @@ void main_loop() {
 
 int main() {
     FOX2_PROFILE_BEGIN_SESSION("Fox2", "startup.json")
+
+    NetworkManager::ConnectToServer();
+
     WindowManager::primaryWindow = std::make_shared<Window>();
     WindowManager::primaryWindow->title = "Fox2";
 

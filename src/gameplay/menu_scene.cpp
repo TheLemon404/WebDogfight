@@ -7,8 +7,6 @@
 #include "../networking/network_manager.hpp"
 
 void MenuWidgetLayer::CreateWidgets() {
-    NetworkManager::ConnectToServer();
-
     std::shared_ptr<RectWidget> background = std::make_shared<RectWidget>("background");
     background->color.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->stretchWithAspectRatio = true;
