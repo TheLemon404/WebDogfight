@@ -59,7 +59,7 @@ void MenuWidgetLayer::CreateWidgets() {
     widgets.push_back(rect);
 
     std::shared_ptr<TextRectWidget> connectionStatus = std::make_shared<TextRectWidget>("connectionStatus", GraphicsBackend::globalFonts.defaultFont);
-    rect->SetText(NetworkManager::connected ? "connected to server" : "no server connection");
+    rect->SetText("no server connection");
     rect->position = glm::vec2(0.8, -1.0);
     rect->moveWithAspectRatio = true;
     rect->scale = glm::vec2(0.4, 0.3);

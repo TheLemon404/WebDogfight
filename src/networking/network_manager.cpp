@@ -1,5 +1,9 @@
 #include "network_manager.hpp"
 
+#include "../gameplay/scene_manager.hpp"
+#include "../gameplay/menu_scene.hpp"
+#include <memory>
+
 #ifndef __EMSCRIPTEN__
 #include "ixwebsocket/IXNetSystem.h"
 #include "ixwebsocket/IXWebSocketMessageType.h"
