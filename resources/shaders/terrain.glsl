@@ -65,7 +65,7 @@ void main()
 
     vec3 baseAlbedo = mix(uBaseColor, uMiddleColor, pow(texture(uHeightmap, pUV).r, 0.3));
     vec3 heightAlbedo = mix(baseAlbedo, uTopColor, pow(texture(uHeightmap, pUV).r, 4.0));
-    float slopeFactor = 1.0 - pow(abs(dot(pNormal, vec3(0.0, 1.0, 0.0))), 10.0);
+    float slopeFactor = ceil(1.0 - pow(abs(dot(pNormal, vec3(0.0, 1.0, 0.0))), 10.0) * float(NUM_CEL_BANDS)) / float(NUM_CEL_BANDS);
 
     vec3 finalAlbedo = mix(heightAlbedo, uSlopeColor, max(slopeFactor, 0.0)) * uAlbedo * (1.0 - texture(uDiscolorationMap, pUV * 10.0f).r / 15.0f);
     vec3 color = mix(uShadowColor, finalAlbedo, lightingDot);
