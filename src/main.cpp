@@ -22,7 +22,6 @@
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
 
-
     {
         FOX2_PROFILE_SCOPE("Input Polling")
         WindowManager::primaryWindow->Poll();
@@ -56,8 +55,6 @@ void main_loop() {
 int main() {
     FOX2_PROFILE_BEGIN_SESSION("Fox2", "startup.json")
 
-    NetworkManager::ConnectToServer();
-
     WindowManager::primaryWindow = std::make_shared<Window>();
     WindowManager::primaryWindow->title = "Fox2";
 
@@ -69,6 +66,7 @@ int main() {
     GraphicsBackend::LoadResources();
 
     NetworkManager::Initialize();
+    NetworkManager::ConnectToServer();
 
     SceneManager::currentScene->LoadResources();
     SceneManager::currentScene->Initialize();

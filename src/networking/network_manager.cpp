@@ -2,6 +2,7 @@
 
 #include "../gameplay/scene_manager.hpp"
 #include "../gameplay/menu_scene.hpp"
+#include "network_types.hpp"
 #include <memory>
 
 #ifndef __EMSCRIPTEN__
@@ -33,21 +34,22 @@ EM_BOOL NetworkManager::OnEMMessage(int type, const EmscriptenWebSocketMessageEv
 }
 
 EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud) {
-    std::string data(e->data, e->data + e->numBytes);
-    OnError(data);
+    OnError("websocket encountered an error (emscripten does not provide more event details)");
     return EM_TRUE;
 }
 #endif
 
 void NetworkManager::OnConnectedToServer() {
-    const std::string message = "jr";
-#ifdef __EMSCRIPTEN__
-    emscripten_websocket_send_utf8_text(state->socket, message);
-#else
-    state->socket.sendText(message);
-#endif
-
+    std::cout << "connected to server" << std::endl;
     connected = true;
+
+    const std::string message = Packet().WritePacketType(PacketType::JOIN_RANDOM_LOBBY).Build();
+
+    #ifdef __EMSCRIPTEN__
+        emscripten_websocket_send_binary(state->socket, (void*)message.data(), message.size());
+    #else
+        state->socket.sendText(message);
+    #endif
 }
 
 void NetworkManager::OnDisconnectedFromServer() {
@@ -107,9 +109,10 @@ void NetworkManager::ConnectToServer() {
         }
     });
 
-    std::cout << "websocket created and connected to server" << std::endl;
+    std::cout << "websocket created" << std::endl;
 
     state->socket.start();
+    state->socket.send("hello world!");
 #endif
 }
 
