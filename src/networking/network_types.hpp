@@ -24,7 +24,7 @@ class Packet {
     std::string buffer;
 
     public:
-    Packet(const stdnv::string& buffer) : buffer(buffer) {};
+    Packet(const std::string& buffer) : buffer(buffer) {};
     Packet() {};
 
     void Rewind() {
