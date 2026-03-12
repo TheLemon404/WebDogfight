@@ -1,5 +1,6 @@
 #include "widget.hpp"
 #include "GLFW/glfw3.h"
+#include "aircraft.hpp"
 #include "scene_manager.hpp"
 #include <cmath>
 #include <memory>
@@ -203,12 +204,14 @@ void TextButtonWidget::Draw() {
     if(hoveredState) {
         if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
             color.value -= glm::vec4(0.15);
+            AudioBackend::StartSoundAsset(AudioBackend::globalSounds.buttonClick, false, 0.5f);
             if(onPressed){
                 onPressed();
             }
         }
         else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
             color.value += glm::vec4(0.15);
+            AudioBackend::EndSoundAsset(AudioBackend::globalSounds.buttonClick);
         }
     }
 

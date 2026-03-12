@@ -7,11 +7,17 @@ struct Sound {
     ma_sound value;
 };
 
+struct GlobalSounds {
+    Sound buttonClick;
+};
+
 class AudioBackend{
     inline static ma_result audioResult;
     inline static ma_engine audioEngine;
 
     public:
+    inline static GlobalSounds globalSounds;
+
     static void Initialize();
 
     static void PlayAudio(const std::string& resourcePath, float volume = 1.0f, float pitchFactor = 1.0f);

@@ -9,6 +9,8 @@ void AudioBackend::Initialize() {
         throw std::runtime_error("Failed to initialize audio backend");
     }
     std::cout << "Audio backend initialized successfully" << std::endl;
+
+    LoadSound("resources/audio/click.wav", globalSounds.buttonClick);
 }
 
 void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, float pitchFactor) {
