@@ -10,16 +10,23 @@
 #endif
 #include <vector>
 
-struct NetworkManagerState {
+class NetworkManagerState {
+    public:
     #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_WEBSOCKET_T socket = 0;
     #else
     ix::WebSocket socket;
     #endif
 
+    void SocketSendBinary(std::string buffer) {
+        #ifdef __EMSCRIPTEN__
+            emscripten_websocket_send_binary(socket, (void*)buffer.data(), buffer.size());
+        #else
+            socket.sendText(buffer);
+        #endif
+    }
     uint32_t lobbyId = -1;
 };
-
 class NetworkManager {
     inline static float currentTickDelta = 0.0f;
     inline static std::unique_ptr<NetworkManagerState> state = nullptr;

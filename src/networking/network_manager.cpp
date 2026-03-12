@@ -44,14 +44,7 @@ EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent*
 void NetworkManager::OnConnectedToServer() {
     std::cout << "connected to server" << std::endl;
     connected = true;
-
-    const std::string message = Packet().WritePacketType(PacketType::JOIN_RANDOM_LOBBY).Build();
-
-    #ifdef __EMSCRIPTEN__
-        emscripten_websocket_send_binary(state->socket, (void*)message.data(), message.size());
-    #else
-        state->socket.sendText(message);
-    #endif
+    state->SocketSendBinary(Packet().WritePacketType(PacketType::JOIN_RANDOM_LOBBY).Build());
 }
 
 void NetworkManager::OnDisconnectedFromServer() {
@@ -93,7 +86,7 @@ void NetworkManager::OnError(const std::string& msg) {
 void NetworkManager::Tick() {
     currentTickDelta += Time::deltaTime;
     if(currentTickDelta >= CLIENT_STATE_SEND_INTERVAL) {
-        state->socket.sendBinary(
+        state->SocketSendBinary(
             Packet()
             .WritePacketType(PacketType::UPDATE_STATE)
             .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
