@@ -24,9 +24,13 @@ class Packet {
     std::string buffer;
 
     public:
-    Packet(const std::string& buffer) : buffer(buffer) {};
+    Packet(const stdnv::string& buffer) : buffer(buffer) {};
     Packet() {};
-    
+
+    void Rewind() {
+        readOffset = 0;
+    }
+
     Packet& WritePacketType(PacketType val) {
         buffer.push_back((char)val);
         return *this;
