@@ -44,6 +44,7 @@ void main_loop() {
     }
     {
         FOX2_PROFILE_SCOPE("Swap buffers and Tick")
+        NetworkManager::Tick();
         WindowManager::primaryWindow->SwapBuffers();
         InputManager::ResetInputState();
         Time::Tick();

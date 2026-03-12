@@ -1,4 +1,6 @@
 #include "aircraft.hpp"
+
+#include "../networking/network_manager.hpp"
 #include "../graphics/loader.hpp"
 #include "../graphics/backend.hpp"
 #include "../io/input.hpp"
@@ -272,6 +274,9 @@ void Aircraft::Update() {
         rightTrails.gForce = gForce;
         rightTrails.Update();
     }
+
+    NetworkManager::networkGameState.clientStates[NetworkManager::localClientId].position = transform.position;
+    NetworkManager::networkGameState.clientStates[NetworkManager::localClientId].rotation = transform.rotation;
 }
 
 void Aircraft::Draw()  {

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "network_types.hpp"
+#include "network_game.hpp"
+#include <unordered_map>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/websocket.h>
 #else
@@ -13,9 +16,12 @@ struct NetworkManagerState {
     #else
     ix::WebSocket socket;
     #endif
+
+    uint32_t lobbyId = -1;
 };
 
 class NetworkManager {
+    inline static float currentTickDelta = 0.0f;
     inline static std::unique_ptr<NetworkManagerState> state = nullptr;
 
     static void OnConnectedToServer();
@@ -31,7 +37,11 @@ class NetworkManager {
     #endif
 
     public:
+    inline static uint32_t localClientId;
+    inline static GameState networkGameState;
     inline static bool connected = false;
+
+    static void Tick();
 
     static void Initialize();
     static void ConnectToServer();

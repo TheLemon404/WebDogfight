@@ -1,5 +1,6 @@
 #include "network_manager.hpp"
 
+#include "../io/time.hpp"
 #include "../gameplay/scene_manager.hpp"
 #include "../gameplay/menu_scene.hpp"
 #include "network_types.hpp"
@@ -14,6 +15,7 @@
 
 #define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
+#define CLIENT_STATE_SEND_INTERVAL 0.5
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
@@ -57,11 +59,48 @@ void NetworkManager::OnDisconnectedFromServer() {
 }
 
 void NetworkManager::OnMessageRecieved(const std::string& msg) {
-
+    Packet packet = Packet(msg);
+    PacketType packetType = packet.ReadPacketType();
+    switch(packetType) {
+        case PacketType::CONNECTED_TO_SERVER:
+        {
+            localClientId = packet.ReadU32();
+            break;
+        }
+        case PacketType::LOBBY_JOINED:
+        {
+            state->lobbyId = packet.ReadU32();
+            std::cout << "lobby joined: " << state->lobbyId << std::endl;
+            break;
+        }
+        case PacketType::LOBBY_LEFT:
+        {
+            state->lobbyId = 0;
+            break;
+        }
+        case PacketType::STATE_UPDATED:
+        {
+            networkGameState.Deserialize(packet);
+            break;
+        }
+    }
 }
 
 void NetworkManager::OnError(const std::string& msg) {
     std::cout << "Network Error: " << msg << std::endl;
+}
+
+void NetworkManager::Tick() {
+    currentTickDelta += Time::deltaTime;
+    if(currentTickDelta >= CLIENT_STATE_SEND_INTERVAL) {
+        state->socket.sendBinary(
+            Packet()
+            .WritePacketType(PacketType::UPDATE_STATE)
+            .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
+            .Build()
+        );
+        currentTickDelta = 0.0f;
+    }
 }
 
 void NetworkManager::Initialize() {

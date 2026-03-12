@@ -1,6 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <cstdint>
+#include <string>
 
 enum class PacketType : uint8_t {
     //request types
@@ -13,10 +16,11 @@ enum class PacketType : uint8_t {
     RPC = 0x04,
 
     //response types
-    LOBBY_JOINED = 0x05,
-    LOBBY_LEFT = 0x06,
+    CONNECTED_TO_SERVER = 0x05,
+    LOBBY_JOINED = 0x06,
+    LOBBY_LEFT = 0x07,
 
-    STATE_UPDATED = 0x07,
+    STATE_UPDATED = 0x08,
 };
 
 class Packet {
@@ -61,6 +65,11 @@ class Packet {
         buffer.push_back((char)((ival >> 16) & 0xFF));
         buffer.push_back((char)((ival >> 8) & 0xFF));
         buffer.push_back((char)(ival & 0xFF));
+        return *this;
+    }
+
+    Packet& WriteBuffer(std::string val) {
+        buffer += val;
         return *this;
     }
 
