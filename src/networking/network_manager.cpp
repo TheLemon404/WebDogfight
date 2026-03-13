@@ -5,6 +5,7 @@
 #include "../gameplay/menu_scene.hpp"
 #include "network_types.hpp"
 #include <memory>
+#include <sys/stat.h>
 
 #ifndef __EMSCRIPTEN__
 #include "ixwebsocket/IXNetSystem.h"
@@ -48,6 +49,7 @@ void NetworkManager::OnConnectedToServer() {
 }
 
 void NetworkManager::OnDisconnectedFromServer() {
+    std::cout << "disconnected from server" << std::endl;
     connected = false;
 }
 
@@ -74,6 +76,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         case PacketType::LOBBY_STATE_UPDATED:
         {
             networkGameState.Deserialize(packet);
+            std::cout << networkGameState.clientStates[0].position.x << std::endl;
             break;
         }
     }
@@ -123,6 +126,8 @@ void NetworkManager::ConnectToServer() {
     emscripten_websocket_set_onerror_callback(state->socket, nullptr, NetworkManager::OnEMError);
 #else
     state->socket.setUrl(SERVER_URL);
+    state->socket.disablePerMessageDeflate();
+    state->socket.disableAutomaticReconnection();
     state->socket.setPingInterval(HEARTBEAT_PING_INTERVAL);
     state->socket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
         switch(msg->type) {
@@ -144,7 +149,6 @@ void NetworkManager::ConnectToServer() {
     std::cout << "websocket created" << std::endl;
 
     state->socket.start();
-    state->socket.send("hello world!");
 #endif
 }
 
@@ -158,7 +162,9 @@ void NetworkManager::JoinLobby(int lobbyCode) {
 
 void NetworkManager::Shutdown() {
 #ifndef __EMSCRIPTEN__
-    state->socket.stop();
+    if(state) {
+        state->socket.stop();
+    }
     ix::uninitNetSystem();
 #endif
     std::cout << "Network backend shutdown successfully" << std::endl;
