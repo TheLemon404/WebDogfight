@@ -11,7 +11,7 @@ enum class PacketType : uint8_t {
     JOIN_LOBBY = 0x01,
     LEAVE_LOBBY = 0x02,
 
-    UPDATE_STATE = 0x03,
+    UPDATE_CLIENT_STATE = 0x03,
 
     RPC = 0x04,
 
@@ -20,7 +20,7 @@ enum class PacketType : uint8_t {
     LOBBY_JOINED = 0x06,
     LOBBY_LEFT = 0x07,
 
-    STATE_UPDATED = 0x08,
+    LOBBY_STATE_UPDATED = 0x08,
 };
 
 class Packet {

@@ -71,7 +71,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             state->lobbyId = 0;
             break;
         }
-        case PacketType::STATE_UPDATED:
+        case PacketType::LOBBY_STATE_UPDATED:
         {
             networkGameState.Deserialize(packet);
             break;
@@ -88,7 +88,7 @@ void NetworkManager::Tick() {
     if(currentTickDelta >= CLIENT_STATE_SEND_INTERVAL) {
         state->SocketSendBinary(
             Packet()
-            .WritePacketType(PacketType::UPDATE_STATE)
+            .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
             .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
             .Build()
         );
