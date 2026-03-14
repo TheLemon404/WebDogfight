@@ -1,13 +1,63 @@
 #include "scene.hpp"
+#include "entity.hpp"
 #include "scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
+#include "widget.hpp"
+#include <memory>
+
+void Scene::LoadResourcesAsync() {
+    isLoadingResources = true;
+    switch(resourceLoadingState) {
+        case BEGIN:
+            {
+                environment.skybox = std::make_shared<Skybox>();
+                resourceLoadingState = LOADING_ENTITIES;
+            }
+            break;
+        case LOADING_ENTITIES:
+            {
+                entities[resourceLoadingIndex]->LoadResources();
+                resourceLoadingIndex++;
+                if(resourceLoadingIndex == entities.size()) {
+                    resourceLoadingIndex = 0;
+                    resourceLoadingState = CREATING_UI;
+                }
+            }
+            break;
+        case CREATING_UI:
+            {
+                widgetLayers[resourceLoadingIndex]->CreateWidgets();
+                resourceLoadingIndex++;
+                if(resourceLoadingIndex == widgetLayers.size()) {
+                    resourceLoadingIndex = 0;
+                    resourceLoadingState = LOADING_UI;
+                }
+            }
+            break;
+        case LOADING_UI:
+            {
+                widgetLayers[resourceLoadingIndex]->LoadResources();
+                resourceLoadingIndex++;
+                if(resourceLoadingIndex == widgetLayers.size()) {
+                    resourceLoadingIndex = 0;
+                    resourceLoadingState = END;
+                }
+            }
+            break;
+        case END:
+            {
+                isLoadingResources = false;
+                if(onResourcesLoadedCallback) onResourcesLoadedCallback();
+            }
+            break;
+    }
+}
 
 void Scene::LoadResources() {
-    environment.skybox = std::make_shared<Skybox>();
-
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->LoadResources();
     }
+
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
         widgetLayer->CreateWidgets();
         widgetLayer->LoadResources();

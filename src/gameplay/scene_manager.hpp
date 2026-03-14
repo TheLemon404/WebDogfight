@@ -5,13 +5,16 @@
 
 class SceneManager {
     static void ChangeToGameScene();
-    inline static bool isChangingToGameScene = false;
 
     public:
-    inline static Camera activeCamera = Camera();
-    inline static std::shared_ptr<Scene> currentScene;
+    inline static std::shared_ptr<Scene> asyncLoadingScene = nullptr;
 
-    static void FutureChangeToGameScene();
+    inline static bool isChangingToGameScene = false;
+    inline static bool isFinishedLoading = false;
+    inline static void SwapSceneAfterAsyncLoad();
+
+    inline static Camera activeCamera = Camera();
+    inline static std::shared_ptr<Scene> currentScene = nullptr;
 
     static void Update();
 };

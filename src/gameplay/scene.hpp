@@ -7,11 +7,24 @@
 #include <vector>
 #include <memory>
 
+enum SceneResourceLoadingState {
+    BEGIN,
+    LOADING_ENTITIES,
+    CREATING_UI,
+    LOADING_UI,
+    END
+};
+
 class Scene {
     public:
     std::vector<std::shared_ptr<Entity>> entities;
     std::vector<std::shared_ptr<WidgetLayer>> widgetLayers;
     Environment environment;
+    SceneResourceLoadingState resourceLoadingState = SceneResourceLoadingState::BEGIN;
+
+    bool isLoadingResources = false;
+    std::function<void()> onResourcesLoadedCallback;
+    int resourceLoadingIndex = 0;
 
     std::shared_ptr<Entity> GetEntityByName(const std::string& name) {
         for(std::shared_ptr<Entity> entity : entities) {
@@ -57,6 +70,7 @@ class Scene {
         return nullptr;
     }
 
+    void LoadResourcesAsync();
     void LoadResources();
     void Initialize();
     void Update();

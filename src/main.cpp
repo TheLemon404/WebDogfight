@@ -22,6 +22,8 @@
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
 
+    SceneManager::Update();
+
     {
         FOX2_PROFILE_SCOPE("Input Polling")
         WindowManager::primaryWindow->Poll();
@@ -49,13 +51,9 @@ void main_loop() {
         InputManager::ResetInputState();
         Time::Tick();
     }
-
-    SceneManager::Update();
 }
 
 int main() {
-    FOX2_PROFILE_BEGIN_SESSION("Fox2", "startup.json")
-
     WindowManager::primaryWindow = std::make_shared<Window>();
     WindowManager::primaryWindow->title = "Fox2";
 
@@ -87,7 +85,6 @@ int main() {
     SceneManager::currentScene->UnloadResources();
     GraphicsBackend::UnloadResources();
     WindowManager::primaryWindow->Close();
-    FOX2_PROFILE_END_SESSION()
 
     return 0;
 }

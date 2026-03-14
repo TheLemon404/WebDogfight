@@ -378,7 +378,12 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
 
-    aircraft = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"));
+    if(std::shared_ptr<Aircraft> a = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"))) {
+        aircraft = a;
+    }
+    else{
+        aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncLoadingScene->GetEntityByName("FA-XX"));
+    }
 }
 
 void AircraftWidgetLayer::UpdateLayer() {

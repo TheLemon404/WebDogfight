@@ -39,7 +39,9 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->color.value = glm::vec4(0.2);
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
-    playButton->onPressed = SceneManager::FutureChangeToGameScene;
+    playButton->onPressed = []{
+        SceneManager::isChangingToGameScene = true;
+    };
     widgets.push_back(playButton);
 
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);

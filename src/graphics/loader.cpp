@@ -208,8 +208,6 @@ Shader Loader::LoadShaderFromGLSL(const std::string& resourcePath) {
     std::string fragmentSource = "";
     SplitShaderSource(shaderSource, vertexSource, fragmentSource);
 
-    std::cout << "Attempting to create shader from file: " << resourcePath << std::endl;
-
     unsigned int vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     unsigned int fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
     unsigned int programID = glCreateProgram();
@@ -248,14 +246,14 @@ Shader Loader::LoadShaderFromGLSL(const std::string& resourcePath) {
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
 
+    std::cout << "successfully loaded shader resource: " << resourcePath << std::endl;
+
     return Shader(programID);
 }
 
 
 Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     Texture texture = Texture();
-
-    std::cout << "Attemping to read Texture file at: " << resourcePath << std::endl;
 
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -291,13 +289,13 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
         std::cout << "Failed to loat texture resource from file: " << resourcePath << std::endl;
     }
 
+    std::cout << "successfully loaded texture resource: " << resourcePath << std::endl;
+
     return texture;
 }
 
 Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth) {
     Texture3D texture = Texture3D();
-
-    std::cout << "Attemping to read 3D Texture file at: " << resourcePath << std::endl;
 
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_3D, texture.id);
@@ -354,6 +352,8 @@ Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int
         std::cout << "Failed to loat 3D texture resource from file: " << resourcePath << std::endl;
     }
 
+    std::cout << "successfully loaded 3d texture resource: " << resourcePath << std::endl;
+
     return texture;
 }
 
@@ -365,7 +365,6 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     std::string uri = JSON["buffers"][0]["uri"];
     std::string fileStr = std::string(resourcePath);
     std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
-    std::cout << "Attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
     std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
     //get accessors
@@ -398,6 +397,7 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    std::cout << "successfully loaded mesh resource: " << resourcePath << std::endl;
     return mesh;
 }
 
@@ -409,7 +409,6 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     std::string uri = JSON["buffers"][0]["uri"];
     std::string fileStr = std::string(resourcePath);
     std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
-    std::cout << "Attemping to read GLTF binary file at: " << binaryFileDirectory + uri << std::endl;
     std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
     //construct skeleton
@@ -506,12 +505,11 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
     GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    std::cout << "successfully loaded skeletal mesh resource: " << resourcePath << std::endl;
     return mesh;
 }
 
 void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
-    std::cout << "Attemping to font file at: " << resourcePath << std::endl;
-
     if (FT_Init_FreeType(&font.freetypeLibrary))
     {
         throw std::runtime_error("ERROR::FREETYPE: Could not init FreeType Library");
@@ -573,4 +571,6 @@ void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {
 
     FT_Done_Face(font.freetypeFace);
     FT_Done_Library(font.freetypeLibrary);
+
+    std::cout << "successfully loaded font resource: " << resourcePath << std::endl;
 }
