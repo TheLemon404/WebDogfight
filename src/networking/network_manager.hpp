@@ -22,7 +22,7 @@ class NetworkManagerState {
         #ifdef __EMSCRIPTEN__
             emscripten_websocket_send_binary(socket, (void*)buffer.data(), buffer.size());
         #else
-            socket.sendText(buffer);
+            socket.sendBinary(buffer);
         #endif
     }
     uint32_t lobbyId = -1;
@@ -47,8 +47,6 @@ class NetworkManager {
     inline static uint32_t localClientId;
     inline static GameState networkGameState;
     inline static bool connected = false;
-
-    static void Tick();
 
     static void Initialize();
     static void ConnectToServer();

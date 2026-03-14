@@ -75,8 +75,14 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         }
         case PacketType::LOBBY_STATE_UPDATED:
         {
+            state->SocketSendBinary(
+                Packet()
+                .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
+                .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
+                .Build()
+            );
             networkGameState.Deserialize(packet);
-            std::cout << networkGameState.clientStates[0].position.x << std::endl;
+            std::cout << networkGameState.clientStates[localClientId].position.x << std::endl;
             break;
         }
     }
@@ -84,19 +90,6 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
 
 void NetworkManager::OnError(const std::string& msg) {
     std::cout << "Network Error: " << msg << std::endl;
-}
-
-void NetworkManager::Tick() {
-    currentTickDelta += Time::deltaTime;
-    if(currentTickDelta >= CLIENT_STATE_SEND_INTERVAL) {
-        state->SocketSendBinary(
-            Packet()
-            .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
-            .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
-            .Build()
-        );
-        currentTickDelta = 0.0f;
-    }
 }
 
 void NetworkManager::Initialize() {
