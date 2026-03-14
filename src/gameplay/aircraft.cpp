@@ -382,7 +382,7 @@ void AircraftWidgetLayer::CreateWidgets() {
         aircraft = a;
     }
     else{
-        aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncLoadingScene->GetEntityByName("FA-XX"));
+        aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncSceneChangeState->asyncLoadingScene->GetEntityByName("FA-XX"));
     }
 }
 

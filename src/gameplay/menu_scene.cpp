@@ -40,7 +40,7 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
     playButton->onPressed = []{
-        SceneManager::isChangingToGameScene = true;
+        SceneManager::sceneChangeState = SceneChangeState::GAME_SCENE;
     };
     widgets.push_back(playButton);
 

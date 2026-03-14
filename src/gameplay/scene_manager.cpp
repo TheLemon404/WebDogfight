@@ -3,28 +3,35 @@
 #include "test_scene.hpp"
 #include <memory>
 
-void SceneManager::ChangeToGameScene() {
-    asyncLoadingScene = std::make_shared<Scene>(TestScene::Create());
-    asyncLoadingScene->onResourcesLoadedCallback = [] {
-        isFinishedLoading = true;
-    };
-    asyncLoadingScene->LoadResourcesAsync();
-}
+void SceneManager::CheckSceneChange() {
+    if(asyncSceneChangeState) {
+        if(asyncSceneChangeState->asyncLoadingScene->isLoadingResources) {
+            asyncSceneChangeState->asyncLoadingScene->LoadResourcesAsync();
+        }
+        else if(asyncSceneChangeState->isFinishedLoading) {
+            currentScene->UnloadResources();
+            currentScene = asyncSceneChangeState->asyncLoadingScene;
+            asyncSceneChangeState = nullptr;
+            currentScene->Initialize();
+        }
+    }
 
-void SceneManager::Update() {
-    if (isChangingToGameScene) {
-        isChangingToGameScene = false;
-        ChangeToGameScene();
-    }
-    else if(asyncLoadingScene && asyncLoadingScene->isLoadingResources) {
-        asyncLoadingScene->LoadResourcesAsync();
-    }
-    else if(isFinishedLoading) {
-        if(!asyncLoadingScene) return;
-        currentScene->UnloadResources();
-        currentScene = asyncLoadingScene;
-        asyncLoadingScene = nullptr;
-        currentScene->Initialize();
-        isFinishedLoading = false;
+    switch(sceneChangeState) {
+        case NONE:
+            break;
+        case GAME_SCENE:
+            asyncSceneChangeState = std::make_unique<AsyncSceneChangeState>(
+                std::make_shared<Scene>(TestScene::Create()),
+                false
+            );
+            asyncSceneChangeState->asyncLoadingScene->onResourcesLoadedCallback = [] {
+                asyncSceneChangeState->isFinishedLoading = true;
+            };
+            asyncSceneChangeState->asyncLoadingScene->LoadResourcesAsync();
+            sceneChangeState = NONE;
+            break;
+        case MENU_SCENE:
+            //TODO -- impliment menu scene swapping
+            break;
     }
 }

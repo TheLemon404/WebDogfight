@@ -22,7 +22,7 @@
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
 
-    SceneManager::Update();
+    SceneManager::CheckSceneChange();
 
     {
         FOX2_PROFILE_SCOPE("Input Polling")
