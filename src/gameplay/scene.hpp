@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../networking/network_game.hpp"
 #include "entity.hpp"
 #include "environment.hpp"
 #include "widget.hpp"
 #include <string>
 #include <vector>
+#include <stack>
 #include <memory>
 
 enum SceneResourceLoadingState {
@@ -16,6 +18,8 @@ enum SceneResourceLoadingState {
 };
 
 class Scene {
+    std::stack<std::shared_ptr<Entity>> spawnStack;
+
     public:
     std::vector<std::shared_ptr<Entity>> entities;
     std::vector<std::shared_ptr<WidgetLayer>> widgetLayers;
@@ -69,6 +73,10 @@ class Scene {
 
         return nullptr;
     }
+
+    void RuntimeSpawn(std::shared_ptr<Entity> entity);
+
+    void SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState);
 
     void LoadResourcesAsync();
     void LoadResources();

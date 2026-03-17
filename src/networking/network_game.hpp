@@ -7,11 +7,14 @@
 class ClientState {
     public:
 
+    bool inGame = false;
+
     glm::vec3 position;
     glm::quat rotation;
 
     std::string Serialize() {
         return Packet()
+            .WriteU8(inGame)
             .WriteF32(position.x)
             .WriteF32(position.y)
             .WriteF32(position.z)
@@ -24,6 +27,7 @@ class ClientState {
 
     //-- IMPORTANT -- make sure to NOT rewind packet before passed into function
     void Deserialize(Packet& packet) {
+        inGame = packet.ReadU8();
         position.x = packet.ReadF32();
         position.y = packet.ReadF32();
         position.z = packet.ReadF32();
@@ -47,6 +51,7 @@ struct GameState {
     }
 
     void Deserialize(Packet& packet) {
+        clientStates.clear();
         //the u8 at the beginning of the packet is the number of clients
         uint8_t numClients = packet.ReadU8();
         for(int i = 0; i < numClients; i++) {

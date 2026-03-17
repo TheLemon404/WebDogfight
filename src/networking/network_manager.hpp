@@ -27,6 +27,7 @@ class NetworkManagerState {
     }
     uint32_t lobbyId = -1;
 };
+
 class NetworkManager {
     inline static float currentTickDelta = 0.0f;
     inline static std::unique_ptr<NetworkManagerState> state = nullptr;
@@ -42,6 +43,8 @@ class NetworkManager {
     static EM_BOOL OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud);
     static EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
     #endif
+
+    inline static GameState lastNetworkGameState;
 
     public:
     inline static uint32_t localClientId;

@@ -7,6 +7,7 @@
 #include "clouds.hpp"
 #include "widget.hpp"
 #include "../graphics/window.hpp"
+#include "../networking/network_manager.hpp"
 #include "../io/input.hpp"
 
 class TestScene {
@@ -24,7 +25,7 @@ class TestScene {
         cloud->transform.scale = glm::vec3(50000.0f, 5000.0f, 50000.0f);
         testScene.entities.push_back(cloud);
 
-        testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json"));
+        testScene.entities.push_back(std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", NetworkManager::localClientId));
 
         std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
         testScene.widgetLayers.push_back(layer);

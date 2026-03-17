@@ -3,6 +3,7 @@
 #include "../io/time.hpp"
 #include "../gameplay/scene_manager.hpp"
 #include "../gameplay/menu_scene.hpp"
+#include "network_game.hpp"
 #include "network_types.hpp"
 #include <memory>
 #include <sys/stat.h>
@@ -81,8 +82,9 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
                 .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
                 .Build()
             );
+            lastNetworkGameState = networkGameState;
             networkGameState.Deserialize(packet);
-            std::cout << networkGameState.clientStates[localClientId].position.x << std::endl;
+            SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             break;
         }
     }
@@ -104,6 +106,7 @@ void NetworkManager::Initialize() {
 
 void NetworkManager::ConnectToServer() {
     state = std::make_unique<NetworkManagerState>();
+    std::cout << "connected to server" << std::endl;
 
 #ifdef __EMSCRIPTEN__
     EmscriptenWebSocketCreateAttributes attrs;

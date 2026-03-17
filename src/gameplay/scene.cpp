@@ -1,9 +1,38 @@
 #include "scene.hpp"
+#include "aircraft.hpp"
 #include "entity.hpp"
 #include "scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
 #include "widget.hpp"
 #include <memory>
+
+void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
+    spawnStack.push(entity);
+}
+
+void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState) {
+    std::cout << "checking diffs: " << lastNetworkGameState.clientStates.size() << " -> " << currentNetworkGameState.clientStates.size() << std::endl;
+
+    for(auto& entry : lastNetworkGameState.clientStates) {
+        if(!currentNetworkGameState.clientStates.contains(entry.first)) {
+            //Since we only have <16 player lobbies, list iteration should be fast enough for now
+            std::vector<std::shared_ptr<Aircraft>> aircrafts = GetEntitiesByType<Aircraft>();
+            for(int i = 0; i < aircrafts.size(); i++) {
+                if(aircrafts[i]->networkId == entry.first) {
+                    aircrafts.erase(aircrafts.begin() + i);
+                }
+            }
+        }
+    }
+
+    for(auto& entry : currentNetworkGameState.clientStates) {
+        if(!lastNetworkGameState.clientStates.contains(entry.first) && entry.second.inGame) {
+            std::cout << "adding plane" << std::endl;
+            std::shared_ptr<Aircraft> newAircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", entry.first);
+            RuntimeSpawn(newAircraft);
+        }
+    }
+}
 
 void Scene::LoadResourcesAsync() {
     isLoadingResources = true;
@@ -74,6 +103,13 @@ void Scene::Initialize()  {
 }
 
 void Scene::Update()  {
+    while(!spawnStack.empty()) {
+        std::shared_ptr<Entity> entity = spawnStack.top();
+        entity->LoadResources();
+        entity->Initialize();
+        entities.push_back(entity);
+        spawnStack.pop();
+    }
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->Update();
     }

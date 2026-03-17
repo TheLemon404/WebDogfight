@@ -1,11 +1,14 @@
 #pragma once
 
 #include "../graphics/types.hpp"
+#include "../networking/network_manager.hpp"
+#include "../networking/network_game.hpp"
 #include "entity.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "widget.hpp"
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <memory>
@@ -161,8 +164,13 @@ class Aircraft : public Entity {
     float gForce = 0.0f;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
+    uint32_t networkId = -1;
 
-    Aircraft(const std::string& name, const std::string& aircraftResourcePath) : Entity(name), resourcePath(aircraftResourcePath) {};
+    Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
+        if(NetworkManager::localClientId == networkId) {
+            NetworkManager::networkGameState.clientStates[networkId].inGame = true;
+        }
+    };
 
     void LoadResources() override;
     void Initialize() override;
