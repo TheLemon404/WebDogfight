@@ -16,10 +16,10 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
     for(auto& entry : lastNetworkGameState.clientStates) {
         if(!currentNetworkGameState.clientStates.contains(entry.first)) {
             //Since we only have <16 player lobbies, list iteration should be fast enough for now
-            std::vector<std::shared_ptr<Aircraft>> aircrafts = GetEntitiesByType<Aircraft>();
-            for(int i = 0; i < aircrafts.size(); i++) {
-                if(aircrafts[i]->networkId == entry.first) {
-                    aircrafts.erase(aircrafts.begin() + i);
+            for(int i = 0; i < entities.size(); i++) {
+                std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entities[i]);
+                if(aircraft && aircraft->networkId == entry.first) {
+                    entities.erase(entities.begin() + i);
                 }
             }
         }
