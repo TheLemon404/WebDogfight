@@ -410,6 +410,17 @@ void AircraftWidgetLayer::UpdateLayer() {
     mouse->position *= 0.85f;
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
+
+    if(!aircraft) {
+        if(std::shared_ptr<Aircraft> a = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"))) {
+            aircraft = a;
+        }
+        else{
+            aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncSceneChangeState->asyncLoadingScene->GetEntityByName("FA-XX"));
+        }
+        return;
+    }
+
     aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
     aim->position.x /= WindowManager::primaryWindow->aspect;
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraft->transform.rotation, GLOBAL_FORWARD));

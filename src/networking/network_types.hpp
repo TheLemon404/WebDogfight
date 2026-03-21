@@ -60,7 +60,7 @@ class Packet {
     }
 
     Packet& WriteF32(float val) {
-        uint32_t ival = (uint32_t)val;
+        uint32_t ival = std::bit_cast<uint32_t>(val);
         buffer.push_back((char)((ival >> 24) & 0xFF));
         buffer.push_back((char)((ival >> 16) & 0xFF));
         buffer.push_back((char)((ival >> 8) & 0xFF));
