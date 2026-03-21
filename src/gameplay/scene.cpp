@@ -26,7 +26,9 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
     }
 
     for(auto& entry : currentNetworkGameState.clientStates) {
-        if(!lastNetworkGameState.clientStates.contains(entry.first) && entry.second.inGame) {
+        std::cout << entry.second.inGame << std::endl;
+        bool wasInGame = lastNetworkGameState.clientStates.contains(entry.first) && lastNetworkGameState.clientStates[entry.first].inGame;
+        if(!wasInGame && entry.second.inGame) {
             std::cout << "adding plane" << std::endl;
             std::shared_ptr<Aircraft> newAircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", entry.first);
             RuntimeSpawn(newAircraft);

@@ -51,7 +51,8 @@ void NetworkManager::OnConnectedToServer() {
 
 void NetworkManager::OnDisconnectedFromServer() {
     std::cout << "disconnected from server" << std::endl;
-    connected = false;
+
+    //TODO: figure out why this keeps being called!!!
 }
 
 void NetworkManager::OnMessageRecieved(const std::string& msg) {
