@@ -77,6 +77,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         }
         case PacketType::LOBBY_STATE_UPDATED:
         {
+            ClientState localClientState = networkGameState.clientStates[localClientId];
             state->SocketSendBinary(
                 Packet()
                 .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
@@ -85,6 +86,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             );
             lastNetworkGameState = networkGameState;
             networkGameState.Deserialize(packet);
+            networkGameState.clientStates[localClientId] = localClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             break;
         }

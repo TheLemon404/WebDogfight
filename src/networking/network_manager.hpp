@@ -47,6 +47,7 @@ class NetworkManager {
     inline static GameState lastNetworkGameState;
 
     public:
+    inline static float lerpFactor = 0.75f;
     inline static uint32_t localClientId;
     inline static GameState networkGameState;
     inline static bool connected = false;

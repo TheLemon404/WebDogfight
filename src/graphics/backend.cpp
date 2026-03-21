@@ -242,6 +242,7 @@ void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, 
     UploadShaderUniformMat4(shader, camera.GetViewMatrix() * transformMatrix, "uViewTransform");
     UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
+
     for(size_t i = 0; i < mesh.skeleton.bones.size(); i++) {
         UploadShaderUniformMat4(shader, mesh.skeleton.cachedGlobalBoneTransforms[i] * mesh.skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(mesh.skeleton.bones[i].id) + "]");
     }

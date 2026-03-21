@@ -11,8 +11,6 @@ void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
 }
 
 void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState) {
-    std::cout << "checking diffs: " << lastNetworkGameState.clientStates.size() << " -> " << currentNetworkGameState.clientStates.size() << std::endl;
-
     for(auto& entry : lastNetworkGameState.clientStates) {
         if(!currentNetworkGameState.clientStates.contains(entry.first)) {
             //Since we only have <16 player lobbies, list iteration should be fast enough for now
@@ -26,11 +24,14 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
     }
 
     for(auto& entry : currentNetworkGameState.clientStates) {
-        std::cout << entry.second.inGame << std::endl;
         bool wasInGame = lastNetworkGameState.clientStates.contains(entry.first) && lastNetworkGameState.clientStates[entry.first].inGame;
         if(!wasInGame && entry.second.inGame) {
-            std::cout << "adding plane" << std::endl;
+            std::cout << "last state: " << lastNetworkGameState.clientStates[entry.first].inGame << std::endl;
+            std::cout << "current state: " << entry.second.inGame << std::endl;
+            std::cout << "spawning aircraft for client " << entry.first << std::endl;
             std::shared_ptr<Aircraft> newAircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", entry.first);
+            newAircraft->transform.position = entry.second.position;
+            newAircraft->transform.rotation = entry.second.rotation;
             RuntimeSpawn(newAircraft);
         }
     }

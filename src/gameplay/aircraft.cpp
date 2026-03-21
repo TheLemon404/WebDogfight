@@ -119,6 +119,8 @@ void Aircraft::Initialize() {
     rightTrails.Initialize();
 
     AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
+
+    skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
 }
 
 void Aircraft::ApplyControlSurfaces(float roll) {
@@ -159,7 +161,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 }
 
 void Aircraft::Update() {
-    if(networkId == NetworkManager::localClientId || !NetworkManager::connected) {
+    if(networkId == NetworkManager::localClientId) {
         FOX2_PROFILE_FUNCTION();
         Camera& camera = SceneManager::activeCamera;
 
@@ -276,25 +278,41 @@ void Aircraft::Update() {
             rightTrails.Update();
         }
 
-        NetworkManager::networkGameState.clientStates[NetworkManager::localClientId].position = transform.position;
-        NetworkManager::networkGameState.clientStates[NetworkManager::localClientId].rotation = transform.rotation;
+        NetworkManager::networkGameState.clientStates[networkId].position = transform.position;
+        NetworkManager::networkGameState.clientStates[networkId].rotation = transform.rotation;
     }
     else {
-        if(NetworkManager::networkGameState.clientStates.find(networkId) != NetworkManager::networkGameState.clientStates.end()) {
+        if(NetworkManager::networkGameState.clientStates.contains(networkId)) {
+
             ClientState& clientState = NetworkManager::networkGameState.clientStates[networkId];
-            transform.position = clientState.position;
-            transform.rotation = clientState.rotation;
+            transform.position = MathUtils::Lerp<glm::vec3>(transform.position, clientState.position, Time::deltaTime * NetworkManager::lerpFactor);
+            transform.rotation =  glm::slerp(transform.rotation, clientState.rotation, (float)Time::deltaTime * NetworkManager::lerpFactor);
         }
         else {
             // --- TODO --- delete unrecognized entities
             std::cout << "should be deleted" << std::endl;
         }
     }
+
+    {
+        FOX2_PROFILE_SCOPE("Particles")
+        exhaustParticles.aircraftPosition = transform.position;
+        exhaustParticles.Update();
+        leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
+        leftTrails.aircraftRotation = transform.rotation;
+        leftTrails.gForce = gForce;
+        leftTrails.Update();
+        rightTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipR);
+        rightTrails.aircraftRotation = transform.rotation;
+        rightTrails.gForce = gForce;
+        rightTrails.Update();
+    }
 }
 
 void Aircraft::Draw()  {
     FOX2_PROFILE_FUNCTION()
 
+    //Note: here we only animate the local client's aircraft. Other clients' aircraft are static.
     GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
     GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::activeCamera.position, "uCameraPosition");

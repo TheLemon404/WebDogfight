@@ -90,7 +90,8 @@ class Packet {
     }
 
     float ReadF32() {
-        return (float)(((uint8_t)buffer[readOffset++] << 24) | ((uint8_t)buffer[readOffset++] << 16) | ((uint8_t)buffer[readOffset++] << 8) | (uint8_t)buffer[readOffset++]);
+        uint32_t ival = (uint32_t)(((uint8_t)buffer[readOffset++] << 24) | ((uint8_t)buffer[readOffset++] << 16) | ((uint8_t)buffer[readOffset++] << 8) | (uint8_t)buffer[readOffset++]);
+        return std::bit_cast<float>(ival);
     }
 
     const std::string& Build() {
