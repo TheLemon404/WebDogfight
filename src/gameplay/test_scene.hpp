@@ -10,12 +10,17 @@
 #include "../networking/network_manager.hpp"
 #include "../io/input.hpp"
 
+class MenuWidgetLayer : public WidgetLayer {
+    std::shared_ptr<InputWidget> codeInput;
+
+    void CreateWidgets() override;
+    void UpdateLayer() override {};
+};
+
+
 class TestScene {
     public:
     static Scene Create() {
-        InputManager::mouseHidden = true;
-        glfwSetInputMode(WindowManager::primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-
         Scene testScene = Scene();
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));
         testScene.entities.push_back(std::make_shared<Water>("water"));
@@ -25,11 +30,8 @@ class TestScene {
         cloud->transform.scale = glm::vec3(50000.0f, 5000.0f, 50000.0f);
         testScene.entities.push_back(cloud);
 
-        std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", NetworkManager::localClientId);
-        testScene.RuntimeSpawn(aircraft);
-
-        std::shared_ptr<AircraftWidgetLayer> layer = std::make_shared<AircraftWidgetLayer>();
-        testScene.widgetLayers.push_back(layer);
+        std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
+        testScene.widgetLayers.push_back(menuLayer);
         return testScene;
     }
 };

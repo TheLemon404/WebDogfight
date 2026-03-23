@@ -1,4 +1,4 @@
-#include "menu_scene.hpp"
+#include "test_scene.hpp"
 #include "GLFW/glfw3.h"
 #include "scene.hpp"
 #include "scene_manager.hpp"
@@ -39,8 +39,12 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->color.value = glm::vec4(0.2);
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
-    playButton->onPressed = []{
-        SceneManager::sceneChangeState = SceneChangeState::GAME_SCENE;
+    playButton->onPressed = [this]{
+        InputManager::mouseHidden = true;
+        glfwSetInputMode(WindowManager::primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", NetworkManager::localClientId);
+        SceneManager::currentScene->RuntimeSpawn(aircraft);
+        this->SetDisabled(true);
     };
     widgets.push_back(playButton);
 

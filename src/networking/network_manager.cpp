@@ -2,7 +2,8 @@
 
 #include "../io/time.hpp"
 #include "../gameplay/scene_manager.hpp"
-#include "../gameplay/menu_scene.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_int3_sized.hpp"
 #include "network_game.hpp"
 #include "network_types.hpp"
 #include <memory>
@@ -17,7 +18,7 @@
 
 #define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
-#define CLIENT_STATE_SEND_INTERVAL 0.5
+#define STATE_SEND_INTERVAL 0.5
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
@@ -68,6 +69,8 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         {
             state->lobbyId = packet.ReadU32();
             std::cout << "lobby joined: " << state->lobbyId << std::endl;
+            networkGameState.Deserialize(packet);
+            SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             break;
         }
         case PacketType::LOBBY_LEFT:
@@ -77,16 +80,8 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         }
         case PacketType::LOBBY_STATE_UPDATED:
         {
-            ClientState localClientState = networkGameState.clientStates[localClientId];
-            state->SocketSendBinary(
-                Packet()
-                .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
-                .WriteBuffer(networkGameState.clientStates[localClientId].Serialize())
-                .Build()
-            );
             lastNetworkGameState = networkGameState;
             networkGameState.Deserialize(packet);
-            networkGameState.clientStates[localClientId] = localClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             break;
         }
@@ -105,6 +100,21 @@ void NetworkManager::Initialize() {
 #endif
 
     std::cout << "Network backend initialized successfully" << std::endl;
+}
+
+void NetworkManager::Tick() {
+    timeSinceLastStateSend += Time::deltaTime;
+
+    if(timeSinceLastStateSend >= STATE_SEND_INTERVAL) {
+        ClientState localClientState = networkGameState.clientStates[localClientId];
+        state->SocketSendBinary(
+            Packet()
+            .WritePacketType(PacketType::UPDATE_CLIENT_STATE)
+            .WriteBuffer(localClientState.Serialize())
+            .Build()
+        );
+        timeSinceLastStateSend = 0.0f;
+    }
 }
 
 void NetworkManager::ConnectToServer() {

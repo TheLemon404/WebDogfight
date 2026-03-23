@@ -1,4 +1,3 @@
-#include "gameplay/menu_scene.hpp"
 #include "gameplay/test_scene.hpp"
 #include "gameplay/scene_manager.hpp"
 #include "graphics/loader.hpp"
@@ -46,6 +45,7 @@ void main_loop() {
     }
     {
         FOX2_PROFILE_SCOPE("Swap buffers and Tick")
+        NetworkManager::Tick();
         WindowManager::primaryWindow->SwapBuffers();
         InputManager::ResetInputState();
         Time::Tick();
@@ -56,7 +56,7 @@ int main() {
     WindowManager::primaryWindow = std::make_shared<Window>();
     WindowManager::primaryWindow->title = "Fox2";
 
-    SceneManager::currentScene = std::make_shared<Scene>(MenuScene::Create());
+    SceneManager::currentScene = std::make_shared<Scene>(TestScene::Create());
     WindowManager::primaryWindow->Open();
 
     AudioBackend::Initialize();

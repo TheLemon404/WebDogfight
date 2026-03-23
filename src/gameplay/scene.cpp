@@ -10,6 +10,10 @@ void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
     spawnStack.push(entity);
 }
 
+void Scene::RuntimeDespawn(std::shared_ptr<Entity> entity) {
+    despawnStack.push(entity);
+}
+
 void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState) {
     for(auto& entry : lastNetworkGameState.clientStates) {
         if(!currentNetworkGameState.clientStates.contains(entry.first)) {
@@ -17,7 +21,7 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
             for(int i = 0; i < entities.size(); i++) {
                 std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entities[i]);
                 if(aircraft && aircraft->networkId == entry.first) {
-                    entities.erase(entities.begin() + i);
+                    RuntimeDespawn(aircraft);
                 }
             }
         }
@@ -86,6 +90,8 @@ void Scene::LoadResourcesAsync() {
 }
 
 void Scene::LoadResources() {
+    environment.skybox = std::make_shared<Skybox>();
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->LoadResources();
     }
@@ -106,6 +112,12 @@ void Scene::Initialize()  {
 }
 
 void Scene::Update()  {
+    while(!despawnStack.empty()) {
+        std::shared_ptr<Entity> entity = despawnStack.top();
+        entity->UnloadResources();
+        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
+        despawnStack.pop();
+    }
     while(!spawnStack.empty()) {
         std::shared_ptr<Entity> entity = spawnStack.top();
         entity->LoadResources();

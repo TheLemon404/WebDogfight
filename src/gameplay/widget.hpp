@@ -30,8 +30,12 @@ class Widget {
 };
 
 class WidgetLayer {
+    bool disabled = false;
+
     public:
     std::vector<std::shared_ptr<Widget>> widgets;
+
+    void SetDisabled(bool disabled);
 
     virtual void CreateWidgets() = 0;
     virtual void UpdateLayer() = 0;

@@ -45,14 +45,16 @@ class NetworkManager {
     #endif
 
     inline static GameState lastNetworkGameState;
+    inline static float timeSinceLastStateSend = 0.0f;
 
     public:
-    inline static float lerpFactor = 0.75f;
+    inline static float lerpFactor = 1.0f;
     inline static uint32_t localClientId;
     inline static GameState networkGameState;
     inline static bool connected = false;
 
     static void Initialize();
+    static void Tick();
     static void ConnectToServer();
     static void CreateLobby();
     static void JoinLobby(int lobbyCode);

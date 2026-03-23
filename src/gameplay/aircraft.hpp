@@ -120,7 +120,31 @@ class AircraftTrails {
     void UnloadResources();
 };
 
+struct AircraftWidgetLayerNeededProps {
+    Transform transform = Transform();
+    glm::quat unrolledRotation = glm::identity<glm::quat>();
+    glm::vec3 velocity = glm::vec3(0.0f);
+    float throttle = 0.0f;
+    float gForce = 0.0f;
+};
+
+class AircraftWidgetLayer : public WidgetLayer {
+    public:
+    AircraftWidgetLayerNeededProps aircraftProps;
+    std::shared_ptr<CircleWidget> aim;
+    std::shared_ptr<RectWidget> mouse;
+    std::shared_ptr<TextRectWidget> stats;
+
+    glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
+
+    void CreateWidgets() override;
+    void UpdateLayer() override;
+};
+
+
 class Aircraft : public Entity {
+    std::unique_ptr<AircraftWidgetLayer> aircraftWidgetLayer = nullptr;
+
     const std::string resourcePath;
     AircraftResource resource;
 
@@ -177,16 +201,4 @@ class Aircraft : public Entity {
     void Update() override;
     void Draw() override;
     void UnloadResources() override;
-};
-
-class AircraftWidgetLayer : public WidgetLayer {
-    std::shared_ptr<Aircraft> aircraft;
-    std::shared_ptr<CircleWidget> aim;
-    std::shared_ptr<RectWidget> mouse;
-    std::shared_ptr<TextRectWidget> stats;
-
-    glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
-
-    void CreateWidgets() override;
-    void UpdateLayer() override;
 };

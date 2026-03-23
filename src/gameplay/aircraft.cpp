@@ -46,6 +46,92 @@
 
 using json = nlohmann::json;
 
+glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
+    glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(rotation, GLOBAL_FORWARD));
+    glm::vec3 aircraftUpVector = glm::normalize(glm::rotate(rotation, GLOBAL_UP));
+    glm::vec3 aircraftLeftVector = glm::normalize(glm::rotate(rotation, GLOBAL_LEFT));
+
+    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    float dot = glm::dot(cameraForward, aircraftForwardVector);
+
+    float x = glm::dot(aircraftLeftVector, cameraForward);
+    float y = glm::dot(-aircraftUpVector, cameraForward);
+
+    return glm::vec2(x, y);
+}
+
+void AircraftWidgetLayer::CreateWidgets() {
+    //aircraft aiming ui
+    aim = std::make_shared<CircleWidget>("aimWidget");
+    aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    aim->moveWithAspectRatio = true;
+    widgets.push_back(aim);
+
+    mouse = std::make_shared<RectWidget>("mouseWidget");
+    mouse->rotation = 45.0;
+    mouse->scale = glm::vec2(0.02);
+    mouse->color.value.a = 0.0;
+    mouse->borderColor.value = glm::vec4(0.0);
+    mouse->cornerLength = 7;
+    mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    widgets.push_back(mouse);
+
+    //demo window ui
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
+    rect->SetText(
+                "Controls:\n"
+                "- Shift: Thottle Up\n"
+                "- Ctrl: Thottle Down\n"
+                "- Q: Roll Left\n"
+                "- E: Roll Right\n"
+                "- Alt: Free Mouse\n"
+                "- Tab: Free Look\n\n"
+                "Notes:\n"
+                "- Respawn on terrain\n"
+                "  or boundary collision.");
+    rect->position = glm::vec2(-0.7, 0.2);
+    rect->moveWithAspectRatio = true;
+    rect->scale = glm::vec2(0.4, 0.35);
+    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(rect);
+
+    //aircraft stats ui
+    stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
+    stats->moveWithAspectRatio = true;
+    stats->scale = glm::vec2(0.4, 0.16);
+    stats->position = glm::vec2(0.6, -0.6);
+    stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(stats);
+}
+
+void AircraftWidgetLayer::UpdateLayer() {
+    FOX2_PROFILE_FUNCTION()
+    glm::vec2 targetDelta = glm::vec2(
+        InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
+        -InputManager::mouseDelta.y / WindowManager::primaryWindow->height
+    );
+
+    mouse->position += targetDelta / Time::deltaTime * .004f;
+    mouse->position *= 0.85f;
+    mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
+
+    aim->position = UIAlignmentWithRotation(aircraftProps.unrolledRotation);
+    aim->position.x /= WindowManager::primaryWindow->aspect;
+    glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
+    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    float dot = glm::dot(cameraForward, aircraftForwardVector);
+
+    aim->color.value.a = dot;
+
+    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/Time::deltaTime), 4) + "\n"
+        "Throttle: " + MiscUtils::Truncate(std::to_string(aircraftProps.throttle), 4) + "\n"
+        "Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.velocity)), 4) + "m/s\n"
+        "Altitude: " + MiscUtils::Truncate(std::to_string(aircraftProps.transform.position.y), 4) + "m\n"
+        "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.gForce)), 4) + "gs\n");
+}
+
 void Aircraft::LoadResources() {
     SceneManager::activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     SceneManager::activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -102,13 +188,16 @@ void Aircraft::LoadResources() {
     rightTrails = AircraftTrails();
     rightTrails.LoadResources();
 
-    AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
+    if(networkId == NetworkManager::localClientId) {
+        AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
+
+        aircraftWidgetLayer = std::make_unique<AircraftWidgetLayer>();
+        aircraftWidgetLayer->CreateWidgets();
+        aircraftWidgetLayer->LoadResources();
+    }
 }
 
 void Aircraft::Initialize() {
-    aimWidget = SceneManager::currentScene->GetWidgetByName("aimWidget");
-    mouseWidget = SceneManager::currentScene->GetWidgetByName("mouseWidget");
-
     skeletalMesh.material.shadowColor = glm::vec3(0.8f);
 
     exhaustParticles.Initialize();
@@ -118,9 +207,17 @@ void Aircraft::Initialize() {
     leftTrails.Initialize();
     rightTrails.Initialize();
 
-    AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
+    if(networkId == NetworkManager::localClientId) {
+        AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
+    }
 
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
+
+    if(aircraftWidgetLayer) {
+        aimWidget = aircraftWidgetLayer->GetWidgetByName("aimWidget");
+        mouseWidget = aircraftWidgetLayer->GetWidgetByName("mouseWidget");
+        aircraftWidgetLayer->Initialize();
+    }
 }
 
 void Aircraft::ApplyControlSurfaces(float roll) {
@@ -307,6 +404,16 @@ void Aircraft::Update() {
         rightTrails.gForce = gForce;
         rightTrails.Update();
     }
+
+    if(aircraftWidgetLayer) {
+        aircraftWidgetLayer->aircraftProps.transform = transform;
+        aircraftWidgetLayer->aircraftProps.unrolledRotation = unrolledRotation;
+        aircraftWidgetLayer->aircraftProps.velocity = velocity;
+        aircraftWidgetLayer->aircraftProps.throttle = controls.throttle;
+        aircraftWidgetLayer->aircraftProps.gForce = gForce;
+        aircraftWidgetLayer->Update();
+        aircraftWidgetLayer->UpdateLayer();
+    }
 }
 
 void Aircraft::Draw()  {
@@ -336,10 +443,16 @@ void Aircraft::Draw()  {
     leftTrails.Draw();
     rightTrails.Draw();
     exhaustParticles.Draw();
+
+    if(aircraftWidgetLayer) {
+        aircraftWidgetLayer->Draw();
+    }
 }
 
 void Aircraft::UnloadResources()  {
-    AudioBackend::EndSoundAsset(engineSound);
+    if(networkId == NetworkManager::localClientId) {
+        AudioBackend::EndSoundAsset(engineSound);
+    }
 
     GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
     GraphicsBackend::DeleteShader(shader);
@@ -348,110 +461,10 @@ void Aircraft::UnloadResources()  {
 
     leftTrails.UnloadResources();
     rightTrails.UnloadResources();
-}
 
-glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
-    glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(rotation, GLOBAL_FORWARD));
-    glm::vec3 aircraftUpVector = glm::normalize(glm::rotate(rotation, GLOBAL_UP));
-    glm::vec3 aircraftLeftVector = glm::normalize(glm::rotate(rotation, GLOBAL_LEFT));
-
-    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
-    float dot = glm::dot(cameraForward, aircraftForwardVector);
-
-    float x = glm::dot(aircraftLeftVector, cameraForward);
-    float y = glm::dot(-aircraftUpVector, cameraForward);
-
-    return glm::vec2(x, y);
-}
-
-void AircraftWidgetLayer::CreateWidgets() {
-    //aircraft aiming ui
-    aim = std::make_shared<CircleWidget>("aimWidget");
-    aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
-    aim->moveWithAspectRatio = true;
-    widgets.push_back(aim);
-
-    mouse = std::make_shared<RectWidget>("mouseWidget");
-    mouse->rotation = 45.0;
-    mouse->scale = glm::vec2(0.02);
-    mouse->color.value.a = 0.0;
-    mouse->borderColor.value = glm::vec4(0.0);
-    mouse->cornerLength = 7;
-    mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
-    widgets.push_back(mouse);
-
-    //demo window ui
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
-    rect->SetText(
-                "Controls:\n"
-                "- Shift: Thottle Up\n"
-                "- Ctrl: Thottle Down\n"
-                "- Q: Roll Left\n"
-                "- E: Roll Right\n"
-                "- Alt: Free Mouse\n"
-                "- Tab: Free Look\n\n"
-                "Notes:\n"
-                "- Respawn on terrain\n"
-                "  or boundary collision.");
-    rect->position = glm::vec2(-0.7, 0.2);
-    rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.35);
-    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
-    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(rect);
-
-    //aircraft stats ui
-    stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
-    stats->moveWithAspectRatio = true;
-    stats->scale = glm::vec2(0.4, 0.16);
-    stats->position = glm::vec2(0.6, -0.6);
-    stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
-    stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(stats);
-
-    if(std::shared_ptr<Aircraft> a = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"))) {
-        aircraft = a;
+    if(aircraftWidgetLayer) {
+        aircraftWidgetLayer->UnloadResources();
     }
-    else{
-        aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncSceneChangeState->asyncLoadingScene->GetEntityByName("FA-XX"));
-    }
-}
-
-void AircraftWidgetLayer::UpdateLayer() {
-    FOX2_PROFILE_FUNCTION()
-    glm::vec2 targetDelta = glm::vec2(
-        InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
-        -InputManager::mouseDelta.y / WindowManager::primaryWindow->height
-    );
-
-    mouse->position += targetDelta / Time::deltaTime * .004f;
-    mouse->position *= 0.85f;
-    mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
-
-
-    if(!aircraft) {
-        if(std::shared_ptr<Aircraft> a = std::static_pointer_cast<Aircraft>(SceneManager::currentScene->GetEntityByName("FA-XX"))) {
-            aircraft = a;
-        }
-        else{
-            aircraft = std::static_pointer_cast<Aircraft>(SceneManager::asyncSceneChangeState->asyncLoadingScene->GetEntityByName("FA-XX"));
-        }
-        return;
-    }
-
-    aim->position = UIAlignmentWithRotation(aircraft->unrolledRotation);
-    aim->position.x /= WindowManager::primaryWindow->aspect;
-    glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraft->transform.rotation, GLOBAL_FORWARD));
-    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
-    float dot = glm::dot(cameraForward, aircraftForwardVector);
-
-    aim->color.value.a = dot;
-
-    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/Time::deltaTime), 4) + "\n"
-        "Throttle: " + MiscUtils::Truncate(std::to_string(aircraft->controls.throttle), 4) + "\n"
-        "Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraft->velocity)), 4) + "m/s\n"
-        "Altitude: " + MiscUtils::Truncate(std::to_string(aircraft->transform.position.y), 4) + "m\n"
-        "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraft->gForce)), 4) + "gs\n");
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {

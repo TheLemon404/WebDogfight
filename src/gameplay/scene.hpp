@@ -19,6 +19,7 @@ enum SceneResourceLoadingState {
 
 class Scene {
     std::stack<std::shared_ptr<Entity>> spawnStack;
+    std::stack<std::shared_ptr<Entity>> despawnStack;
 
     public:
     std::vector<std::shared_ptr<Entity>> entities;
@@ -75,6 +76,7 @@ class Scene {
     }
 
     void RuntimeSpawn(std::shared_ptr<Entity> entity);
+    void RuntimeDespawn(std::shared_ptr<Entity> entity);
 
     void SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState);
 
