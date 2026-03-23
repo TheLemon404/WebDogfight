@@ -314,6 +314,7 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     //vertex uniforms
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
     glm::mat4 cameraView = camera.GetViewMatrix();
+
     for(size_t i = 0; i < numParticles; i++) {
         glm::mat4 transformMatrix = transforms[i].GetMatrix();
         UploadShaderUniformMat4(shader, cameraView * transformMatrix, "uViewTransforms[" + std::to_string(i) + "]");

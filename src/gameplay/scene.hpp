@@ -61,7 +61,9 @@ class Scene {
 
     std::shared_ptr<Widget> GetWidgetByName(const std::string& name) {
         for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
-            return widgetLayer->GetWidgetByName(name);
+            if(auto widget = widgetLayer->GetWidgetByName(name)) {
+                return widget;
+            }
         }
 
         return nullptr;
@@ -69,7 +71,9 @@ class Scene {
 
     std::shared_ptr<Widget> GetWidgetById(const unsigned int id) {
         for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
-            return widgetLayer->GetWidgetById(id);
+            if(auto widget = widgetLayer->GetWidgetById(id)) {
+                return widget;
+            }
         }
 
         return nullptr;

@@ -133,12 +133,8 @@ void AircraftWidgetLayer::UpdateLayer() {
 }
 
 void Aircraft::LoadResources() {
-    SceneManager::activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
-    SceneManager::activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    std::cout << "Attemping to read Aircraft Resource JSON file at: " << resourcePath << std::endl;
-
     std::string resourceFileText = Files::ReadResourceString(resourcePath);
+    std::cout << "successfully loaded Aircraft Resource JSON file at: " << resourcePath << std::endl;
     json JSON = json::parse(resourceFileText);
 
     resource.description.name = JSON["description"]["name"];
@@ -179,13 +175,8 @@ void Aircraft::LoadResources() {
 
     transform.position.y = 6000.0;
 
-    exhaustParticles = AircraftExhaustParticleSystem();
     exhaustParticles.LoadResources();
-
-    leftTrails = AircraftTrails();
     leftTrails.LoadResources();
-
-    rightTrails = AircraftTrails();
     rightTrails.LoadResources();
 
     if(networkId == NetworkManager::localClientId) {
@@ -198,6 +189,9 @@ void Aircraft::LoadResources() {
 }
 
 void Aircraft::Initialize() {
+    SceneManager::activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
+    SceneManager::activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
+
     skeletalMesh.material.shadowColor = glm::vec3(0.8f);
 
     exhaustParticles.Initialize();
@@ -460,6 +454,7 @@ void Aircraft::Draw()  {
 void Aircraft::UnloadResources()  {
     if(networkId == NetworkManager::localClientId) {
         AudioBackend::EndSoundAsset(engineSound);
+        AudioBackend::UnloadSoundAsset(engineSound);
     }
 
     GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);

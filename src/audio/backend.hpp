@@ -27,6 +27,7 @@ class AudioBackend{
     static void SoundAssetSetVolume(Sound& sound, float volume);
     static void SoundAssetSetPitch(Sound& sound, float pitch);
     static void EndSoundAsset(Sound& sound);
+    static void UnloadSoundAsset(Sound& sound);
 
     static void Shutdown();
 };

@@ -112,7 +112,7 @@ class Texture {
     int height;
     int channels = 3;
 
-    unsigned char* data;
+    unsigned char* data = nullptr;
 };
 
 class Texture3D {

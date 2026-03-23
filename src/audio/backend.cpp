@@ -46,6 +46,12 @@ void AudioBackend::EndSoundAsset(Sound& sound) {
     ma_sound_stop(&sound.value);
 }
 
+void AudioBackend::UnloadSoundAsset(Sound &sound) {
+    ma_sound_uninit(&sound.value);
+}
+
 void AudioBackend::Shutdown() {
+    UnloadSoundAsset(globalSounds.buttonClick);
+
     ma_engine_uninit(&audioEngine);
 }
