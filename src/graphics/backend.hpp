@@ -232,5 +232,5 @@ class GraphicsBackend {
     static void DrawSkybox(Skybox& skybox, Camera& camera);
 
     //debug drawing
-    static void DrawDebugCube(Camera& camera, Transform& transform);
+    static void DrawDebugCube(Camera& camera, Color color, Transform& transform);
 };

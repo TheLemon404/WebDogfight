@@ -18,7 +18,7 @@
 
 #define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
-#define STATE_SEND_INTERVAL 0.5
+#define STATE_SEND_INTERVAL 0.1
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
@@ -72,6 +72,8 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             std::cout << "lobby joined: " << state->lobbyId << std::endl;
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
+            lagPosition = networkGameState.clientStates[localClientId].position;
+            lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
@@ -92,6 +94,8 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
 
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
+            lagPosition = networkGameState.clientStates[localClientId].position;
+            lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;

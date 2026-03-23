@@ -9,7 +9,7 @@
 
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
-    debugShader = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
+    debugShader = Loader::LoadShaderFromGLSL("resources/shaders/debug.glsl");
 
     globalShaders.flat = Loader::LoadShaderFromGLSL("resources/shaders/flat.glsl");
     globalShaders.font = Loader::LoadShaderFromGLSL("resources/shaders/font.glsl");
@@ -400,7 +400,8 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::DrawDebugCube(Camera& camera, Transform& transform) {
-    BeginDrawMesh(debugCube, debugShader, camera, transform);
+void GraphicsBackend::DrawDebugCube(Camera& camera, Color color, Transform& transform) {
+    BeginDrawMesh(debugCube, debugShader, camera, transform, true);
+    UploadShaderUniformVec4(debugShader, color.value, "uColor");
     EndDrawMesh(debugCube);
 }

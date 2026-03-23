@@ -47,6 +47,9 @@ class NetworkManager {
     inline static float timeSinceLastStateSend = 0.0f;
 
     public:
+    inline static glm::vec3 lagPosition = glm::vec3(0.0f);
+    inline static glm::quat lagRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+
     inline static std::mutex pendingStateChangeMutex;
     inline static bool hasPendingStateChange = false;
 

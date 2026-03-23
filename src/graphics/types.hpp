@@ -22,6 +22,10 @@
 #define MAX_PARTICLE_TRANSFORMS 25
 
 #define COLOR_WHITE { glm::vec4(1.0f) }
+#define COLOR_RED { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) }
+#define COLOR_GREEN { glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) }
+#define COLOR_BLUE { glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
+
 
 class Transform {
     public:

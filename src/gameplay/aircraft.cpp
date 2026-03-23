@@ -437,7 +437,15 @@ void Aircraft::Draw()  {
         t.position = transform.position;
         t.rotation = transform.rotation;
         t.scale = glm::vec3(10.0);
-        GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, t);
+        GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, COLOR_BLUE, t);
+
+        if(networkId == NetworkManager::localClientId) {
+            Transform l = Transform();
+            l.position = NetworkManager::lagPosition;
+            l.rotation = NetworkManager::lagRotation;
+            l.scale = glm::vec3(10.0);
+            GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, COLOR_RED, l);
+        }
     }
 
     leftTrails.Draw();
