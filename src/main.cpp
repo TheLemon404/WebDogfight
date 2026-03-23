@@ -79,9 +79,9 @@ int main() {
     }
 #endif
 
-    NetworkManager::Shutdown();
-    AudioBackend::Shutdown();
     SceneManager::currentScene->UnloadResources();
+    AudioBackend::Shutdown();
+    NetworkManager::Shutdown();
     GraphicsBackend::UnloadResources();
     WindowManager::primaryWindow->Close();
 
