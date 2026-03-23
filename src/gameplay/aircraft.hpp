@@ -192,6 +192,7 @@ class Aircraft : public Entity {
 
     Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
         if(NetworkManager::localClientId == networkId) {
+            std::lock_guard<std::mutex> lock(NetworkManager::pendingStateChangeMutex);
             NetworkManager::networkGameState.clientStates[networkId].inGame = true;
         }
     };

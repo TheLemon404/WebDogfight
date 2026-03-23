@@ -67,22 +67,34 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         }
         case PacketType::LOBBY_JOINED:
         {
+            std::lock_guard<std::mutex> lock(pendingStateChangeMutex);
             state->lobbyId = packet.ReadU32();
             std::cout << "lobby joined: " << state->lobbyId << std::endl;
+            ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
+            networkGameState.clientStates[localClientId] = preservedClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
+            hasPendingStateChange = true;
             break;
         }
         case PacketType::LOBBY_LEFT:
         {
+            std::lock_guard<std::mutex> lock(pendingStateChangeMutex);
             state->lobbyId = 0;
+            networkGameState.clientStates.clear();
+            hasPendingStateChange = true;
             break;
         }
         case PacketType::LOBBY_STATE_UPDATED:
         {
+            std::lock_guard<std::mutex> lock(pendingStateChangeMutex);
             lastNetworkGameState = networkGameState;
+
+            ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
+            networkGameState.clientStates[localClientId] = preservedClientState;
             SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
+            hasPendingStateChange = true;
             break;
         }
     }

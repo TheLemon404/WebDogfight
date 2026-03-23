@@ -44,12 +44,15 @@ class NetworkManager {
     static EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
     #endif
 
-    inline static GameState lastNetworkGameState;
     inline static float timeSinceLastStateSend = 0.0f;
 
     public:
+    inline static std::mutex pendingStateChangeMutex;
+    inline static bool hasPendingStateChange = false;
+
     inline static float lerpFactor = 1.0f;
     inline static uint32_t localClientId;
+    inline static GameState lastNetworkGameState;
     inline static GameState networkGameState;
     inline static bool connected = false;
 
