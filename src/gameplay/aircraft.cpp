@@ -376,8 +376,8 @@ void Aircraft::Update() {
         if(NetworkManager::networkGameState.clientStates.contains(networkId)) {
 
             ClientState& clientState = NetworkManager::networkGameState.clientStates[networkId];
-            transform.position = MathUtils::Lerp<glm::vec3>(transform.position, clientState.position, Time::deltaTime * NetworkManager::lerpFactor);
-            transform.rotation =  glm::slerp(transform.rotation, clientState.rotation, (float)Time::deltaTime * NetworkManager::lerpFactor);
+            transform.position = clientState.position;
+            transform.rotation =  clientState.rotation;
         }
         else {
             // --- TODO --- delete unrecognized entities

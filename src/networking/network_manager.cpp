@@ -18,7 +18,7 @@
 
 #define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
-#define STATE_SEND_INTERVAL 0.1
+#define STATE_SEND_INTERVAL 0.05
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
@@ -121,7 +121,7 @@ void NetworkManager::Initialize() {
 void NetworkManager::Tick() {
     timeSinceLastStateSend += Time::deltaTime;
 
-    if(timeSinceLastStateSend >= STATE_SEND_INTERVAL) {
+    if(timeSinceLastStateSend >= STATE_SEND_INTERVAL && connected) {
         ClientState localClientState = networkGameState.clientStates[localClientId];
         state->SocketSendBinary(
             Packet()
