@@ -38,10 +38,10 @@ class NetworkManager {
     void OnError(const std::string& msg);
 
     #ifdef __EMSCRIPTEN__
-    EM_BOOL OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud);
-    EM_BOOL OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud);
-    EM_BOOL OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud);
-    EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
+    static EM_BOOL OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud);
+    static EM_BOOL OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud);
+    static EM_BOOL OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud);
+    static EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
     #endif
 
     float timeSinceLastStateSend = 0.0f;

@@ -23,24 +23,32 @@
 
 #ifdef __EMSCRIPTEN__
 EM_BOOL NetworkManager::OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud) {
-    OnConnectedToServer();
+    NetworkManager* networkManager = static_cast<NetworkManager*>(ud);
+
+    networkManager->OnConnectedToServer();
     return EM_TRUE;
 }
 
 EM_BOOL NetworkManager::OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud) {
-    OnDisconnectedFromServer();
+    NetworkManager* networkManager = static_cast<NetworkManager*>(ud);
+
+    networkManager->OnDisconnectedFromServer();
     return EM_TRUE;
 }
 
 EM_BOOL NetworkManager::OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud) {
+    NetworkManager* networkManager = static_cast<NetworkManager*>(ud);
+
     if(e->isText) return EM_TRUE;
     std::string data(e->data, e->data + e->numBytes);
-    OnMessageRecieved(data);
+    networkManager->OnMessageRecieved(data);
     return EM_TRUE;
 }
 
 EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud) {
-    OnError("websocket encountered an error (emscripten does not provide more event details)");
+    NetworkManager* networkManager = static_cast<NetworkManager*>(ud);
+
+    networkManager->OnError("websocket encountered an error (emscripten does not provide more event details)");
     return EM_TRUE;
 }
 #endif
@@ -150,10 +158,10 @@ void NetworkManager::ConnectToServer() {
     attrs.createOnMainThread = true;
     state->socket = emscripten_websocket_new(&attrs);
 
-    emscripten_websocket_set_onopen_callback(state->socket, nullptr, NetworkManager::OnEMOpen);
-    emscripten_websocket_set_onclose_callback(state->socket, nullptr, NetworkManager::OnEMClose);
-    emscripten_websocket_set_onmessage_callback(state->socket, nullptr, NetworkManager::OnEMMessage);
-    emscripten_websocket_set_onerror_callback(state->socket, nullptr, NetworkManager::OnEMError);
+    emscripten_websocket_set_onopen_callback(state->socket, this, NetworkManager::OnEMOpen);
+    emscripten_websocket_set_onclose_callback(state->socket, this, NetworkManager::OnEMClose);
+    emscripten_websocket_set_onmessage_callback(state->socket, this, NetworkManager::OnEMMessage);
+    emscripten_websocket_set_onerror_callback(state->socket, this, NetworkManager::OnEMError);
 #else
     state->socket.setUrl(SERVER_URL);
     state->socket.disablePerMessageDeflate();
