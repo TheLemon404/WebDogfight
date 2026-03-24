@@ -17,73 +17,77 @@
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
+#include "application.hpp"
 
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
+    std::unique_ptr<Application>& app = Application::GetInstance();
 
-    SceneManager::CheckSceneChange();
+    app->sceneManager.CheckSceneChange();
 
     {
         FOX2_PROFILE_SCOPE("Input Polling")
-        WindowManager::primaryWindow->Poll();
+        app->windowManager.primaryWindow->Poll();
 
         //--- IMPORTANT --- remove this line from production. Users should not be able to see debug graphics
-        if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) GraphicsBackend::debugMode = !GraphicsBackend::debugMode;
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) app->graphicsBackend.debugMode = !app->graphicsBackend.debugMode;
     }
     {
         FOX2_PROFILE_SCOPE("Graphics State Reset")
-        GraphicsBackend::ResetState(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
-        GraphicsBackend::SetDepthTest(true);
+        app->graphicsBackend.ResetState(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
+        app->graphicsBackend.SetDepthTest(true);
     }
     {
         FOX2_PROFILE_SCOPE("Scene Update")
-        SceneManager::currentScene->Update();
+        app->sceneManager.currentScene->Update();
     }
     {
         FOX2_PROFILE_SCOPE("Scene Draw")
-        SceneManager::currentScene->Draw();
+        app->sceneManager.currentScene->Draw();
     }
     {
         FOX2_PROFILE_SCOPE("Swap buffers and Tick")
-        NetworkManager::Tick();
-        WindowManager::primaryWindow->SwapBuffers();
+        app->networkManager.Tick();
+        app->windowManager.primaryWindow->SwapBuffers();
         InputManager::ResetInputState();
-        Time::Tick();
+        app->clock.Tick();
     }
 }
 
 int main() {
-    WindowManager::primaryWindow = std::make_shared<Window>();
-    WindowManager::primaryWindow->title = "Fox2";
+    std::unique_ptr<Application>& app = Application::GetInstance();
 
-    SceneManager::currentScene = std::make_shared<Scene>(TestScene::Create());
-    WindowManager::primaryWindow->Open();
+    app->windowManager.primaryWindow = std::make_shared<Window>();
+    app->windowManager.primaryWindow->title = "Fox2";
 
-    AudioBackend::Initialize();
+    app->sceneManager.currentScene = std::make_shared<Scene>(TestScene::Create());
+    app->windowManager.primaryWindow->Open();
 
-    GraphicsBackend::LoadResources();
+    app->audioBackend.Initialize();
 
-    NetworkManager::Initialize();
-    NetworkManager::ConnectToServer();
+    app->graphicsBackend.LoadResources();
 
-    SceneManager::currentScene->LoadResources();
-    SceneManager::currentScene->Initialize();
+    app->networkManager.Initialize();
+    app->networkManager.ConnectToServer();
 
-    GraphicsBackend::SetBackfaceCulling(true);
+    app->sceneManager.currentScene->LoadResources();
+    app->sceneManager.currentScene->Initialize();
+
+    app->graphicsBackend.SetBackfaceCulling(true);
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(main_loop, 0, 1);
 #else
-    while(!WindowManager::primaryWindow->ShouldClose()) {
+    while(!app->windowManager.primaryWindow->ShouldClose()) {
         main_loop();
     }
 #endif
 
-    SceneManager::currentScene->UnloadResources();
-    AudioBackend::Shutdown();
-    NetworkManager::Shutdown();
-    GraphicsBackend::UnloadResources();
-    WindowManager::primaryWindow->Close();
+    app->sceneManager.currentScene->UnloadResources();
+    app->audioBackend.Shutdown();
+    app->networkManager.Shutdown();
+    app->graphicsBackend.UnloadResources();
+    app->windowManager.primaryWindow->Close();
 
     return 0;
 }

@@ -16,12 +16,12 @@ struct AsyncSceneChangeState {
 
 class SceneManager {
     public:
-    inline static std::unique_ptr<AsyncSceneChangeState> asyncSceneChangeState = nullptr;
+    std::unique_ptr<AsyncSceneChangeState> asyncSceneChangeState = nullptr;
 
-    inline static SceneChangeState sceneChangeState = NONE;
+    SceneChangeState sceneChangeState = NONE;
 
-    inline static Camera activeCamera = Camera();
-    inline static std::shared_ptr<Scene> currentScene = nullptr;
+    Camera activeCamera = Camera();
+    std::shared_ptr<Scene> currentScene = nullptr;
 
-    static void CheckSceneChange();
+    void CheckSceneChange();
 };

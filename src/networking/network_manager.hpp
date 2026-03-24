@@ -29,40 +29,40 @@ class NetworkManagerState {
 };
 
 class NetworkManager {
-    inline static float currentTickDelta = 0.0f;
-    inline static std::unique_ptr<NetworkManagerState> state = nullptr;
+    float currentTickDelta = 0.0f;
+    std::unique_ptr<NetworkManagerState> state = nullptr;
 
-    static void OnConnectedToServer();
-    static void OnDisconnectedFromServer();
-    static void OnMessageRecieved(const std::string& msg);
-    static void OnError(const std::string& msg);
+    void OnConnectedToServer();
+    void OnDisconnectedFromServer();
+    void OnMessageRecieved(const std::string& msg);
+    void OnError(const std::string& msg);
 
     #ifdef __EMSCRIPTEN__
-    static EM_BOOL OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud);
-    static EM_BOOL OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud);
-    static EM_BOOL OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud);
-    static EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
+    EM_BOOL OnEMOpen(int type, const EmscriptenWebSocketOpenEvent* e, void* ud);
+    EM_BOOL OnEMClose(int type, const EmscriptenWebSocketCloseEvent* e, void* ud);
+    EM_BOOL OnEMMessage(int type, const EmscriptenWebSocketMessageEvent* e, void* ud);
+    EM_BOOL OnEMError(int type, const EmscriptenWebSocketErrorEvent* e, void* ud);
     #endif
 
-    inline static float timeSinceLastStateSend = 0.0f;
+    float timeSinceLastStateSend = 0.0f;
 
     public:
-    inline static glm::vec3 lagPosition = glm::vec3(0.0f);
-    inline static glm::quat lagRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 lagPosition = glm::vec3(0.0f);
+    glm::quat lagRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
-    inline static std::mutex pendingStateChangeMutex;
-    inline static bool hasPendingStateChange = false;
+    std::mutex pendingStateChangeMutex;
+    bool hasPendingStateChange = false;
 
-    inline static float lerpFactor = 1.0f;
-    inline static uint32_t localClientId;
-    inline static GameState lastNetworkGameState;
-    inline static GameState networkGameState;
-    inline static bool connected = false;
+    float lerpFactor = 1.0f;
+    uint32_t localClientId;
+    GameState lastNetworkGameState;
+    GameState networkGameState;
+    bool connected = false;
 
-    static void Initialize();
-    static void Tick();
-    static void ConnectToServer();
-    static void CreateLobby();
-    static void JoinLobby(int lobbyCode);
-    static void Shutdown();
+    void Initialize();
+    void Tick();
+    void ConnectToServer();
+    void CreateLobby();
+    void JoinLobby(int lobbyCode);
+    void Shutdown();
 };

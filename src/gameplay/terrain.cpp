@@ -6,6 +6,7 @@
 #include "aircraft.hpp"
 #include "scene_manager.hpp"
 #include <vector>
+#include "../application.hpp"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -19,6 +20,8 @@ using json = nlohmann::json;
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::LoadResources() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::cout << "Attemping to read Terrain Resource JSON file at: " << terrainResourcePath << std::endl;
     std::string resourceFileText = Files::ReadResourceString(terrainResourcePath);
     json JSON = json::parse(resourceFileText);
@@ -31,12 +34,14 @@ void Terrain::LoadResources() {
     resource.settings.slopeColor = {JSON["settings"]["slope-color"][0], JSON["settings"]["slope-color"][1], JSON["settings"]["slope-color"][2]};
     resource.settings.baseColor = {JSON["settings"]["base-color"][0], JSON["settings"]["base-color"][1], JSON["settings"]["base-color"][2]};
 
-    shader = &GraphicsBackend::globalShaders.terrain;
+    shader = &app->graphicsBackend.globalShaders.terrain;
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
     discolorationMap = Loader::LoadTextureFromFile(resource.assets.discolorationmap.c_str());
 }
 
 void Terrain::Initialize() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -93,13 +98,15 @@ void Terrain::Initialize() {
     }
 
     mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
-    GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 
 void Terrain::Update() {
     FOX2_PROFILE_FUNCTION()
 
-    for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    for(std::shared_ptr<Aircraft> aircraft : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
         glm::vec2 uv = glm::vec2(aircraft->transform.position.x, aircraft->transform.position.z) + glm::vec2(TERRAIN_SIZE / 2.0);
         uv /= glm::vec2(TERRAIN_SIZE);
 
@@ -130,22 +137,26 @@ void Terrain::Update() {
 void Terrain::Draw() {
     FOX2_PROFILE_FUNCTION()
 
-    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform, false);
-    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UseTextureSlot(heightMap, 0);
-    GraphicsBackend::UploadShaderUniformInt(*shader, 0, "uHeightmap");
-    GraphicsBackend::UseTextureSlot(discolorationMap, 1);
-    GraphicsBackend::UploadShaderUniformInt(*shader, 1, "uDiscolorationMap");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.topColor, "uTopColor");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.middleColor, "uMiddleColor");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.slopeColor, "uSlopeColor");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, resource.settings.baseColor, "uBaseColor");
-    GraphicsBackend::EndDrawMesh(mesh);
-    GraphicsBackend::ResetTextureSlots();
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.BeginDrawMesh(mesh, *shader, app->sceneManager.activeCamera, transform, false);
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
+    app->graphicsBackend.UseTextureSlot(heightMap, 0);
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uHeightmap");
+    app->graphicsBackend.UseTextureSlot(discolorationMap, 1);
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 1, "uDiscolorationMap");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.skybox->horizonColor.value, "uFogColor");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, resource.settings.topColor, "uTopColor");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, resource.settings.middleColor, "uMiddleColor");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, resource.settings.slopeColor, "uSlopeColor");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, resource.settings.baseColor, "uBaseColor");
+    app->graphicsBackend.EndDrawMesh(mesh);
+    app->graphicsBackend.ResetTextureSlots();
 }
 
 void Terrain::UnloadResources() {
-    GraphicsBackend::DeleteMesh(mesh);
-    GraphicsBackend::DeleteTexture(heightMap);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
+    app->graphicsBackend.DeleteTexture(heightMap);
 }

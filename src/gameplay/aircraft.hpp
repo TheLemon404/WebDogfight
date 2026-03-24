@@ -190,12 +190,7 @@ class Aircraft : public Entity {
     glm::quat unrolledRotation = glm::identity<glm::quat>();
     uint32_t networkId = -1;
 
-    Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
-        if(NetworkManager::localClientId == networkId) {
-            std::lock_guard<std::mutex> lock(NetworkManager::pendingStateChangeMutex);
-            NetworkManager::networkGameState.clientStates[networkId].inGame = true;
-        }
-    };
+    Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1);
 
     void LoadResources() override;
     void Initialize() override;

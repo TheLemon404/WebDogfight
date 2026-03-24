@@ -3,11 +3,14 @@
 #include "../graphics/window.hpp"
 #include "../utils/instrumentor.hpp"
 #include "scene_manager.hpp"
+#include "../application.hpp"
 
 void CloudsVolume::LoadResources() {
-    boundsMesh = GraphicsBackend::CreateCube();
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    boundsMesh = app->graphicsBackend.CreateCube();
     boundsMesh.material.albedo = glm::vec3(0.0f);
-    shader = &GraphicsBackend::globalShaders.clouds;
+    shader = &app->graphicsBackend.globalShaders.clouds;
 }
 
 void CloudsVolume::Initialize() {
@@ -17,22 +20,26 @@ void CloudsVolume::Initialize() {
 void CloudsVolume::Draw() {
     FOX2_PROFILE_FUNCTION()
 
-    GraphicsBackend::SetDepthMask(false);
-    GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMesh(boundsMesh, *shader, SceneManager::activeCamera, transform, true, true);
-    GraphicsBackend::UploadShaderUniformVec2(*shader, glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height), "uScreenResolution");
-    GraphicsBackend::UploadShaderUniformMat4(*shader, SceneManager::activeCamera.GetViewMatrix(), "uView");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
-    GraphicsBackend::UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
-    GraphicsBackend::UseTexture3DSlot(GraphicsBackend::globalTextures.noiseTexture3D, 0);
-    GraphicsBackend::UploadShaderUniformInt(*shader, 0, "noiseTexture");
-    GraphicsBackend::EndDrawMesh(boundsMesh);
-    GraphicsBackend::ResetTextureSlots();
-    GraphicsBackend::SetBackfaceCulling(true);
-    GraphicsBackend::SetDepthMask(true);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.SetDepthMask(false);
+    app->graphicsBackend.SetBackfaceCulling(false);
+    app->graphicsBackend.BeginDrawMesh(boundsMesh, *shader, app->sceneManager.activeCamera, transform, true, true);
+    app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height), "uScreenResolution");
+    app->graphicsBackend.UploadShaderUniformMat4(*shader, app->sceneManager.activeCamera.GetViewMatrix(), "uView");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
+    app->graphicsBackend.UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
+    app->graphicsBackend.UseTexture3DSlot(app->graphicsBackend.globalTextures.noiseTexture3D, 0);
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "noiseTexture");
+    app->graphicsBackend.EndDrawMesh(boundsMesh);
+    app->graphicsBackend.ResetTextureSlots();
+    app->graphicsBackend.SetBackfaceCulling(true);
+    app->graphicsBackend.SetDepthMask(true);
 }
 
 void CloudsVolume::UnloadResources() {
-    GraphicsBackend::DeleteMesh(boundsMesh);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(boundsMesh);
 }

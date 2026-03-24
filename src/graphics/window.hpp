@@ -59,10 +59,10 @@ class Window {
 
 class WindowManager {
     public:
-    inline static float aspect = 1.0f;
-    inline static std::shared_ptr<Window> primaryWindow;
+    float aspect = 1.0f;
+    std::shared_ptr<Window> primaryWindow;
 
-    static glm::mat4 GetUIOrthographicMatrix() {
+    glm::mat4 GetUIOrthographicMatrix() {
         aspect = static_cast<float>(primaryWindow->width) / primaryWindow->height;
         return glm::ortho(-aspect, aspect, -1.0f, 1.0f, 0.01f, 100.0f);
     }

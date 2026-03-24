@@ -8,6 +8,7 @@
 #include "../io/time.hpp"
 #include "../utils/instrumentor.hpp"
 #include "../graphics/window.hpp"
+#include "../application.hpp"
 
 void WidgetLayer::SetDisabled(bool disabled) {
     this->disabled = disabled;
@@ -64,53 +65,64 @@ void WidgetLayer::UnloadResources() {
 }
 
 bool RectWidget::IsHovered() {
-    glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(WindowManager::primaryWindow->width, WindowManager::primaryWindow->height);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
     fractionMousePosition -= glm::vec2(0.5f);
     fractionMousePosition *= 2.0f;
     return -scale.x - position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x - position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
 }
 
 void RectWidget::LoadResources() {
-    quad = GraphicsBackend::CreateQuad();
-    shader = &GraphicsBackend::globalShaders.uiSquare;
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    quad = app->graphicsBackend.CreateQuad();
+    shader = &app->graphicsBackend.globalShaders.uiSquare;
 }
 
 void RectWidget::Draw() {
     FOX2_PROFILE_FUNCTION()
+    std::unique_ptr<Application>& app = Application::GetInstance();
 
-    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
-    GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
-    GraphicsBackend::UploadShaderUniformInt(*shader, border, "uBorder");
-    GraphicsBackend::UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
-    GraphicsBackend::UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
-    GraphicsBackend::UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
-    GraphicsBackend::UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : WindowManager::primaryWindow->aspect), WindowManager::primaryWindow->height * scale.y);
-    GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
-    GraphicsBackend::EndDrawMesh2D(quad);
+    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
+    app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
+    app->graphicsBackend.UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
+    app->graphicsBackend.UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
+    glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
+    app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
+    app->graphicsBackend.EndDrawMesh2D(quad);
 }
 
 void RectWidget::UnloadResources() {
-    GraphicsBackend::DeleteMesh(quad);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(quad);
 }
 
 void TextRectWidget::LoadResources() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     RectWidget::LoadResources();
 
-    textShader = &GraphicsBackend::globalShaders.font;
-    textMesh = GraphicsBackend::CreateQuad();
+    textShader = &app->graphicsBackend.globalShaders.font;
+    textMesh = app->graphicsBackend.CreateQuad();
 
     RecomputeTextMesh();
 }
 
 void TextRectWidget::RecomputeTextMesh() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     float x = 0.0f;
     float y = 0.0f;
 
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x * (stretchWithAspectRatio ? WindowManager::primaryWindow->aspect : 1.0f), WindowManager::primaryWindow->height * scale.y);
+    glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x * (stretchWithAspectRatio ? app->windowManager.primaryWindow->aspect : 1.0f), app->windowManager.primaryWindow->height * scale.y);
 
     unsigned int indexOffset = 0;
 
@@ -177,27 +189,33 @@ void TextRectWidget::RecomputeTextMesh() {
         indexOffset += 4;
     }
 
-    GraphicsBackend::UpdateMeshVertices(textMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+    app->graphicsBackend.UpdateMeshVertices(textMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 }
 
 void TextRectWidget::Draw() {
-    GraphicsBackend::SetDepthTest(false);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.SetDepthTest(false);
     RectWidget::Draw();
 
-    GraphicsBackend::BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
-    GraphicsBackend::UploadShaderUniformInt(*textShader, 0, "uFontTexture");
-    GraphicsBackend::UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
-    GraphicsBackend::UseTextureIDSlot(font.atlasTextureID, 0);
-    GraphicsBackend::EndDrawMesh2D(textMesh);
+    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.UploadShaderUniformInt(*textShader, 0, "uFontTexture");
+    app->graphicsBackend.UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
+    app->graphicsBackend.UseTextureIDSlot(font.atlasTextureID, 0);
+    app->graphicsBackend.EndDrawMesh2D(textMesh);
 
-    GraphicsBackend::SetDepthTest(true);
+    app->graphicsBackend.SetDepthTest(true);
 }
 
 void TextRectWidget::UnloadResources() {
-    GraphicsBackend::DeleteMesh(textMesh);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(textMesh);
 }
 
 void TextButtonWidget::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     bool hoveredState = IsHovered();
 
     TextRectWidget::Draw();
@@ -212,14 +230,14 @@ void TextButtonWidget::Draw() {
     if(hoveredState) {
         if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
             color.value -= glm::vec4(0.15);
-            AudioBackend::StartSoundAsset(AudioBackend::globalSounds.buttonClick, false, 0.5f);
+            app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.buttonClick, false, 0.5f);
             if(onPressed){
                 onPressed();
             }
         }
         else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
             color.value += glm::vec4(0.15);
-            AudioBackend::EndSoundAsset(AudioBackend::globalSounds.buttonClick);
+            app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.buttonClick);
         }
     }
 
@@ -262,22 +280,28 @@ void InputWidget::Draw() {
 }
 
 void CircleWidget::LoadResources() {
-    quad = GraphicsBackend::CreateQuad();
-    shader = &GraphicsBackend::globalShaders.uiCircle;
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    quad = app->graphicsBackend.CreateQuad();
+    shader = &app->graphicsBackend.globalShaders.uiCircle;
 }
 
 void CircleWidget::Draw() {
-    GraphicsBackend::BeginDrawMesh2D(quad, *shader, position, scale, rotation, false, moveWithAspectRatio);
-    GraphicsBackend::UploadShaderUniformVec4(*shader, color.value, "uColor");
-    GraphicsBackend::UploadShaderUniformInt(*shader, radius, "uRadius");
-    GraphicsBackend::UploadShaderUniformInt(*shader, thickness, "uThickness");
-    glm::ivec2 widgetResolution = glm::ivec2(WindowManager::primaryWindow->width * scale.x / WindowManager::primaryWindow->aspect, WindowManager::primaryWindow->height * scale.y);
-    GraphicsBackend::UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
-    GraphicsBackend::EndDrawMesh2D(quad);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, radius, "uRadius");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, thickness, "uThickness");
+    glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / app->windowManager.primaryWindow->aspect, app->windowManager.primaryWindow->height * scale.y);
+    app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
+    app->graphicsBackend.EndDrawMesh2D(quad);
 }
 
 void CircleWidget::UnloadResources() {
-    GraphicsBackend::DeleteMesh(quad);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(quad);
 }
 
 void ContainerWidget::Update() {

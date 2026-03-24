@@ -15,6 +15,7 @@
 #endif
 
 #include <iostream>
+#include "../application.hpp"
 
 #define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
@@ -57,6 +58,8 @@ void NetworkManager::OnDisconnectedFromServer() {
 }
 
 void NetworkManager::OnMessageRecieved(const std::string& msg) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     Packet packet = Packet(msg);
     PacketType packetType = packet.ReadPacketType();
     switch(packetType) {
@@ -75,7 +78,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             lagPosition = networkGameState.clientStates[localClientId].position;
             lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;
-            SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
+            app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
             break;
         }
@@ -97,7 +100,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             lagPosition = networkGameState.clientStates[localClientId].position;
             lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;
-            SceneManager::currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
+            app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
             break;
         }
@@ -119,7 +122,9 @@ void NetworkManager::Initialize() {
 }
 
 void NetworkManager::Tick() {
-    timeSinceLastStateSend += Time::deltaTime;
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    timeSinceLastStateSend += app->clock.deltaTime;
 
     if(timeSinceLastStateSend >= STATE_SEND_INTERVAL && connected) {
         ClientState localClientState = networkGameState.clientStates[localClientId];
@@ -154,7 +159,7 @@ void NetworkManager::ConnectToServer() {
     state->socket.disablePerMessageDeflate();
     state->socket.disableAutomaticReconnection();
     state->socket.setPingInterval(HEARTBEAT_PING_INTERVAL);
-    state->socket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
+    state->socket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
         switch(msg->type) {
             case ix::WebSocketMessageType::Open:
                 OnConnectedToServer();

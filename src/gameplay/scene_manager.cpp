@@ -24,7 +24,7 @@ void SceneManager::CheckSceneChange() {
                 std::make_shared<Scene>(TestScene::Create()),
                 false
             );
-            asyncSceneChangeState->asyncLoadingScene->onResourcesLoadedCallback = [] {
+            asyncSceneChangeState->asyncLoadingScene->onResourcesLoadedCallback = [this] {
                 asyncSceneChangeState->isFinishedLoading = true;
             };
             asyncSceneChangeState->asyncLoadingScene->LoadResourcesAsync();

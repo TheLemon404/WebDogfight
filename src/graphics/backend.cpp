@@ -7,6 +7,8 @@
 #include "../utils/math.hpp"
 #include "../utils/instrumentor.hpp"
 
+#include "../application.hpp"
+
 void GraphicsBackend::LoadResources() {
     debugCube = CreateCube();
     debugShader = Loader::LoadShaderFromGLSL("resources/shaders/debug.glsl");
@@ -338,6 +340,8 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
 }
 
 void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation, bool stretchWithAspectRatio, bool moveWithAspectRatio) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     FOX2_PROFILE_FUNCTION()
 
     glUseProgram(shader.programID);
@@ -349,16 +353,16 @@ void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &scr
     glEnableVertexAttribArray(2);
 
     Transform t = Transform();
-    t.position.x = screenPosition.x * (moveWithAspectRatio ? WindowManager::primaryWindow->aspect : 1.0f);
+    t.position.x = screenPosition.x * (moveWithAspectRatio ? app->windowManager.primaryWindow->aspect : 1.0f);
     t.position.y = screenPosition.y;
     t.position.z = -1.0f;
-    t.scale.x = scale.x * (stretchWithAspectRatio ? WindowManager::primaryWindow->aspect : 1.0f);
+    t.scale.x = scale.x * (stretchWithAspectRatio ? app->windowManager.primaryWindow->aspect : 1.0f);
     t.scale.y = scale.y;
     t.rotation = glm::rotate(t.rotation, glm::radians(rotation), GLOBAL_FORWARD);
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, t.GetMatrix(), "uTransform");
-    UploadShaderUniformMat4(shader, WindowManager::GetUIOrthographicMatrix(), "uProjection");
+    UploadShaderUniformMat4(shader, app->windowManager.GetUIOrthographicMatrix(), "uProjection");
 }
 
 void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
@@ -375,6 +379,8 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     FOX2_PROFILE_FUNCTION()
 
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     glUseProgram(skybox.shader->programID);
 
     glBindVertexArray(skybox.mesh.vao);
@@ -388,8 +394,8 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
 
     UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.horizonColor.value), "uHorizonColor");
     UploadShaderUniformVec3(*skybox.shader, static_cast<glm::vec3>(skybox.skyColor.value), "uSkyColor");
-    UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunColor, "uSunColor");
-    UploadShaderUniformVec3(*skybox.shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
+    UploadShaderUniformVec3(*skybox.shader, app->sceneManager.currentScene->environment.sunColor, "uSunColor");
+    UploadShaderUniformVec3(*skybox.shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
 
     glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 

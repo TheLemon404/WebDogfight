@@ -5,8 +5,11 @@
 #include "widget.hpp"
 #include "../graphics/window.hpp"
 #include "../networking/network_manager.hpp"
+#include "../application.hpp"
 
 void MenuWidgetLayer::CreateWidgets() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::shared_ptr<RectWidget> background = std::make_shared<RectWidget>("background");
     background->color.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->stretchWithAspectRatio = true;
@@ -14,7 +17,7 @@ void MenuWidgetLayer::CreateWidgets() {
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     widgets.push_back(background);
 
-    codeInput = std::make_shared<InputWidget>("codeInput", GraphicsBackend::globalFonts.defaultFont);
+    codeInput = std::make_shared<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;
     codeInput->moveWithAspectRatio = true;
     codeInput->centerText = true;
@@ -28,7 +31,7 @@ void MenuWidgetLayer::CreateWidgets() {
     codeInput->cornerColor.value = glm::vec4(0.7);
     widgets.push_back(codeInput);
 
-    std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("joinButton", GraphicsBackend::globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("joinButton", app->graphicsBackend.globalFonts.defaultFont);
     playButton->stretchWithAspectRatio = true;
     playButton->moveWithAspectRatio = true;
     playButton->centerText = true;
@@ -39,16 +42,16 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->color.value = glm::vec4(0.2);
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
-    playButton->onPressed = [this]{
+    playButton->onPressed = [this, &app]{
         InputManager::mouseHidden = true;
-        glfwSetInputMode(WindowManager::primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-        std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", NetworkManager::localClientId);
-        SceneManager::currentScene->RuntimeSpawn(aircraft);
+        glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", app->networkManager.localClientId);
+        app->sceneManager.currentScene->RuntimeSpawn(aircraft);
         this->SetDisabled(true);
     };
     widgets.push_back(playButton);
 
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText("Welcome to the Fox2.io\n"
                 "flight controls test!\n\n"
                 "This is in the very early\n"
@@ -64,7 +67,7 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->cornerColor.value = glm::vec4(0.7);
     widgets.push_back(rect);
 
-    std::shared_ptr<TextRectWidget> connectionStatus = std::make_shared<TextRectWidget>("connectionStatus", GraphicsBackend::globalFonts.defaultFont);
+    std::shared_ptr<TextRectWidget> connectionStatus = std::make_shared<TextRectWidget>("connectionStatus", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText("no server connection");
     rect->position = glm::vec2(0.8, -1.0);
     rect->moveWithAspectRatio = true;

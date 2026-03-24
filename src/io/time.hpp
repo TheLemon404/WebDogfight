@@ -3,12 +3,12 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-class Time {
+class Clock {
     public:
-    inline static double currentTime = 0.0;
-    inline static double deltaTime = 0.0;
+    double currentTime = 0.0;
+    double deltaTime = 0.0;
 
-    static void Tick() {
+    void Tick() {
         deltaTime = glfwGetTime() - currentTime;
         currentTime = glfwGetTime();
     }

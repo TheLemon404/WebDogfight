@@ -13,6 +13,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "../audio/backend.hpp"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -33,6 +34,7 @@ class Loader{
     inline static FT_Library freetypeLibrary;
 
     public:
+    static void LoadSoundFromFile(const std::string& resourcePath, Sound& sound);
     static Texture LoadTextureFromFile(const char* resourcePath);
     static Texture3D LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth);
     static Shader LoadShaderFromGLSL(const std::string& resourcePath);

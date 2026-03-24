@@ -1,4 +1,5 @@
 #define MINIAUDIO_IMPLEMENTATION
+#include "../graphics/loader.hpp"
 #include "backend.hpp"
 
 #include <iostream>
@@ -10,21 +11,12 @@ void AudioBackend::Initialize() {
     }
     std::cout << "Audio backend initialized successfully" << std::endl;
 
-    LoadSound("resources/audio/click.wav", globalSounds.buttonClick);
+    Loader::LoadSoundFromFile("resources/audio/click.wav", globalSounds.buttonClick);
 }
 
 void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, float pitchFactor) {
     ma_engine_play_sound(&audioEngine, resourcePath.c_str(), NULL);
     ma_engine_set_volume(&audioEngine, volume);
-}
-
-void AudioBackend::LoadSound(const std::string& resourcePath, Sound& sound) {
-    std::cout << "Attempting to loaded sound file from: " << resourcePath << std::endl;
-
-    int loadResult = ma_sound_init_from_file(&audioEngine, resourcePath.c_str(), 0, nullptr, nullptr, &sound.value);
-    if(loadResult != MA_SUCCESS) {
-        throw std::runtime_error("Failed to load sound asset");
-    }
 }
 
 void AudioBackend::StartSoundAsset(Sound& sound, bool looping, float volume) {

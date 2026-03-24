@@ -6,6 +6,8 @@
 #include "types.hpp"
 #include <valarray>
 
+#include "../application.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -251,6 +253,15 @@ Shader Loader::LoadShaderFromGLSL(const std::string& resourcePath) {
     return Shader(programID);
 }
 
+void Loader::LoadSoundFromFile(const std::string& resourcePath, Sound& sound) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+    std::cout << "Attempting to loaded sound file from: " << resourcePath << std::endl;
+
+    int loadResult = ma_sound_init_from_file(&app->audioBackend.audioEngine, resourcePath.c_str(), 0, nullptr, nullptr, &sound.value);
+    if(loadResult != MA_SUCCESS) {
+        throw std::runtime_error("Failed to load sound asset");
+    }
+}
 
 Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     Texture texture = Texture();
@@ -358,6 +369,8 @@ Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int
 }
 
 Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::string text = Files::ReadResourceString(resourcePath);
     json JSON = json::parse(text);
 
@@ -396,12 +409,14 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
         std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
-    GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
     std::cout << "successfully loaded mesh resource: " << resourcePath << std::endl;
     return mesh;
 }
 
 SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::string text = Files::ReadResourceString(resourcePath);
     json JSON = json::parse(text);
 
@@ -504,7 +519,7 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
         std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
-    GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
     std::cout << "successfully loaded skeletal mesh resource: " << resourcePath << std::endl;
     return mesh;
 }

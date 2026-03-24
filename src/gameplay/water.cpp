@@ -3,18 +3,24 @@
 #include "scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
 #include "aircraft.hpp"
+#include "../application.hpp"
 
 #define WATER_PLANE_SIZE 100000.0f
 #define WATER_LEVEL 3000.0f
 
 void Water::LoadResources() {
-    shader = &GraphicsBackend::globalShaders.water;
-    mesh = GraphicsBackend::CreateQuad();
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    shader = &app->graphicsBackend.globalShaders.water;
+    mesh = app->graphicsBackend.CreateQuad();
     noiseTexture = Loader::LoadTextureFromFile("resources/textures/waterNormal.png");
 }
 
 void Water::Initialize() {
     FOX2_PROFILE_FUNCTION();
+
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::vector<Vertex> vertices = {
         {{-WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 0
         {{ WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 1
@@ -29,11 +35,13 @@ void Water::Initialize() {
     };
 
     mesh.material.albedo = glm::vec3(0.8f, 0.9f, 1.0f);
-    GraphicsBackend::UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 
 void Water::Update() {
-    for(std::shared_ptr<Aircraft> aircraft : SceneManager::currentScene->GetEntitiesByType<Aircraft>()) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    for(std::shared_ptr<Aircraft> aircraft : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
         if(aircraft->transform.position.y < WATER_LEVEL) {
             aircraft->transform.position.y += 6000.0;
         }
@@ -42,14 +50,18 @@ void Water::Update() {
 
 void Water::Draw() {
     FOX2_PROFILE_FUNCTION();
-    GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, transform, false);
-    GraphicsBackend::UploadShaderUniformVec3(*shader, SceneManager::currentScene->environment.skybox->horizonColor.value, "uFogColor");
-    GraphicsBackend::EndDrawMesh(mesh);
-    GraphicsBackend::SetBackfaceCulling(true);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.SetBackfaceCulling(false);
+    app->graphicsBackend.BeginDrawMesh(mesh, *shader, app->sceneManager.activeCamera, transform, false);
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.skybox->horizonColor.value, "uFogColor");
+    app->graphicsBackend.EndDrawMesh(mesh);
+    app->graphicsBackend.SetBackfaceCulling(true);
 }
 
 void Water::UnloadResources() {
-    GraphicsBackend::DeleteMesh(mesh);
-    GraphicsBackend::DeleteTexture(noiseTexture);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
+    app->graphicsBackend.DeleteTexture(noiseTexture);
 }

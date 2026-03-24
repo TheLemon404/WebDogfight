@@ -32,6 +32,8 @@
 #include <math.h>
 #include <nlohmann/json.hpp>
 
+#include "../application.hpp"
+
 #define BRAKE_ANGLE_LERP_TIME 1.0
 
 #define YAW_ROTATION 15
@@ -47,11 +49,13 @@
 using json = nlohmann::json;
 
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(rotation, GLOBAL_FORWARD));
     glm::vec3 aircraftUpVector = glm::normalize(glm::rotate(rotation, GLOBAL_UP));
     glm::vec3 aircraftLeftVector = glm::normalize(glm::rotate(rotation, GLOBAL_LEFT));
 
-    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    glm::vec3 cameraForward = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
     float x = glm::dot(aircraftLeftVector, cameraForward);
@@ -77,7 +81,10 @@ void AircraftWidgetLayer::CreateWidgets() {
     widgets.push_back(mouse);
 
     //demo window ui
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", GraphicsBackend::globalFonts.defaultFont);
+
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText(
                 "Controls:\n"
                 "- Shift: Thottle Up\n"
@@ -97,7 +104,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     widgets.push_back(rect);
 
     //aircraft stats ui
-    stats = std::make_shared<TextRectWidget>("stats", GraphicsBackend::globalFonts.defaultFont);
+    stats = std::make_shared<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
     stats->moveWithAspectRatio = true;
     stats->scale = glm::vec2(0.4, 0.16);
     stats->position = glm::vec2(0.6, -0.6);
@@ -107,29 +114,39 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     FOX2_PROFILE_FUNCTION()
     glm::vec2 targetDelta = glm::vec2(
-        InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
-        -InputManager::mouseDelta.y / WindowManager::primaryWindow->height
+        InputManager::mouseDelta.x / app->windowManager.primaryWindow->width * app->windowManager.primaryWindow->aspect,
+        -InputManager::mouseDelta.y / app->windowManager.primaryWindow->height
     );
 
-    mouse->position += targetDelta / Time::deltaTime * .004f;
+    mouse->position += targetDelta / app->clock.deltaTime * .004f;
     mouse->position *= 0.85f;
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
     aim->position = UIAlignmentWithRotation(aircraftProps.unrolledRotation);
-    aim->position.x /= WindowManager::primaryWindow->aspect;
+    aim->position.x /= app->windowManager.primaryWindow->aspect;
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
-    glm::vec3 cameraForward = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    glm::vec3 cameraForward = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
     aim->color.value.a = dot;
 
-    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/Time::deltaTime), 4) + "\n"
+    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/app->clock.deltaTime), 4) + "\n"
         "Throttle: " + MiscUtils::Truncate(std::to_string(aircraftProps.throttle), 4) + "\n"
         "Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.velocity)), 4) + "m/s\n"
         "Altitude: " + MiscUtils::Truncate(std::to_string(aircraftProps.transform.position.y), 4) + "m\n"
         "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.gForce)), 4) + "gs\n");
+}
+
+Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+    if(app->networkManager.localClientId == networkId) {
+        std::lock_guard<std::mutex> lock(app->networkManager.pendingStateChangeMutex);
+        app->networkManager.networkGameState.clientStates[networkId].inGame = true;
+    }
 }
 
 void Aircraft::LoadResources() {
@@ -179,8 +196,10 @@ void Aircraft::LoadResources() {
     leftTrails.LoadResources();
     rightTrails.LoadResources();
 
-    if(networkId == NetworkManager::localClientId) {
-        AudioBackend::LoadSound("resources/audio/engine.wav", engineSound);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(networkId == app->networkManager.localClientId) {
+        Loader::LoadSoundFromFile("resources/audio/engine.wav", engineSound);
 
         aircraftWidgetLayer = std::make_unique<AircraftWidgetLayer>();
         aircraftWidgetLayer->CreateWidgets();
@@ -189,8 +208,10 @@ void Aircraft::LoadResources() {
 }
 
 void Aircraft::Initialize() {
-    SceneManager::activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
-    SceneManager::activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->sceneManager.activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
+    app->sceneManager.activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
 
     skeletalMesh.material.shadowColor = glm::vec3(0.8f);
 
@@ -201,8 +222,8 @@ void Aircraft::Initialize() {
     leftTrails.Initialize();
     rightTrails.Initialize();
 
-    if(networkId == NetworkManager::localClientId) {
-        AudioBackend::StartSoundAsset(engineSound, true, 0.3f);
+    if(networkId == app->networkManager.localClientId) {
+        app->audioBackend.StartSoundAsset(engineSound, true, 0.3f);
     }
 
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
@@ -215,6 +236,8 @@ void Aircraft::Initialize() {
 }
 
 void Aircraft::ApplyControlSurfaces(float roll) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     glm::quat diffQuat = transform.rotation * glm::inverse(targetRotation);
     glm::vec3 eulerAngles = glm::eulerAngles(diffQuat);
     float rollDelta = MathUtils::Clamp<float>(roll, -1.0, 1.0);
@@ -236,10 +259,10 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
 
     if(InputManager::IsKeyPressed(GLFW_KEY_B)) {
-        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, Time::deltaTime * BRAKE_ANGLE_LERP_TIME);
+        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
     else {
-        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, 0, Time::deltaTime * BRAKE_ANGLE_LERP_TIME);
+        targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, 0, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
 
     skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
@@ -252,22 +275,24 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 }
 
 void Aircraft::Update() {
-    if(networkId == NetworkManager::localClientId) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(networkId == app->networkManager.localClientId) {
         FOX2_PROFILE_FUNCTION();
-        Camera& camera = SceneManager::activeCamera;
+        Camera& camera = app->sceneManager.activeCamera;
 
         glm::vec3 cameraForward;
         {
             FOX2_PROFILE_SCOPE("Camera Movement")
             //camera controls
             glm::vec2 targetDelta = glm::vec2(
-                InputManager::mouseDelta.x / WindowManager::primaryWindow->width * WindowManager::primaryWindow->aspect,
-                InputManager::mouseDelta.y / WindowManager::primaryWindow->height
+                InputManager::mouseDelta.x / app->windowManager.primaryWindow->width * app->windowManager.primaryWindow->aspect,
+                InputManager::mouseDelta.y / app->windowManager.primaryWindow->height
             );
             //this ugly one-liner makes for smooth camera rotation
-            cameraRotationInputValue += targetDelta * Time::deltaTime * 100.0f;
+            cameraRotationInputValue += targetDelta * app->clock.deltaTime * 100.0f;
             cameraRotationInputValue.y = MathUtils::Clamp<float>(cameraRotationInputValue.y, (-PI/2) + 0.00001f , (PI/2) - 0.00001f);
-            camera.aspect = static_cast<float>(WindowManager::primaryWindow->width) / WindowManager::primaryWindow->height;
+            camera.aspect = static_cast<float>(app->windowManager.primaryWindow->width) / app->windowManager.primaryWindow->height;
             cameraForward = glm::normalize(camera.target - camera.position);
             glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
             glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
@@ -287,30 +312,30 @@ void Aircraft::Update() {
             aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
             extraRotation = glm::identity<glm::quat>();
             if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
-                uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, Time::deltaTime * 10.0f);
+                uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, app->clock.deltaTime * 10.0f);
                 targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
             }
             if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
-                rollInput -= resource.settings.rollRate * Time::deltaTime;
+                rollInput -= resource.settings.rollRate * app->clock.deltaTime;
                 restingRollRotation = 0.0f;
             }
             else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
-                rollInput += resource.settings.rollRate * Time::deltaTime;
+                rollInput += resource.settings.rollRate * app->clock.deltaTime;
                 restingRollRotation = 2.0f * PI;
             }
             else {
                 rollInput = fmodf(rollInput, 2.0 * PI);
-                rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, Time::deltaTime * 2.0f);
+                rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, app->clock.deltaTime * 2.0f);
             }
             rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
             extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
-            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)Time::deltaTime);
+            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)app->clock.deltaTime);
             unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
-            glm::vec3 velocityChange = (velocity - lastVelocity) / Time::deltaTime;
+            glm::vec3 velocityChange = (velocity - lastVelocity) / app->clock.deltaTime;
             float lateralAcceleration = glm::length(velocityChange - glm::dot(velocityChange, unrotatedForward) * unrotatedForward);
 
-            gForce = MathUtils::Lerp<float>(gForce, (lateralAcceleration * GFORCE_COEFFICIENT) + 1.0f, Time::deltaTime * 5.0f);
+            gForce = MathUtils::Lerp<float>(gForce, (lateralAcceleration * GFORCE_COEFFICIENT) + 1.0f, app->clock.deltaTime * 5.0f);
 
             lastVelocity = velocity;
             lastRotation = unrolledRotation;
@@ -318,14 +343,14 @@ void Aircraft::Update() {
         {
             FOX2_PROFILE_SCOPE("Throttle Controls and Audio")
             if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-                controls.throttle += resource.settings.throttleIncreaseRate * Time::deltaTime;
+                controls.throttle += resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
             else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-                controls.throttle -= resource.settings.throttleIncreaseRate * Time::deltaTime;
+                controls.throttle -= resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
             controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
 
-            AudioBackend::SoundAssetSetPitch(engineSound, controls.throttle);
+            app->audioBackend.SoundAssetSetPitch(engineSound, controls.throttle);
         }
         {
             FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
@@ -336,12 +361,12 @@ void Aircraft::Update() {
             glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - glm::abs(glm::dot(aircraftForward, GLOBAL_UP)));
 
             glm::vec3 acceleration = thrust + gravity + lift + brake - (velocity * DRAG_COEFFICIENT);
-            velocity += acceleration * (float)Time::deltaTime;
+            velocity += acceleration * (float)app->clock.deltaTime;
 
             speed = glm::length(velocity);
 
             lastPosition = transform.position;
-            transform.position += velocity * (float)Time::deltaTime;
+            transform.position += velocity * (float)app->clock.deltaTime;
         }
         {
             FOX2_PROFILE_SCOPE("More Camera Controls")
@@ -369,13 +394,13 @@ void Aircraft::Update() {
             rightTrails.Update();
         }
 
-        NetworkManager::networkGameState.clientStates[networkId].position = transform.position;
-        NetworkManager::networkGameState.clientStates[networkId].rotation = transform.rotation;
+        app->networkManager.networkGameState.clientStates[networkId].position = transform.position;
+        app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
     }
     else {
-        if(NetworkManager::networkGameState.clientStates.contains(networkId)) {
+        if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
 
-            ClientState& clientState = NetworkManager::networkGameState.clientStates[networkId];
+            ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
             transform.position = clientState.position;
             transform.rotation =  clientState.rotation;
         }
@@ -413,32 +438,34 @@ void Aircraft::Update() {
 void Aircraft::Draw()  {
     FOX2_PROFILE_FUNCTION()
 
-    //Note: here we only animate the local client's aircraft. Other clients' aircraft are static.
-    GraphicsBackend::BeginDrawSkeletalMesh(skeletalMesh, shader, SceneManager::activeCamera, transform);
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::currentScene->environment.sunDirection, "uSunDirection");
-    GraphicsBackend::UploadShaderUniformVec3(shader, SceneManager::activeCamera.position, "uCameraPosition");
-    GraphicsBackend::UploadShaderUniformInt(shader, 0, "uAlbedoTexture");
-    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
-    GraphicsBackend::UploadShaderUniformInt(shader, 1, "uRoughnessTexture");
-    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["roughness"], 1);
-    GraphicsBackend::UploadShaderUniformInt(shader, 2, "uEmmissionTexture");
-    GraphicsBackend::UseTextureSlot(skeletalMesh.textureMap["emmission"], 2);
-    GraphicsBackend::EndDrawSkeletalMesh(skeletalMesh);
-    GraphicsBackend::ResetTextureSlots();
+    std::unique_ptr<Application>& app = Application::GetInstance();
 
-    if(GraphicsBackend::debugMode){
+    //Note: here we only animate the local client's aircraft. Other clients' aircraft are static.
+    app->graphicsBackend.BeginDrawSkeletalMesh(skeletalMesh, shader, app->sceneManager.activeCamera, transform);
+    app->graphicsBackend.UploadShaderUniformVec3(shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
+    app->graphicsBackend.UploadShaderUniformVec3(shader, app->sceneManager.activeCamera.position, "uCameraPosition");
+    app->graphicsBackend.UploadShaderUniformInt(shader, 0, "uAlbedoTexture");
+    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
+    app->graphicsBackend.UploadShaderUniformInt(shader, 1, "uRoughnessTexture");
+    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["roughness"], 1);
+    app->graphicsBackend.UploadShaderUniformInt(shader, 2, "uEmmissionTexture");
+    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 2);
+    app->graphicsBackend.EndDrawSkeletalMesh(skeletalMesh);
+    app->graphicsBackend.ResetTextureSlots();
+
+    if(app->graphicsBackend.debugMode){
         Transform t = Transform();
         t.position = transform.position;
         t.rotation = transform.rotation;
         t.scale = glm::vec3(10.0);
-        GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, COLOR_BLUE, t);
+        app->graphicsBackend.DrawDebugCube(app->sceneManager.activeCamera, COLOR_BLUE, t);
 
-        if(networkId == NetworkManager::localClientId) {
+        if(networkId == app->networkManager.localClientId) {
             Transform l = Transform();
-            l.position = NetworkManager::lagPosition;
-            l.rotation = NetworkManager::lagRotation;
+            l.position = app->networkManager.lagPosition;
+            l.rotation = app->networkManager.lagRotation;
             l.scale = glm::vec3(10.0);
-            GraphicsBackend::DrawDebugCube(SceneManager::activeCamera, COLOR_RED, l);
+            app->graphicsBackend.DrawDebugCube(app->sceneManager.activeCamera, COLOR_RED, l);
         }
     }
 
@@ -452,13 +479,15 @@ void Aircraft::Draw()  {
 }
 
 void Aircraft::UnloadResources()  {
-    if(networkId == NetworkManager::localClientId) {
-        AudioBackend::EndSoundAsset(engineSound);
-        AudioBackend::UnloadSoundAsset(engineSound);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(networkId == app->networkManager.localClientId) {
+        app->audioBackend.EndSoundAsset(engineSound);
+        app->audioBackend.UnloadSoundAsset(engineSound);
     }
 
-    GraphicsBackend::DeleteSkeletalMesh(skeletalMesh);
-    GraphicsBackend::DeleteShader(shader);
+    app->graphicsBackend.DeleteSkeletalMesh(skeletalMesh);
+    app->graphicsBackend.DeleteShader(shader);
 
     exhaustParticles.UnloadResources();
 
@@ -471,10 +500,12 @@ void Aircraft::UnloadResources()  {
 }
 
 void AircraftExhaustParticleSystem::LoadResources() {
-    mesh = GraphicsBackend::CreateQuad();
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    mesh = app->graphicsBackend.CreateQuad();
     mesh.material.albedo = glm::vec3(0.7f);
     mesh.material.alpha = 0.1f;
-    shader = &GraphicsBackend::globalShaders.particles;
+    shader = &app->graphicsBackend.globalShaders.particles;
 }
 
 void AircraftExhaustParticleSystem::Initialize() {
@@ -485,9 +516,11 @@ void AircraftExhaustParticleSystem::Initialize() {
 }
 
 void AircraftExhaustParticleSystem::Update() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     FOX2_PROFILE_FUNCTION()
 
-    glm::vec3 toCameraDir = glm::normalize(SceneManager::activeCamera.target - SceneManager::activeCamera.position);
+    glm::vec3 toCameraDir = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
         if(particleLifetimes[i] <= 0.0) {
             transforms[i].position = aircraftPosition;
@@ -495,7 +528,7 @@ void AircraftExhaustParticleSystem::Update() {
             particleRotations[i] = (float)rand() / 10.0f;
         }
         else {
-            particleLifetimes[i] -= Time::deltaTime;
+            particleLifetimes[i] -= app->clock.deltaTime;
         }
 
         transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP) * glm::angleAxis(particleRotations[i], GLOBAL_FORWARD);
@@ -505,17 +538,23 @@ void AircraftExhaustParticleSystem::Update() {
 }
 
 void AircraftExhaustParticleSystem::Draw() {
-    GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMeshInstanced(mesh, *shader, SceneManager::activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
-    GraphicsBackend::EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
-    GraphicsBackend::SetBackfaceCulling(true);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.SetBackfaceCulling(false);
+    app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
+    app->graphicsBackend.EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
+    app->graphicsBackend.SetBackfaceCulling(true);
 }
 
 void AircraftExhaustParticleSystem::UnloadResources() {
-    GraphicsBackend::DeleteMesh(mesh);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
 }
 
 void AircraftTrails::GenerateMesh() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     // Create 4 quads in a line along the Z-axis
     // Each quad needs 4 vertices, total = 20 vertices (5 positions × 2 sides)
     // But we can share vertices between quads for efficiency
@@ -555,10 +594,12 @@ void AircraftTrails::GenerateMesh() {
         indices.push_back(baseIndex + 3);  // Top-right
     }
 
-    GraphicsBackend::UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+    app->graphicsBackend.UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 }
 
 void AircraftTrails::RecomputeMesh() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_TRAIL_THRESHOLD, 0.0f), 1.0f);
 
     vertices[0].position = (aircraftRotation * glm::vec3(-trailWidth * pressureScale/ 2.0f, 0.0f, 0.0f)) + aircraftPosition;
@@ -572,15 +613,17 @@ void AircraftTrails::RecomputeMesh() {
         vertexLifetime = vertexStartLifetime;
     }
     else {
-        vertexLifetime -= Time::deltaTime;
+        vertexLifetime -= app->clock.deltaTime;
     }
 
-    GraphicsBackend::UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
+    app->graphicsBackend.UpdateMeshVertices(mesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 }
 
 void AircraftTrails::LoadResources() {
-    shader = &GraphicsBackend::globalShaders.trails;
-    mesh = GraphicsBackend::CreateQuad();
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    shader = &app->graphicsBackend.globalShaders.trails;
+    mesh = app->graphicsBackend.CreateQuad();
     mesh.material.albedo = glm::vec3(1.0f);
     mesh.material.shadowColor = glm::vec3(1.0f);
 }
@@ -594,13 +637,17 @@ void AircraftTrails::Update() {
 }
 
 void AircraftTrails::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     Transform t = Transform();
-    GraphicsBackend::SetBackfaceCulling(false);
-    GraphicsBackend::BeginDrawMesh(mesh, *shader, SceneManager::activeCamera, t, false);
-    GraphicsBackend::EndDrawMesh(mesh);
-    GraphicsBackend::SetBackfaceCulling(true);
+    app->graphicsBackend.SetBackfaceCulling(false);
+    app->graphicsBackend.BeginDrawMesh(mesh, *shader, app->sceneManager.activeCamera, t, false);
+    app->graphicsBackend.EndDrawMesh(mesh);
+    app->graphicsBackend.SetBackfaceCulling(true);
 }
 
 void AircraftTrails::UnloadResources() {
-    GraphicsBackend::DeleteMesh(mesh);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
 }

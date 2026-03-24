@@ -6,6 +6,7 @@
 #include "../gameplay/scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
 #include "window.hpp"
+#include "../application.hpp"
 
 void Skeleton::UpdateGlobalBoneTransforms()  {
     cachedGlobalBoneTransforms.resize(bones.size());
@@ -23,12 +24,16 @@ void Skeleton::UpdateGlobalBoneTransforms()  {
 }
 
 Skybox::Skybox() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     mesh = Loader::LoadMeshFromGLTF("resources/meshes/sphere.gltf");
-    shader = &GraphicsBackend::globalShaders.skybox;
+    shader = &app->graphicsBackend.globalShaders.skybox;
     skyColor.value = glm::vec4(0.68f, 0.85f, 0.90f, 1.0);
     horizonColor.value = glm::vec4(0.9f, 1.0f, 1.0f, 1.0f);
 }
 
 Skybox::~Skybox() {
-    GraphicsBackend::DeleteMesh(mesh);
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
 }

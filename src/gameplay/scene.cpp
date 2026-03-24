@@ -5,6 +5,7 @@
 #include "../utils/instrumentor.hpp"
 #include "widget.hpp"
 #include <memory>
+#include "../application.hpp"
 
 void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
     spawnStack.push(entity);
@@ -112,9 +113,11 @@ void Scene::Initialize()  {
 }
 
 void Scene::Update()  {
-    if(NetworkManager::hasPendingStateChange) {
-        SpawnAndDespawnNetworkEntities(NetworkManager::lastNetworkGameState, NetworkManager::networkGameState);
-        NetworkManager::hasPendingStateChange = false;
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(app->networkManager.hasPendingStateChange) {
+        SpawnAndDespawnNetworkEntities(app->networkManager.lastNetworkGameState, app->networkManager.networkGameState);
+        app->networkManager.hasPendingStateChange = false;
     }
 
     while(!despawnStack.empty()) {
@@ -140,13 +143,15 @@ void Scene::Update()  {
 }
 
 void Scene::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     if(environment.skybox) {
         FOX2_PROFILE_FUNCTION()
-        GraphicsBackend::SetDepthMask(false);
-        GraphicsBackend::SetBackfaceCulling(false);
-        GraphicsBackend::DrawSkybox(*environment.skybox, SceneManager::activeCamera);
-        GraphicsBackend::SetBackfaceCulling(true);
-        GraphicsBackend::SetDepthMask(true);
+        app->graphicsBackend.SetDepthMask(false);
+        app->graphicsBackend.SetBackfaceCulling(false);
+        app->graphicsBackend.DrawSkybox(*environment.skybox, app->sceneManager.activeCamera);
+        app->graphicsBackend.SetBackfaceCulling(true);
+        app->graphicsBackend.SetDepthMask(true);
     }
 
     for(std::shared_ptr<Entity>& entity : entities) {
