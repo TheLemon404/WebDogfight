@@ -16,9 +16,6 @@ void Scene::RuntimeDespawn(std::shared_ptr<Entity> entity) {
 }
 
 void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState) {
-    std::cout << "lastNetworkGameState.clientStates.size(): " << lastNetworkGameState.clientStates.size() << std::endl;
-    std::cout << "currentNetworkGameState.clientStates.size(): " << currentNetworkGameState.clientStates.size() << std::endl;
-
     for(auto& entry : lastNetworkGameState.clientStates) {
         if(!currentNetworkGameState.clientStates.contains(entry.first)) {
             //Since we only have <16 player lobbies, list iteration should be fast enough for now

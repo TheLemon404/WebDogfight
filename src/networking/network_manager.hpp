@@ -53,7 +53,6 @@ class NetworkManager {
     std::mutex pendingStateChangeMutex;
     bool hasPendingStateChange = false;
 
-    float lerpFactor = 1.0f;
     uint32_t localClientId;
     GameState lastNetworkGameState;
     GameState networkGameState;

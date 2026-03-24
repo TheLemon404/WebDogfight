@@ -105,6 +105,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
 
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
+            networkGameState.lastUpdateTimeStamp = app->clock.currentTime;
             lagPosition = networkGameState.clientStates[localClientId].position;
             lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;

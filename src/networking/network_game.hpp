@@ -11,6 +11,7 @@ class ClientState {
 
     glm::vec3 position;
     glm::quat rotation;
+    glm::vec3 velocity;
 
     std::string Serialize() {
         return Packet()
@@ -22,6 +23,9 @@ class ClientState {
             .WriteF32(rotation.y)
             .WriteF32(rotation.z)
             .WriteF32(rotation.w)
+            .WriteF32(velocity.x)
+            .WriteF32(velocity.y)
+            .WriteF32(velocity.z)
             .Build();
     }
 
@@ -35,11 +39,15 @@ class ClientState {
         rotation.y = packet.ReadF32();
         rotation.z = packet.ReadF32();
         rotation.w = packet.ReadF32();
+        velocity.x = packet.ReadF32();
+        velocity.y = packet.ReadF32();
+        velocity.z = packet.ReadF32();
     }
 };
 
 struct GameState {
     std::unordered_map<uint32_t, ClientState> clientStates;
+    float lastUpdateTimeStamp = 0.0f;
 
     std::string Serialize() {
         Packet packet = Packet();

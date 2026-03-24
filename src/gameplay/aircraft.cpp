@@ -396,13 +396,17 @@ void Aircraft::Update() {
 
         app->networkManager.networkGameState.clientStates[networkId].position = transform.position;
         app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
+        app->networkManager.networkGameState.clientStates[networkId].velocity = velocity;
     }
     else {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
-
             ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
-            transform.position = clientState.position;
-            transform.rotation =  clientState.rotation;
+
+            float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
+            glm::vec3 predictedPosition = clientState.position + clientState.velocity * dt;
+
+            transform.position = predictedPosition;
+            transform.rotation = glm::slerp(transform.rotation, clientState.rotation, (float)app->clock.deltaTime);
         }
         else {
             // --- TODO --- delete unrecognized entities
