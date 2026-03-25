@@ -405,7 +405,7 @@ void Aircraft::Update() {
             float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
             glm::vec3 predictedPosition = clientState.position + clientState.velocity * dt;
 
-            transform.position = predictedPosition;
+            transform.position = MathUtils::Lerp<glm::vec3>(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
             transform.rotation = glm::slerp(transform.rotation, clientState.rotation, (float)app->clock.deltaTime);
         }
         else {

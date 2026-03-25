@@ -155,6 +155,8 @@ class Aircraft : public Entity {
 
     glm::vec2 cameraRotationInputValue = glm::vec2(0.0);
 
+    glm::vec3 lastNetworkPosition = glm::vec3(0.0f);
+
     glm::quat targetRotation;
     float restingRollRotation = 0.0f;
     glm::vec3 lastPosition = glm::vec3(0.0f);

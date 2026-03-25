@@ -47,6 +47,8 @@ class NetworkManager {
     float timeSinceLastStateSend = 0.0f;
 
     public:
+    float interpolationFactor = 10.0f;
+
     glm::vec3 lagPosition = glm::vec3(0.0f);
     glm::quat lagRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
