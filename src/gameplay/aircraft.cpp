@@ -16,6 +16,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
+#include "test_scene.hpp"
 #include "widget.hpp"
 #include <cstddef>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -149,6 +150,19 @@ Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourceP
     }
 }
 
+Aircraft::~Aircraft() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(networkId == app->networkManager.localClientId) {
+        std::shared_ptr<MenuWidgetLayer> menuWidgetLayer = app->sceneManager.currentScene->GetWidgetLayerByType<MenuWidgetLayer>();
+        if(menuWidgetLayer) {
+            InputManager::mouseHidden = false;
+            glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            menuWidgetLayer->SetDisabled(false);
+        }
+    }
+}
+
 void Aircraft::LoadResources() {
     std::string resourceFileText = Files::ReadResourceString(resourcePath);
     std::cout << "successfully loaded Aircraft Resource JSON file at: " << resourcePath << std::endl;
@@ -190,7 +204,7 @@ void Aircraft::LoadResources() {
     shader = Loader::LoadShaderFromGLSL(resource.description.shaderResourcePath.c_str());
     skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
 
-    transform.position.y = 6000.0;
+    transform.position.y = 12000.0f;
 
     exhaustParticles.LoadResources();
     leftTrails.LoadResources();
@@ -436,6 +450,14 @@ void Aircraft::Update() {
         aircraftWidgetLayer->aircraftProps.gForce = gForce;
         aircraftWidgetLayer->Update();
         aircraftWidgetLayer->UpdateLayer();
+    }
+}
+
+void Aircraft::Explode() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(networkId == app->networkManager.localClientId) {
+        app->networkManager.networkGameState.clientStates[networkId].inGame = false;
     }
 }
 

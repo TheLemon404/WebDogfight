@@ -179,6 +179,8 @@ class Aircraft : public Entity {
     Sound engineSound = Sound();
 
     public:
+    bool pendingDespawn = false;
+
     AircraftControls controls;
 
     Shader shader;
@@ -193,6 +195,9 @@ class Aircraft : public Entity {
     uint32_t networkId = -1;
 
     Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1);
+    ~Aircraft();
+
+    void Explode();
 
     void LoadResources() override;
     void Initialize() override;

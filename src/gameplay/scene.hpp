@@ -6,7 +6,7 @@
 #include "widget.hpp"
 #include <string>
 #include <vector>
-#include <stack>
+#include <queue>
 #include <memory>
 
 enum SceneResourceLoadingState {
@@ -18,8 +18,8 @@ enum SceneResourceLoadingState {
 };
 
 class Scene {
-    std::stack<std::shared_ptr<Entity>> spawnStack;
-    std::stack<std::shared_ptr<Entity>> despawnStack;
+    std::queue<std::shared_ptr<Entity>> spawnQueue;
+    std::queue<std::shared_ptr<Entity>> despawnQueue;
 
     public:
     std::vector<std::shared_ptr<Entity>> entities;
@@ -76,6 +76,18 @@ class Scene {
             }
         }
 
+        return nullptr;
+    }
+
+    //IMPORTANT -- This method is poorly written. MAKE SURE TO NOT USE MORE THAN 1 OF A WIDGET LAYER TYPE IN A SCENE
+    template <typename T>
+    std::shared_ptr<T> GetWidgetLayerByType() {
+        for(std::shared_ptr<WidgetLayer> widgetLayer : widgetLayers) {
+            std::shared_ptr<T> cast = std::dynamic_pointer_cast<T>(widgetLayer);
+            if(cast) {
+                return cast;
+            }
+        }
         return nullptr;
     }
 

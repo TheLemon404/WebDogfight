@@ -8,20 +8,22 @@
 #include "../application.hpp"
 
 void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
-    spawnStack.push(entity);
+    spawnQueue.push(entity);
 }
 
 void Scene::RuntimeDespawn(std::shared_ptr<Entity> entity) {
-    despawnStack.push(entity);
+    despawnQueue.push(entity);
 }
 
 void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, GameState& currentNetworkGameState) {
     for(auto& entry : lastNetworkGameState.clientStates) {
-        if(!currentNetworkGameState.clientStates.contains(entry.first)) {
+        bool isInGame = currentNetworkGameState.clientStates.contains(entry.first) && currentNetworkGameState.clientStates[entry.first].inGame;
+        if(!isInGame) {
             //Since we only have <16 player lobbies, list iteration should be fast enough for now
             for(int i = 0; i < entities.size(); i++) {
                 std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entities[i]);
-                if(aircraft && aircraft->networkId == entry.first) {
+                if(aircraft && aircraft->networkId == entry.first && !aircraft->pendingDespawn) {
+                    aircraft->pendingDespawn = true;
                     RuntimeDespawn(aircraft);
                 }
             }
@@ -117,18 +119,12 @@ void Scene::Update()  {
         app->networkManager.hasPendingStateChange = false;
     }
 
-    while(!despawnStack.empty()) {
-        std::shared_ptr<Entity> entity = despawnStack.top();
-        entity->UnloadResources();
-        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
-        despawnStack.pop();
-    }
-    while(!spawnStack.empty()) {
-        std::shared_ptr<Entity> entity = spawnStack.top();
+    while(!spawnQueue.empty()) {
+        std::shared_ptr<Entity> entity = spawnQueue.front();
         entity->LoadResources();
         entity->Initialize();
         entities.push_back(entity);
-        spawnStack.pop();
+        spawnQueue.pop();
     }
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->Update();
@@ -136,6 +132,16 @@ void Scene::Update()  {
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
         widgetLayer->UpdateLayer();
         widgetLayer->Update();
+    }
+    while(!despawnQueue.empty()) {
+        std::shared_ptr<Entity> entity = despawnQueue.front();
+        std::cout << "test 1" << std::endl;
+        entity->UnloadResources();
+        std::cout << "test 2" << std::endl;
+        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
+        std::cout << "Despawned entity " << entity->id << std::endl;
+        despawnQueue.pop();
+        std::cout << "test 3" << std::endl;
     }
 }
 
