@@ -47,6 +47,8 @@ class NetworkManager {
     float timeSinceLastStateSend = 0.0f;
 
     public:
+    int GetLobbyId() const { return (int)state->lobbyId; }
+
     float interpolationFactor = 10.0f;
 
     glm::vec3 lagPosition = glm::vec3(0.0f);

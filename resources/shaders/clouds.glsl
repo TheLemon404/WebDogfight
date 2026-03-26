@@ -47,7 +47,6 @@ precision lowp sampler3D;
 
 in vec3 pNormal;
 
-uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
 uniform vec2 uScreenResolution;

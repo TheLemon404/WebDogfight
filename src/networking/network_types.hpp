@@ -9,18 +9,19 @@ enum class PacketType : uint8_t {
     //request types
     JOIN_RANDOM_LOBBY = 0x00,
     JOIN_LOBBY = 0x01,
-    LEAVE_LOBBY = 0x02,
+    CREATE_LOBBY = 0x02,
+    LEAVE_LOBBY = 0x03,
 
-    UPDATE_CLIENT_STATE = 0x03,
+    UPDATE_CLIENT_STATE = 0x04,
 
-    RPC = 0x04,
+    RPC = 0x05,
 
     //response types
-    CONNECTED_TO_SERVER = 0x05,
-    LOBBY_JOINED = 0x06,
-    LOBBY_LEFT = 0x07,
+    CONNECTED_TO_SERVER = 0x06,
+    LOBBY_JOINED = 0x07,
+    LOBBY_LEFT = 0x08,
 
-    LOBBY_STATE_UPDATED = 0x08,
+    LOBBY_STATE_UPDATED = 0x09,
 };
 
 class Packet {

@@ -31,14 +31,46 @@ void MenuWidgetLayer::CreateWidgets() {
     codeInput->cornerColor.value = glm::vec4(0.7);
     widgets.push_back(codeInput);
 
-    std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("joinButton", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> joinButton = std::make_shared<TextButtonWidget>("joinButton", app->graphicsBackend.globalFonts.defaultFont);
+    joinButton->stretchWithAspectRatio = true;
+    joinButton->moveWithAspectRatio = true;
+    joinButton->centerText = true;
+    joinButton->SetText("Join");
+    joinButton->font.fontScale = 2.0;
+    joinButton->scale = glm::vec2(0.2, 0.09);
+    joinButton->position.y = -0.1f;
+    joinButton->color.value = glm::vec4(0.2);
+    joinButton->borderColor.value = glm::vec4(0.4);
+    joinButton->cornerColor.value = glm::vec4(0.7);
+    joinButton->onPressed = [this, &app]{
+        app->networkManager.JoinLobby(std::stoi(this->codeInput->GetText()));
+    };
+    widgets.push_back(joinButton);
+
+    std::shared_ptr<TextButtonWidget> createButton = std::make_shared<TextButtonWidget>("createButton", app->graphicsBackend.globalFonts.defaultFont);
+    createButton->stretchWithAspectRatio = true;
+    createButton->moveWithAspectRatio = true;
+    createButton->centerText = true;
+    createButton->SetText("Create");
+    createButton->font.fontScale = 2.0;
+    createButton->scale = glm::vec2(0.2, 0.09);
+    createButton->position.y = -0.3f;
+    createButton->color.value = glm::vec4(0.2);
+    createButton->borderColor.value = glm::vec4(0.4);
+    createButton->cornerColor.value = glm::vec4(0.7);
+    createButton->onPressed = [this, &app]{
+        app->networkManager.CreateLobby();
+    };
+    widgets.push_back(createButton);
+
+    std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("playButton", app->graphicsBackend.globalFonts.defaultFont);
     playButton->stretchWithAspectRatio = true;
     playButton->moveWithAspectRatio = true;
     playButton->centerText = true;
     playButton->SetText("Play");
     playButton->font.fontScale = 2.0;
     playButton->scale = glm::vec2(0.2, 0.09);
-    playButton->position.y = -0.1f;
+    playButton->position.y = -0.5f;
     playButton->color.value = glm::vec4(0.2);
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
@@ -76,4 +108,14 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->borderColor.value = glm::vec4(0.0);
     rect->cornerColor.value = glm::vec4(0.0);
     widgets.push_back(rect);
+    connectionStatusId = rect->id;
+}
+
+void MenuWidgetLayer::UpdateLayer() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    const std::shared_ptr<Widget>& connectionStatus = GetWidgetById(connectionStatusId);
+    if(connectionStatus) {
+        std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.connected ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
+    }
 }

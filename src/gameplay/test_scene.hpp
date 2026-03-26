@@ -12,9 +12,10 @@
 
 class MenuWidgetLayer : public WidgetLayer {
     std::shared_ptr<InputWidget> codeInput;
+    unsigned int connectionStatusId;
 
     void CreateWidgets() override;
-    void UpdateLayer() override {};
+    void UpdateLayer() override;
 };
 
 

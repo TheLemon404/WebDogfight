@@ -27,7 +27,6 @@ void CloudsVolume::Draw() {
     app->graphicsBackend.BeginDrawMesh(boundsMesh, *shader, app->sceneManager.activeCamera, transform, true, true);
     app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height), "uScreenResolution");
     app->graphicsBackend.UploadShaderUniformMat4(*shader, app->sceneManager.activeCamera.GetViewMatrix(), "uView");
-    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
     app->graphicsBackend.UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
     app->graphicsBackend.UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
     app->graphicsBackend.UseTexture3DSlot(app->graphicsBackend.globalTextures.noiseTexture3D, 0);

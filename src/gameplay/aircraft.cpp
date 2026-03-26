@@ -85,6 +85,17 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     std::unique_ptr<Application>& app = Application::GetInstance();
 
+    std::shared_ptr<TextRectWidget> lobbyInfoRect = std::make_shared<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
+    std::string connectionStatusString = app->networkManager.connected ? "connected\n" : "disconnected\n";
+    lobbyInfoRect->SetText("Network Status: " + connectionStatusString +
+        "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
+    lobbyInfoRect->position = glm::vec2(0.6, 0.6);
+    lobbyInfoRect->moveWithAspectRatio = true;
+    lobbyInfoRect->scale = glm::vec2(0.4, 0.1);
+    lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(lobbyInfoRect);
+
     std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText(
                 "Controls:\n"
@@ -478,10 +489,8 @@ void Aircraft::Draw()  {
     app->graphicsBackend.UploadShaderUniformVec3(shader, app->sceneManager.activeCamera.position, "uCameraPosition");
     app->graphicsBackend.UploadShaderUniformInt(shader, 0, "uAlbedoTexture");
     app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
-    app->graphicsBackend.UploadShaderUniformInt(shader, 1, "uRoughnessTexture");
-    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["roughness"], 1);
-    app->graphicsBackend.UploadShaderUniformInt(shader, 2, "uEmmissionTexture");
-    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 2);
+    app->graphicsBackend.UploadShaderUniformInt(shader, 1, "uEmmissionTexture");
+    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 1);
     app->graphicsBackend.EndDrawSkeletalMesh(skeletalMesh);
     app->graphicsBackend.ResetTextureSlots();
 

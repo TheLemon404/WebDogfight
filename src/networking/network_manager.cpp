@@ -192,11 +192,20 @@ void NetworkManager::ConnectToServer() {
 }
 
 void NetworkManager::CreateLobby() {
-
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::CREATE_LOBBY)
+        .Build()
+    );
 }
 
 void NetworkManager::JoinLobby(int lobbyCode) {
-
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::JOIN_LOBBY)
+        .WriteU32(lobbyCode)
+        .Build()
+    );
 }
 
 void NetworkManager::Shutdown() {
