@@ -134,6 +134,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<CircleWidget> aim;
     std::shared_ptr<RectWidget> mouse;
     std::shared_ptr<TextRectWidget> stats;
+    std::shared_ptr<RectWidget> radar;
 
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
 

@@ -89,7 +89,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     std::string connectionStatusString = app->networkManager.connected ? "connected\n" : "disconnected\n";
     lobbyInfoRect->SetText("Network Status: " + connectionStatusString +
         "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
-    lobbyInfoRect->position = glm::vec2(0.6, 0.6);
+    lobbyInfoRect->position = glm::vec2(0.6, 0.8);
     lobbyInfoRect->moveWithAspectRatio = true;
     lobbyInfoRect->scale = glm::vec2(0.4, 0.1);
     lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -108,7 +108,7 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "Notes:\n"
                 "- Respawn on terrain\n"
                 "  or boundary collision.");
-    rect->position = glm::vec2(-0.7, 0.2);
+    rect->position = glm::vec2(-0.7, 0.6);
     rect->moveWithAspectRatio = true;
     rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -119,10 +119,19 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats = std::make_shared<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
     stats->moveWithAspectRatio = true;
     stats->scale = glm::vec2(0.4, 0.16);
-    stats->position = glm::vec2(0.6, -0.6);
+    stats->position = glm::vec2(0.7, -0.75);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
+
+    //aircraft radar
+    radar = std::make_shared<RectWidget>("radar");
+    radar->moveWithAspectRatio = true;
+    radar->scale = glm::vec2(0.3, 0.3);
+    radar->position = glm::vec2(-0.7, -0.6);
+    radar->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(radar);
 }
 
 void AircraftWidgetLayer::UpdateLayer() {

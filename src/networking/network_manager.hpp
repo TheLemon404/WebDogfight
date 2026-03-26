@@ -66,6 +66,6 @@ class NetworkManager {
     void Tick();
     void ConnectToServer();
     void CreateLobby();
-    void JoinLobby(int lobbyCode);
+    void JoinLobby(uint32_t lobbyCode);
     void Shutdown();
 };

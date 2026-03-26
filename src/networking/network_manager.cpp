@@ -80,6 +80,11 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         {
             std::lock_guard<std::mutex> lock(pendingStateChangeMutex);
             state->lobbyId = packet.ReadU32();
+            if (state->lobbyId == 0) {
+                std::cout << "failed to join lobby" << std::endl;
+                break;
+            }
+
             std::cout << "lobby joined: " << state->lobbyId << std::endl;
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
@@ -199,7 +204,7 @@ void NetworkManager::CreateLobby() {
     );
 }
 
-void NetworkManager::JoinLobby(int lobbyCode) {
+void NetworkManager::JoinLobby(uint32_t lobbyCode) {
     state->SocketSendBinary(
         Packet()
         .WritePacketType(PacketType::JOIN_LOBBY)

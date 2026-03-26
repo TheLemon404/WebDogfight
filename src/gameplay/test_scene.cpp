@@ -43,7 +43,10 @@ void MenuWidgetLayer::CreateWidgets() {
     joinButton->borderColor.value = glm::vec4(0.4);
     joinButton->cornerColor.value = glm::vec4(0.7);
     joinButton->onPressed = [this, &app]{
-        app->networkManager.JoinLobby(std::stoi(this->codeInput->GetText()));
+        uint32_t lobbyId = 0;
+        if((lobbyId = (uint32_t)std::stoi(this->codeInput->GetText())) != 0) {
+            app->networkManager.JoinLobby(lobbyId);
+        }
     };
     widgets.push_back(joinButton);
 
