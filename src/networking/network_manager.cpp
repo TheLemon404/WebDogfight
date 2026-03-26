@@ -214,8 +214,10 @@ void NetworkManager::JoinLobby(uint32_t lobbyCode) {
 }
 
 void NetworkManager::Shutdown() {
-#ifndef __EMSCRIPTEN__
-    if(state) {
+#ifdef __EMSCRIPTEN__
+    emscripten_websocket_delete(state->socket);
+#else
+    if(state && connected) {
         state->socket.stop();
     }
     ix::uninitNetSystem();

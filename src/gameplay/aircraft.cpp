@@ -89,9 +89,9 @@ void AircraftWidgetLayer::CreateWidgets() {
     std::string connectionStatusString = app->networkManager.connected ? "connected\n" : "disconnected\n";
     lobbyInfoRect->SetText("Network Status: " + connectionStatusString +
         "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
-    lobbyInfoRect->position = glm::vec2(0.6, 0.8);
+    lobbyInfoRect->position = glm::vec2(0.7, 0.75);
     lobbyInfoRect->moveWithAspectRatio = true;
-    lobbyInfoRect->scale = glm::vec2(0.4, 0.1);
+    lobbyInfoRect->scale = glm::vec2(0.42, 0.075);
     lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(lobbyInfoRect);
@@ -124,14 +124,32 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
 
-    //aircraft radar
-    radar = std::make_shared<RectWidget>("radar");
-    radar->moveWithAspectRatio = true;
-    radar->scale = glm::vec2(0.3, 0.3);
-    radar->position = glm::vec2(-0.7, -0.6);
-    radar->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
-    radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(radar);
+
+    radarRing = std::make_shared<CircleWidget>("radarRing");
+    radarRing->moveWithAspectRatio = true;
+    radarRing->scale = glm::vec2(0.3, 0.3);
+    radarRing->radius = 140;
+    radarRing->thickness = 5;
+    radarRing->position = glm::vec2(-0.7, -0.6);
+    radarRing->color.value = glm::vec4(0.4, 0.7, 0.6, 0.6);
+    widgets.push_back(radarRing);
+
+    radarCenter = std::make_shared<CircleWidget>("radarCenter");
+    radarCenter->moveWithAspectRatio = true;
+    radarCenter->scale = glm::vec2(0.3, 0.3);
+    radarCenter->radius = 5;
+    radarCenter->thickness = 5;
+    radarCenter->position = glm::vec2(-0.7, -0.6);
+    radarCenter->color.value = glm::vec4(0.4, 0.7, 0.6, 0.6);
+    widgets.push_back(radarCenter);
+
+    radarRect = std::make_shared<RectWidget>("radarRect");
+    radarRect->moveWithAspectRatio = true;
+    radarRect->scale = glm::vec2(0.3, 0.3);
+    radarRect->position = glm::vec2(-0.7, -0.6);
+    radarRect->color.value = glm::vec4(0.3, 0.5, 0.4, 0.5);
+    radarRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(radarRect);
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
