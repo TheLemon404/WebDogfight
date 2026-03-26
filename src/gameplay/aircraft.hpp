@@ -142,7 +142,7 @@ class AircraftWidgetLayer : public WidgetLayer {
 };
 
 
-class Aircraft : public Entity {
+class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     std::unique_ptr<AircraftWidgetLayer> aircraftWidgetLayer = nullptr;
 
     const std::string resourcePath;
@@ -179,8 +179,6 @@ class Aircraft : public Entity {
     Sound engineSound = Sound();
 
     public:
-    bool pendingDespawn = false;
-
     AircraftControls controls;
 
     Shader shader;

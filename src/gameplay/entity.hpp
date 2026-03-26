@@ -5,6 +5,8 @@
 
 class Entity {
     public:
+    bool pendingDespawn = false;
+
     const unsigned int id = rand();
     const std::string name;
 

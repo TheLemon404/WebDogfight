@@ -152,15 +152,6 @@ Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourceP
 
 Aircraft::~Aircraft() {
     std::unique_ptr<Application>& app = Application::GetInstance();
-
-    if(networkId == app->networkManager.localClientId) {
-        std::shared_ptr<MenuWidgetLayer> menuWidgetLayer = app->sceneManager.currentScene->GetWidgetLayerByType<MenuWidgetLayer>();
-        if(menuWidgetLayer) {
-            InputManager::mouseHidden = false;
-            glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-            menuWidgetLayer->SetDisabled(false);
-        }
-    }
 }
 
 void Aircraft::LoadResources() {
@@ -289,6 +280,8 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 }
 
 void Aircraft::Update() {
+    if(pendingDespawn) return;
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     if(networkId == app->networkManager.localClientId) {
@@ -457,7 +450,20 @@ void Aircraft::Explode() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     if(networkId == app->networkManager.localClientId) {
+        app->sceneManager.currentScene->RuntimeDespawn(shared_from_this());
         app->networkManager.networkGameState.clientStates[networkId].inGame = false;
+
+        Timer timer;
+        timer.endTime = 4.0f;
+        timer.callback = [this, &app]() {
+            std::shared_ptr<MenuWidgetLayer> menuWidgetLayer = app->sceneManager.currentScene->GetWidgetLayerByType<MenuWidgetLayer>();
+            if(menuWidgetLayer) {
+                InputManager::mouseHidden = false;
+                glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+                menuWidgetLayer->SetDisabled(false);
+            }
+        };
+        app->clock.timers.push_back(timer);
     }
 }
 

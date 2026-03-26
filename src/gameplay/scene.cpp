@@ -12,6 +12,7 @@ void Scene::RuntimeSpawn(std::shared_ptr<Entity> entity) {
 }
 
 void Scene::RuntimeDespawn(std::shared_ptr<Entity> entity) {
+    entity->pendingDespawn = true;
     despawnQueue.push(entity);
 }
 
@@ -23,7 +24,6 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
             for(int i = 0; i < entities.size(); i++) {
                 std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entities[i]);
                 if(aircraft && aircraft->networkId == entry.first && !aircraft->pendingDespawn) {
-                    aircraft->pendingDespawn = true;
                     RuntimeDespawn(aircraft);
                 }
             }
@@ -135,13 +135,9 @@ void Scene::Update()  {
     }
     while(!despawnQueue.empty()) {
         std::shared_ptr<Entity> entity = despawnQueue.front();
-        std::cout << "test 1" << std::endl;
         entity->UnloadResources();
-        std::cout << "test 2" << std::endl;
         entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
-        std::cout << "Despawned entity " << entity->id << std::endl;
         despawnQueue.pop();
-        std::cout << "test 3" << std::endl;
     }
 }
 
