@@ -196,7 +196,9 @@ void TextRectWidget::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->graphicsBackend.SetDepthTest(false);
-    RectWidget::Draw();
+    if(showPanelRect){
+        RectWidget::Draw();
+    }
 
     app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformInt(*textShader, 0, "uFontTexture");

@@ -86,6 +86,8 @@ class TextRectWidget : public RectWidget {
     public:
     Font font;
 
+    bool showPanelRect = true;
+
     //--- IMPORTANT --- this only works with 1 line text length
     bool centerText = false;
 
