@@ -47,8 +47,8 @@
 #define GFORCE_BODY_THRESHOLD 7
 #define GFORCE_TRAIL_THRESHOLD 9
 
-
 using json = nlohmann::json;
+
 
 void RadarWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -67,7 +67,8 @@ void RadarWidget::Draw() {
 
     app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
     int numAircrafts = aircrafts.size();
-    glm::vec2 mainPlayerPosition = glm::vec2(0.0f);
+    glm::vec2 localClientPosition = glm::vec2(0.0f);
+    float localClientRotation = 0.0f;
 
     if(numAircrafts > 0) {
         for (size_t i = 0; i < aircrafts.size(); i++) {
@@ -77,10 +78,11 @@ void RadarWidget::Draw() {
             };
 
             if(aircrafts[i]->networkId == app->networkManager.localClientId) {
-                mainPlayerPosition = {
+                localClientPosition = {
                     aircrafts[i]->transform.position.x,
                     aircrafts[i]->transform.position.z
                 };
+                localClientRotation = aircrafts[i]->GetYaw();
             }
 
             app->graphicsBackend.UploadShaderUniformVec2(*shader, playerWorldPositions[i], "uPlayerWorldPositions[" + std::to_string(i) + "]");
@@ -88,7 +90,8 @@ void RadarWidget::Draw() {
     }
 
     app->graphicsBackend.UploadShaderUniformInt(*shader, numAircrafts, "uPlayerCount");
-    app->graphicsBackend.UploadShaderUniformVec2(*shader, mainPlayerPosition, "uMainPlayerPosition");
+    app->graphicsBackend.UploadShaderUniformVec2(*shader, localClientPosition, "uLocalClientPosition");
+    app->graphicsBackend.UploadShaderUniformFloat(*shader, localClientRotation, "uLocalClientRotation");
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
     app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");

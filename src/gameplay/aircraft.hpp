@@ -197,6 +197,11 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     SkeletalMesh skeletalMesh;
     Transform transform;
 
+    float GetYaw() const {
+        glm::vec3 forward = transform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+        return atan2(forward.x, -forward.z);
+    }
+
     glm::vec3 velocity = glm::vec3(0.0);
     float speed = 0.0f;
     float gForce = 0.0f;
