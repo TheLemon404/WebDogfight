@@ -11,7 +11,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-#define MAX_AIRCRAFT_HEIGHT 1000000.0f
+#define MAX_AIRCRAFT_HEIGHT 30000.0f
 
 #define HEIGHT_CONSTANT 10000.0f
 

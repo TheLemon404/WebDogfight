@@ -17,6 +17,20 @@ void MenuWidgetLayer::CreateWidgets() {
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     widgets.push_back(background);
 
+    nameInput = std::make_shared<InputWidget>("nameInput", app->graphicsBackend.globalFonts.defaultFont);
+    nameInput->stretchWithAspectRatio = true;
+    nameInput->moveWithAspectRatio = true;
+    nameInput->centerText = true;
+    nameInput->maxCharacters = 6;
+    nameInput->SetText("name");
+    nameInput->font.fontScale = 2.0;
+    nameInput->scale = glm::vec2(0.2, 0.09);
+    nameInput->position.y = 0.3f;
+    nameInput->color.value = glm::vec4(0.2);
+    nameInput->borderColor.value = glm::vec4(0.4);
+    nameInput->cornerColor.value = glm::vec4(0.7);
+    widgets.push_back(nameInput);
+
     codeInput = std::make_shared<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;
     codeInput->moveWithAspectRatio = true;

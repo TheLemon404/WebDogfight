@@ -72,6 +72,7 @@ struct GameState {
 class NetworkClient {
     public:
     uint32_t lobbyId = -1;
+    std::string name = "guest";
 
     NetworkClient() {};
 };

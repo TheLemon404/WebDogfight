@@ -49,6 +49,22 @@
 
 using json = nlohmann::json;
 
+
+void RadarWidget::LoadResources() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    quad = app->graphicsBackend.CreateQuad();
+    shader = &app->graphicsBackend.globalShaders.radar;
+}
+
+void RadarWidget::Update() {
+
+}
+
+void RadarWidget::Draw() {
+    RectWidget::Draw();
+}
+
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
@@ -124,32 +140,13 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     widgets.push_back(stats);
 
-
-    radarRing = std::make_shared<CircleWidget>("radarRing");
-    radarRing->moveWithAspectRatio = true;
-    radarRing->scale = glm::vec2(0.3, 0.3);
-    radarRing->radius = 140;
-    radarRing->thickness = 5;
-    radarRing->position = glm::vec2(-0.7, -0.6);
-    radarRing->color.value = glm::vec4(0.4, 0.7, 0.6, 0.6);
-    widgets.push_back(radarRing);
-
-    radarCenter = std::make_shared<CircleWidget>("radarCenter");
-    radarCenter->moveWithAspectRatio = true;
-    radarCenter->scale = glm::vec2(0.3, 0.3);
-    radarCenter->radius = 5;
-    radarCenter->thickness = 5;
-    radarCenter->position = glm::vec2(-0.7, -0.6);
-    radarCenter->color.value = glm::vec4(0.4, 0.7, 0.6, 0.6);
-    widgets.push_back(radarCenter);
-
-    radarRect = std::make_shared<RectWidget>("radarRect");
-    radarRect->moveWithAspectRatio = true;
-    radarRect->scale = glm::vec2(0.3, 0.3);
-    radarRect->position = glm::vec2(-0.7, -0.6);
-    radarRect->color.value = glm::vec4(0.3, 0.5, 0.4, 0.5);
-    radarRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(radarRect);
+    radar = std::make_shared<RadarWidget>("radarRect");
+    radar->moveWithAspectRatio = true;
+    radar->scale = glm::vec2(0.3, 0.3);
+    radar->position = glm::vec2(-0.7, -0.6);
+    radar->color.value = glm::vec4(0.3, 0.5, 0.4, 0.5);
+    radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    widgets.push_back(radar);
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
@@ -606,6 +603,8 @@ void AircraftExhaustParticleSystem::Update() {
 }
 
 void AircraftExhaustParticleSystem::Draw() {
+    FOX2_PROFILE_FUNCTION()
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->graphicsBackend.SetBackfaceCulling(false);
@@ -705,6 +704,8 @@ void AircraftTrails::Update() {
 }
 
 void AircraftTrails::Draw() {
+    FOX2_PROFILE_FUNCTION()
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     Transform t = Transform();

@@ -23,6 +23,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.clouds = Loader::LoadShaderFromGLSL("resources/shaders/clouds.glsl");
     globalShaders.uiCircle = Loader::LoadShaderFromGLSL("resources/shaders/ui_circle.glsl");
     globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
+    globalShaders.radar = Loader::LoadShaderFromGLSL("resources/shaders/radar.glsl");
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
@@ -43,6 +44,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.clouds);
     DeleteShader(globalShaders.uiCircle);
     DeleteShader(globalShaders.uiSquare);
+    DeleteShader(globalShaders.radar);
 
     DeleteFont(globalFonts.defaultFont);
 

@@ -38,11 +38,19 @@ uniform ivec2 uWidgetResolution;
 
 out vec4 FragColor;
 
+vec2 uvToPixel(vec2 uv) {
+    return uv * vec2(uWidgetResolution);
+}
+
+vec2 pixelToUV(vec2 pixel) {
+    return pixel / vec2(uWidgetResolution);
+}
+
 void main()
 {
     FragColor = uColor;
 
-    ivec2 currentWidgetPixel = ivec2(int(pUV.x * float(uWidgetResolution.x)), int(pUV.y * float(uWidgetResolution.y)));
+    ivec2 currentWidgetPixel = ivec2(uvToPixel(pUV));
 
     //border
     if (currentWidgetPixel.x < uBorder || currentWidgetPixel.x >= uWidgetResolution.x - uBorder || currentWidgetPixel.y < uBorder || currentWidgetPixel.y >= uWidgetResolution.y - uBorder) {

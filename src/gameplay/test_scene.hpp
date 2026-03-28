@@ -11,6 +11,7 @@
 #include "../io/input.hpp"
 
 class MenuWidgetLayer : public WidgetLayer {
+    std::shared_ptr<InputWidget> nameInput;
     std::shared_ptr<InputWidget> codeInput;
     unsigned int connectionStatusId;
 

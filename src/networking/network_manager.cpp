@@ -17,7 +17,8 @@
 #include <iostream>
 #include "../application.hpp"
 
-#define SERVER_URL "ws://127.0.0.1:1234/"
+#define SERVER_URL "wss://webdogfightserver.onrender.com"
+//#define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
 #define STATE_SEND_INTERVAL 0.05
 
@@ -56,6 +57,7 @@ EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent*
 void NetworkManager::OnConnectedToServer() {
     std::cout << "connected to server" << std::endl;
     connected = true;
+    //state->SocketSendBinary(Packet().WritePacketType(PacketType::NAME_UPDATE))
     state->SocketSendBinary(Packet().WritePacketType(PacketType::JOIN_RANDOM_LOBBY).Build());
 }
 

@@ -128,15 +128,22 @@ struct AircraftWidgetLayerNeededProps {
     float gForce = 0.0f;
 };
 
+class RadarWidget : public RectWidget {
+    public:
+    void LoadResources() override;
+    void Update() override;
+    void Draw() override;
+
+    RadarWidget(const std::string& name) : RectWidget(name) {}
+};
+
 class AircraftWidgetLayer : public WidgetLayer {
     public:
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim;
     std::shared_ptr<RectWidget> mouse;
     std::shared_ptr<TextRectWidget> stats;
-    std::shared_ptr<RectWidget> radarRect;
-    std::shared_ptr<CircleWidget> radarRing;
-    std::shared_ptr<CircleWidget> radarCenter;
+    std::shared_ptr<RadarWidget> radar;
 
 
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);

@@ -31,13 +31,21 @@ uniform ivec2 uWidgetResolution;
 
 out vec4 FragColor;
 
-#define UI_CENTER vec2(0.5)
+#define UV_CENTER vec2(0.5)
+
+vec2 uvToPixel(vec2 uv) {
+    return uv * vec2(uWidgetResolution);
+}
+
+vec2 pixelToUV(vec2 pixel) {
+    return pixel / vec2(uWidgetResolution);
+}
 
 void main()
 {
-    vec2 currentWidgetPixel = vec2(pUV.x * float(uWidgetResolution.x), pUV.y * float(uWidgetResolution.y));
+    vec2 currentWidgetPixel = uvToPixel(pUV);
 
-    float dist = distance(vec2(UI_CENTER.x * float(uWidgetResolution.x), UI_CENTER.y * float(uWidgetResolution.y)), currentWidgetPixel);
+    float dist = distance(vec2(UV_CENTER.x * float(uWidgetResolution.x), UV_CENTER.y * float(uWidgetResolution.y)), currentWidgetPixel);
     if (dist > float(uRadius)) discard;
     if (dist < float(uRadius - uThickness)) discard;
     FragColor = uColor;
