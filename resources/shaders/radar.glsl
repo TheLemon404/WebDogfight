@@ -25,6 +25,8 @@ void main()
 precision mediump float;
 
 #define UV_CENTER vec2(0.5)
+#define MAX_PLAYERS_PER_LOBBY 16
+#define RADAR_RANGE 0.00001
 
 in vec2 pPos;
 in vec2 pUV;
@@ -48,6 +50,10 @@ vec2 pixelToUV(vec2 pixel) {
     return pixel / vec2(uWidgetResolution);
 }
 
+uniform vec2 uPlayerWorldPositions[MAX_PLAYERS_PER_LOBBY];
+uniform int uPlayerCount;
+uniform vec2 uMainPlayerPosition;
+
 void main()
 {
     FragColor = uColor;
@@ -67,7 +73,15 @@ void main()
         }
     }
     //THIS IS FOR THE RADAR RINGS
-    if (uvDist <= 0.45) FragColor += vec4(0.1, 0.3, 0.1, 0.0);
-
-    if (uvDist <= 0.02) FragColor += vec4(0.1, 0.2, 0.1, 0.0);
+    if (uvDist <= 0.45) {
+        FragColor += vec4(0.1, 0.3, 0.1, 0.0);
+        for (int i = 0; i < uPlayerCount; i++) {
+            vec2 relativePosition = (uMainPlayerPosition - uPlayerWorldPositions[i]) * RADAR_RANGE;
+            vec2 centeredUV = (pUV - vec2(0.5)) * 2.0;
+            float playerDist = distance(centeredUV, relativePosition);
+            if (playerDist <= 0.03) {
+                FragColor += vec4(0.1, 0.3, 0.1, 0.0);
+            }
+        }
+    }
 }

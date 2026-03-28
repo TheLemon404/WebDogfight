@@ -129,9 +129,10 @@ struct AircraftWidgetLayerNeededProps {
 };
 
 class RadarWidget : public RectWidget {
+    std::vector<glm::vec2> playerWorldPositions;
+
     public:
     void LoadResources() override;
-    void Update() override;
     void Draw() override;
 
     RadarWidget(const std::string& name) : RectWidget(name) {}

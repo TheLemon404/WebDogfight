@@ -10,6 +10,8 @@
 #endif
 #include <vector>
 
+#define MAX_PLAYERS_PER_LOBBY 16
+
 class NetworkManagerState {
     public:
     #ifdef __EMSCRIPTEN__
