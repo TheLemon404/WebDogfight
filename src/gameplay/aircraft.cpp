@@ -121,25 +121,22 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
 
 void AircraftWidgetLayer::CreateWidgets() {
     //aircraft aiming ui
-    aim = std::make_shared<CircleWidget>("aimWidget");
+    aim = CreateWidget<CircleWidget>("aimWidget");
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     aim->moveWithAspectRatio = true;
-    widgets.push_back(aim);
 
-    mouse = std::make_shared<RectWidget>("mouseWidget");
+    mouse = CreateWidget<RectWidget>("mouseWidget");
     mouse->rotation = 45.0;
     mouse->scale = glm::vec2(0.02);
     mouse->color.value.a = 0.0;
     mouse->borderColor.value = glm::vec4(0.0);
     mouse->cornerLength = 7;
     mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
-    widgets.push_back(mouse);
 
     //demo window ui
-
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    std::shared_ptr<TextRectWidget> lobbyInfoRect = std::make_shared<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextRectWidget> lobbyInfoRect = CreateWidget<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
     std::string connectionStatusString = app->networkManager.connected ? "connected\n" : "disconnected\n";
     lobbyInfoRect->SetText("Network Status: " + connectionStatusString +
         "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
@@ -148,9 +145,8 @@ void AircraftWidgetLayer::CreateWidgets() {
     lobbyInfoRect->scale = glm::vec2(0.42, 0.075);
     lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(lobbyInfoRect);
 
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText(
                 "Controls:\n"
                 "- Shift: Thottle Up\n"
@@ -167,24 +163,21 @@ void AircraftWidgetLayer::CreateWidgets() {
     rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(rect);
 
     //aircraft stats ui
-    stats = std::make_shared<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
+    stats = CreateWidget<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
     stats->moveWithAspectRatio = true;
     stats->scale = glm::vec2(0.4, 0.16);
     stats->position = glm::vec2(0.7, -0.75);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(stats);
 
-    radar = std::make_shared<RadarWidget>("radarRect");
+    radar = CreateWidget<RadarWidget>("radarRect");
     radar->moveWithAspectRatio = true;
     radar->scale = glm::vec2(0.3, 0.3);
     radar->position = glm::vec2(-0.7, -0.6);
     radar->color.value = glm::vec4(0.3, 0.5, 0.4, 0.5);
     radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    widgets.push_back(radar);
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
@@ -307,8 +300,8 @@ void Aircraft::Initialize() {
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
 
     if(aircraftWidgetLayer) {
-        aimWidget = aircraftWidgetLayer->GetWidgetByName("aimWidget");
-        mouseWidget = aircraftWidgetLayer->GetWidgetByName("mouseWidget");
+        aimWidget = static_pointer_cast<RectWidget>(aircraftWidgetLayer->GetWidgetByName("aimWidget"));
+        mouseWidget = static_pointer_cast<CircleWidget>(aircraftWidgetLayer->GetWidgetByName("mouseWidget"));
         aircraftWidgetLayer->Initialize();
     }
 }

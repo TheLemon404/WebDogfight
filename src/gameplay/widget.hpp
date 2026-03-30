@@ -30,10 +30,17 @@ class Widget {
 };
 
 class WidgetLayer {
+    protected:
     bool disabled = false;
+    std::vector<std::shared_ptr<Widget>> widgets;
 
     public:
-    std::vector<std::shared_ptr<Widget>> widgets;
+    template<typename T, typename... Args>
+    std::shared_ptr<T> CreateWidget(Args&&... args) {
+        std::shared_ptr<T> widget = std::make_shared<T>(std::forward<Args>(args)...);
+        widgets.push_back(widget);
+        return widget;
+    }
 
     void SetDisabled(bool disabled);
 

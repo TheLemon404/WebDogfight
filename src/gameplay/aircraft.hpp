@@ -141,10 +141,10 @@ class RadarWidget : public RectWidget {
 class AircraftWidgetLayer : public WidgetLayer {
     public:
     AircraftWidgetLayerNeededProps aircraftProps;
-    std::shared_ptr<CircleWidget> aim;
-    std::shared_ptr<RectWidget> mouse;
-    std::shared_ptr<TextRectWidget> stats;
-    std::shared_ptr<RadarWidget> radar;
+    std::shared_ptr<CircleWidget> aim = nullptr;
+    std::shared_ptr<RectWidget> mouse = nullptr;
+    std::shared_ptr<TextRectWidget> stats = nullptr;
+    std::shared_ptr<RadarWidget> radar = nullptr;
 
 
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
@@ -160,8 +160,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     const std::string resourcePath;
     AircraftResource resource;
 
-    std::shared_ptr<Widget> aimWidget;
-    std::shared_ptr<Widget> mouseWidget;
+    std::shared_ptr<RectWidget> aimWidget = nullptr;
+    std::shared_ptr<CircleWidget> mouseWidget = nullptr;
 
     float targetBrakeAngle = 0.0f;
 

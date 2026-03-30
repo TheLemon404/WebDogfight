@@ -10,14 +10,13 @@
 void MenuWidgetLayer::CreateWidgets() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    std::shared_ptr<RectWidget> background = std::make_shared<RectWidget>("background");
+    std::shared_ptr<RectWidget> background = CreateWidget<RectWidget>("background");
     background->color.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->stretchWithAspectRatio = true;
     background->borderColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
-    widgets.push_back(background);
 
-    nameInput = std::make_shared<InputWidget>("nameInput", app->graphicsBackend.globalFonts.defaultFont);
+    nameInput = CreateWidget<InputWidget>("nameInput", app->graphicsBackend.globalFonts.defaultFont);
     nameInput->stretchWithAspectRatio = true;
     nameInput->moveWithAspectRatio = true;
     nameInput->centerText = true;
@@ -29,9 +28,8 @@ void MenuWidgetLayer::CreateWidgets() {
     nameInput->color.value = glm::vec4(0.2);
     nameInput->borderColor.value = glm::vec4(0.4);
     nameInput->cornerColor.value = glm::vec4(0.7);
-    widgets.push_back(nameInput);
 
-    codeInput = std::make_shared<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
+    codeInput = CreateWidget<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;
     codeInput->moveWithAspectRatio = true;
     codeInput->centerText = true;
@@ -43,9 +41,8 @@ void MenuWidgetLayer::CreateWidgets() {
     codeInput->color.value = glm::vec4(0.2);
     codeInput->borderColor.value = glm::vec4(0.4);
     codeInput->cornerColor.value = glm::vec4(0.7);
-    widgets.push_back(codeInput);
 
-    std::shared_ptr<TextButtonWidget> joinButton = std::make_shared<TextButtonWidget>("joinButton", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> joinButton = CreateWidget<TextButtonWidget>("joinButton", app->graphicsBackend.globalFonts.defaultFont);
     joinButton->stretchWithAspectRatio = true;
     joinButton->moveWithAspectRatio = true;
     joinButton->centerText = true;
@@ -62,9 +59,8 @@ void MenuWidgetLayer::CreateWidgets() {
             app->networkManager.JoinLobby(lobbyId);
         }
     };
-    widgets.push_back(joinButton);
 
-    std::shared_ptr<TextButtonWidget> createButton = std::make_shared<TextButtonWidget>("createButton", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> createButton = CreateWidget<TextButtonWidget>("createButton", app->graphicsBackend.globalFonts.defaultFont);
     createButton->stretchWithAspectRatio = true;
     createButton->moveWithAspectRatio = true;
     createButton->centerText = true;
@@ -78,9 +74,8 @@ void MenuWidgetLayer::CreateWidgets() {
     createButton->onPressed = [this, &app]{
         app->networkManager.CreateLobby();
     };
-    widgets.push_back(createButton);
 
-    std::shared_ptr<TextButtonWidget> playButton = std::make_shared<TextButtonWidget>("playButton", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextButtonWidget> playButton = CreateWidget<TextButtonWidget>("playButton", app->graphicsBackend.globalFonts.defaultFont);
     playButton->stretchWithAspectRatio = true;
     playButton->moveWithAspectRatio = true;
     playButton->centerText = true;
@@ -98,9 +93,8 @@ void MenuWidgetLayer::CreateWidgets() {
         app->sceneManager.currentScene->RuntimeSpawn(aircraft);
         this->SetDisabled(true);
     };
-    widgets.push_back(playButton);
 
-    std::shared_ptr<TextRectWidget> rect = std::make_shared<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
+    std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText("Welcome to the Fox2.io\n"
                 "flight controls test!\n\n"
                 "This is in the very early\n"
@@ -114,18 +108,16 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->color.value = glm::vec4(0.2);
     rect->borderColor.value = glm::vec4(0.4);
     rect->cornerColor.value = glm::vec4(0.7);
-    widgets.push_back(rect);
 
-    std::shared_ptr<TextRectWidget> connectionStatus = std::make_shared<TextRectWidget>("connectionStatus", app->graphicsBackend.globalFonts.defaultFont);
-    rect->SetText("no server connection");
-    rect->position = glm::vec2(0.8, -1.0);
-    rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.3);
-    rect->color.value = glm::vec4(0.0);
-    rect->borderColor.value = glm::vec4(0.0);
-    rect->cornerColor.value = glm::vec4(0.0);
-    widgets.push_back(rect);
-    connectionStatusId = rect->id;
+    std::shared_ptr<TextRectWidget> connectionStatus = CreateWidget<TextRectWidget>("connectionStatus", app->graphicsBackend.globalFonts.defaultFont);
+    connectionStatus->SetText("no server connection");
+    connectionStatus->position = glm::vec2(0.8, -1.0);
+    connectionStatus->moveWithAspectRatio = true;
+    connectionStatus->scale = glm::vec2(0.4, 0.3);
+    connectionStatus->color.value = glm::vec4(0.0);
+    connectionStatus->borderColor.value = glm::vec4(0.0);
+    connectionStatus->cornerColor.value = glm::vec4(0.0);
+    connectionStatusId = connectionStatus->id;
 }
 
 void MenuWidgetLayer::UpdateLayer() {
