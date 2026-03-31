@@ -11,8 +11,9 @@
 #include "../io/input.hpp"
 
 class MenuWidgetLayer : public WidgetLayer {
-    std::shared_ptr<InputWidget> nameInput;
-    std::shared_ptr<InputWidget> codeInput;
+    std::shared_ptr<InputWidget> nameInput = nullptr;
+    std::shared_ptr<InputWidget> codeInput = nullptr;
+    std::shared_ptr<TextRectWidget> connectionStatus = nullptr;
     unsigned int connectionStatusId;
 
     void CreateWidgets() override;

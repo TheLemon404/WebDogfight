@@ -128,6 +128,14 @@ struct AircraftWidgetLayerNeededProps {
     float gForce = 0.0f;
 };
 
+class CompassWidget : public TextRectWidget {
+    public:
+    void LoadResources() override;
+    void Draw() override;
+
+    CompassWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}
+};
+
 class RadarWidget : public RectWidget {
     std::vector<glm::vec2> playerWorldPositions;
 
@@ -145,7 +153,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<RectWidget> mouse = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
-
+    std::shared_ptr<CompassWidget> compass = nullptr;
 
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
 

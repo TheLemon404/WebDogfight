@@ -7,6 +7,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/geometric.hpp"
+#include <cmath>
 #include <cstddef>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -66,6 +67,11 @@ class Camera {
 
     glm::mat4 GetViewMatrix() const {
         return glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+
+    float GetYaw() const {
+        glm::vec3 direction = glm::normalize(target - position);
+        return atan2(direction.z, direction.x);
     }
 };
 

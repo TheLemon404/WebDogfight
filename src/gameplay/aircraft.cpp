@@ -19,6 +19,7 @@
 #include "test_scene.hpp"
 #include "widget.hpp"
 #include <cstddef>
+#include <memory>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
 #include <glm/gtx/rotate_vector.hpp>
@@ -49,6 +50,48 @@
 
 using json = nlohmann::json;
 
+void CompassWidget::LoadResources() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    quad = app->graphicsBackend.CreateQuad();
+    shader = &app->graphicsBackend.globalShaders.compass;
+
+    textShader = &app->graphicsBackend.globalShaders.font;
+    textMesh = app->graphicsBackend.CreateQuad();
+
+    RecomputeTextMesh();
+}
+
+void CompassWidget::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    float cameraRotation = app->sceneManager.activeCamera.GetYaw();
+    float rotationDegrees = (cameraRotation + PI) * (180.0f / PI);
+    SetText("                                " + std::to_string(static_cast<int>(std::round(rotationDegrees))) + " deg");
+
+    app->graphicsBackend.SetDepthTest(false);
+    if(showPanelRect){
+        app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
+        app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
+        app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
+        app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
+        app->graphicsBackend.UploadShaderUniformInt(*shader, cornerLength, "uCornerLength");
+        app->graphicsBackend.UploadShaderUniformVec4(*shader, borderColor.value, "uBorderColor");
+        app->graphicsBackend.UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
+        glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
+        app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
+        app->graphicsBackend.UploadShaderUniformFloat(*shader, cameraRotation, "uCameraRotation");
+        app->graphicsBackend.EndDrawMesh2D(quad);
+    }
+
+    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.UploadShaderUniformInt(*textShader, 0, "uFontTexture");
+    app->graphicsBackend.UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
+    app->graphicsBackend.UseTextureIDSlot(font.atlasTextureID, 0);
+    app->graphicsBackend.EndDrawMesh2D(textMesh);
+
+    app->graphicsBackend.SetDepthTest(true);
+}
 
 void RadarWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -82,8 +125,9 @@ void RadarWidget::Draw() {
                     aircrafts[i]->transform.position.x,
                     aircrafts[i]->transform.position.z
                 };
-                localClientRotation = aircrafts[i]->GetYaw();
             }
+
+            localClientRotation = app->sceneManager.activeCamera.GetYaw();
 
             app->graphicsBackend.UploadShaderUniformVec2(*shader, playerWorldPositions[i], "uPlayerWorldPositions[" + std::to_string(i) + "]");
         }
@@ -158,7 +202,7 @@ void AircraftWidgetLayer::CreateWidgets() {
                 "Notes:\n"
                 "- Respawn on terrain\n"
                 "  or boundary collision.");
-    rect->position = glm::vec2(-0.7, 0.6);
+    rect->position = glm::vec2(-0.7, 0.5);
     rect->moveWithAspectRatio = true;
     rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -178,6 +222,14 @@ void AircraftWidgetLayer::CreateWidgets() {
     radar->position = glm::vec2(-0.7, -0.6);
     radar->color.value = glm::vec4(0.3, 0.5, 0.4, 0.5);
     radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+
+    compass = CreateWidget<CompassWidget>("compass", app->graphicsBackend.globalFonts.defaultFont);
+    compass->moveWithAspectRatio = true;
+    compass->scale = glm::vec2(1.0, 0.05);
+    compass->position = glm::vec2(0.0, 0.9);
+    compass->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    compass->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    compass->SetText("                                0 deg");
 }
 
 void AircraftWidgetLayer::UpdateLayer() {

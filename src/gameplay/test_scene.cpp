@@ -109,7 +109,7 @@ void MenuWidgetLayer::CreateWidgets() {
     rect->borderColor.value = glm::vec4(0.4);
     rect->cornerColor.value = glm::vec4(0.7);
 
-    std::shared_ptr<TextRectWidget> connectionStatus = CreateWidget<TextRectWidget>("connectionStatus", app->graphicsBackend.globalFonts.defaultFont);
+    connectionStatus = CreateWidget<TextRectWidget>("connectionStatus", app->graphicsBackend.globalFonts.defaultFont);
     connectionStatus->SetText("no server connection");
     connectionStatus->position = glm::vec2(0.8, -1.0);
     connectionStatus->moveWithAspectRatio = true;
@@ -123,7 +123,6 @@ void MenuWidgetLayer::CreateWidgets() {
 void MenuWidgetLayer::UpdateLayer() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    const std::shared_ptr<Widget>& connectionStatus = GetWidgetById(connectionStatusId);
     if(connectionStatus) {
         std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.connected ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
     }

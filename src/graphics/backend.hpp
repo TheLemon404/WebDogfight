@@ -38,6 +38,7 @@ struct GlobalShaders {
     Shader uiCircle;
     Shader uiSquare;
     Shader radar;
+    Shader compass;
 };
 
 struct GlobalFonts {
