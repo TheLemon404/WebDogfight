@@ -225,10 +225,11 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     compass = CreateWidget<CompassWidget>("compass", app->graphicsBackend.globalFonts.defaultFont);
     compass->moveWithAspectRatio = true;
-    compass->scale = glm::vec2(1.0, 0.05);
+    compass->scale = glm::vec2(1.0, 0.0425);
     compass->position = glm::vec2(0.0, 0.9);
     compass->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     compass->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    compass->font.fontScale = 1.0f;
     compass->SetText("                                0 deg");
 }
 

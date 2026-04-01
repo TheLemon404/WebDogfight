@@ -59,9 +59,13 @@ void main()
 
     float uvSpaceCameraRotation = (uCameraRotation + PI) / (2.0 * PI);
     float uvPixelWidth = float(ORIENTATION_NOTCH_WIDTH_PIXELS) / float(uWidgetResolution.x);
-    float repeatedUV = mod(pUV.x * 4.0, 1.0);
-    if (repeatedUV > uvSpaceCameraRotation - uvPixelWidth && repeatedUV < uvSpaceCameraRotation + uvPixelWidth) {
+    float repeatedMainUV = mod(pUV.x * 4.0, 1.0);
+    float repeatedSecondaryUV = mod((pUV.x * 4.0) + 0.5, 1.0);
+    if (repeatedMainUV > uvSpaceCameraRotation - uvPixelWidth && repeatedMainUV < uvSpaceCameraRotation + uvPixelWidth) {
         FragColor = uCornerColor;
+    }
+    else if (repeatedSecondaryUV > uvSpaceCameraRotation - (uvPixelWidth / 2.0) && repeatedSecondaryUV < uvSpaceCameraRotation + (uvPixelWidth / 2.0)) {
+        FragColor = uCornerColor / 8.0;
     }
 
     //border
