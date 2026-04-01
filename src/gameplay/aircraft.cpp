@@ -206,11 +206,11 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
-    radar = CreateWidget<RadarWidget>("radarRect");
+    radar = CreateWidget<RadarWidget>("radar");
     radar->moveWithAspectRatio = true;
     radar->scale = glm::vec2(0.3, 0.3);
     radar->position = glm::vec2(-0.7, -0.6);
-    radar->color.value = glm::vec4(0.2, 0.6, 0.3, 0.5);
+    radar->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
     compass = CreateWidget<CompassWidget>("compass", app->graphicsBackend.globalFonts.defaultFont);
