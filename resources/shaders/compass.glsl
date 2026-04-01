@@ -80,6 +80,6 @@ void main()
         }
     }
 
-    float uvXFalloff = pow(abs(pUV.x - 0.5) * 2.0, 4.0);
+    float uvXFalloff = pow(abs(pUV.x - 0.5) * 2.0, 1.5);
     FragColor -= vec4(0.0, 0.0, 0.0, uvXFalloff);
 }

@@ -20,6 +20,10 @@ class MenuWidgetLayer : public WidgetLayer {
     void UpdateLayer() override;
 };
 
+class SettingsWidgetLayer : public WidgetLayer {
+    void CreateWidgets() override;
+    void UpdateLayer() override;
+};
 
 class TestScene {
     public:
