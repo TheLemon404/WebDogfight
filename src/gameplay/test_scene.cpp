@@ -127,3 +127,37 @@ void MenuWidgetLayer::UpdateLayer() {
         std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.connected ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
     }
 }
+
+void SettingsWidgetLayer::CreateWidgets() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    std::shared_ptr<RectWidget> background = CreateWidget<RectWidget>("background");
+    background->color.value = glm::vec4(0.1, 0.1, 0.1, 0.7);
+    background->stretchWithAspectRatio = true;
+    background->borderColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
+    background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
+
+    std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
+    rect->SetText(
+                "Controls:\n"
+                "- Shift: Thottle Up\n"
+                "- Ctrl: Thottle Down\n"
+                "- Q: Roll Left\n"
+                "- E: Roll Right\n"
+                "- Alt: Free Mouse\n"
+                "- Tab: Free Look\n\n"
+                "Notes:\n"
+                "- Respawn on terrain\n"
+                "  or boundary collision.");
+    rect->position = glm::vec2(0.0, 0.0);
+    rect->moveWithAspectRatio = true;
+    rect->scale = glm::vec2(0.4, 0.35);
+    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+}
+
+void SettingsWidgetLayer::UpdateLayer() {
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT)) {
+        SetDisabled(!disabled);
+    }
+}

@@ -191,20 +191,10 @@ void AircraftWidgetLayer::CreateWidgets() {
     lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
     std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
-    rect->SetText(
-                "Controls:\n"
-                "- Shift: Thottle Up\n"
-                "- Ctrl: Thottle Down\n"
-                "- Q: Roll Left\n"
-                "- E: Roll Right\n"
-                "- Alt: Free Mouse\n"
-                "- Tab: Free Look\n\n"
-                "Notes:\n"
-                "- Respawn on terrain\n"
-                "  or boundary collision.");
-    rect->position = glm::vec2(-0.7, 0.5);
+    rect->SetText("Left Alt: Settings");
+    rect->position = glm::vec2(-0.7, 0.75);
     rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.35);
+    rect->scale = glm::vec2(0.3, 0.0425);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
@@ -235,9 +225,15 @@ void AircraftWidgetLayer::CreateWidgets() {
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
+    FOX2_PROFILE_FUNCTION()
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    FOX2_PROFILE_FUNCTION()
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT)) {
+        InputManager::mouseHidden = !InputManager::mouseHidden;
+        glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    }
+
     glm::vec2 targetDelta = glm::vec2(
         InputManager::mouseDelta.x / app->windowManager.primaryWindow->width * app->windowManager.primaryWindow->aspect,
         -InputManager::mouseDelta.y / app->windowManager.primaryWindow->height

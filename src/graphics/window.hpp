@@ -40,11 +40,6 @@ class Window {
 
     void Poll() {
         glfwPollEvents();
-
-        if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT)) {
-            InputManager::mouseHidden = !InputManager::mouseHidden;
-            glfwSetInputMode(window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-        }
     }
 
     void SwapBuffers() {

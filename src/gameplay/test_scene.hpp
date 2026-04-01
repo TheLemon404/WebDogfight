@@ -39,6 +39,10 @@ class TestScene {
 
         std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
         testScene.widgetLayers.push_back(menuLayer);
+
+        std::shared_ptr<SettingsWidgetLayer> settingsLayer = std::make_shared<SettingsWidgetLayer>();
+        settingsLayer->SetDisabled(true);
+        testScene.widgetLayers.push_back(settingsLayer);
         return testScene;
     }
 };
