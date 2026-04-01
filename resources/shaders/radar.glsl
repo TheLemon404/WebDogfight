@@ -84,13 +84,13 @@ void main()
     }
     //THIS IS FOR THE RADAR RINGS
     if (uvDist <= 0.45) {
-        FragColor += vec4(0.1, 0.3, 0.1, 0.0);
+        FragColor += vec4(0.2, 0.2, 0.2, 0.0);
         for (int i = 0; i < uPlayerCount; i++) {
             vec2 relativePosition = rotateAroundPoint((uPlayerWorldPositions[i] - uLocalClientPosition) * RADAR_RANGE, vec2(0.0), uLocalClientRotation) * vec2(-1.0, 1.0);
             vec2 centeredUV = ((pUV - vec2(0.5)) * 2.0);
             float playerDist = distance(centeredUV, relativePosition);
             if (playerDist <= 0.03) {
-                FragColor += vec4(0.1, 0.3, 0.1, 0.0);
+                FragColor += vec4(0.4, 0.4, 0.4, 0.0);
             }
         }
     }
