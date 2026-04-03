@@ -39,6 +39,15 @@ class Scene {
         return nullptr;
     }
 
+    template<typename T>
+    std::shared_ptr<T> GetEntityByName(const std::string& name) {
+        for(std::shared_ptr<Entity> entity : entities) {
+            if(entity->name == name) return std::dynamic_pointer_cast<T>(entity);
+        }
+
+        return nullptr;
+    }
+
     std::shared_ptr<Entity> GetEntityById(const unsigned int id) {
         for(std::shared_ptr<Entity> entity : entities) {
             if(entity->id == id) return entity;

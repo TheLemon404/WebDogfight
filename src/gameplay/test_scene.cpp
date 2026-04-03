@@ -136,6 +136,7 @@ void SettingsWidgetLayer::CreateWidgets() {
     background->stretchWithAspectRatio = true;
     background->borderColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
+    background->z_distance = -0.5f;
 
     std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText(
@@ -154,6 +155,7 @@ void SettingsWidgetLayer::CreateWidgets() {
     rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    rect->z_distance = -0.5f;
 }
 
 void SettingsWidgetLayer::UpdateLayer() {

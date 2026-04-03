@@ -71,7 +71,7 @@ void CompassWidget::Draw() {
 
     app->graphicsBackend.SetDepthTest(false);
     if(showPanelRect){
-        app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
+        app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance,stretchWithAspectRatio, moveWithAspectRatio);
         app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
         app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
         app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
@@ -84,7 +84,7 @@ void CompassWidget::Draw() {
         app->graphicsBackend.EndDrawMesh2D(quad);
     }
 
-    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformInt(*textShader, 0, "uFontTexture");
     app->graphicsBackend.UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     app->graphicsBackend.UseTextureIDSlot(font.atlasTextureID, 0);
@@ -108,7 +108,7 @@ void RadarWidget::Draw() {
 
     std::vector<std::shared_ptr<Aircraft>> aircrafts = app->sceneManager.currentScene->GetEntitiesByType<Aircraft>();
 
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     int numAircrafts = aircrafts.size();
     glm::vec2 localClientPosition = glm::vec2(0.0f);
     float localClientRotation = 0.0f;
@@ -144,6 +144,8 @@ void RadarWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
     glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
     app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uTerrainHeightmap");
+    app->graphicsBackend.UseTextureSlot(app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain")->GetHeightMap(), 0);
     app->graphicsBackend.EndDrawMesh2D(quad);
 }
 
@@ -181,33 +183,32 @@ void AircraftWidgetLayer::CreateWidgets() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     std::shared_ptr<TextRectWidget> lobbyInfoRect = CreateWidget<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
-    std::string connectionStatusString = app->networkManager.connected ? "connected\n" : "disconnected\n";
-    lobbyInfoRect->SetText("Network Status: " + connectionStatusString +
-        "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
-    lobbyInfoRect->position = glm::vec2(0.7, 0.75);
+    lobbyInfoRect->SetText("Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
+    lobbyInfoRect->position = glm::vec2(0.8, 0.9);
     lobbyInfoRect->moveWithAspectRatio = true;
-    lobbyInfoRect->scale = glm::vec2(0.42, 0.075);
-    lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    lobbyInfoRect->scale = glm::vec2(0.2, 0.0425);
+    lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
     lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
-    std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
-    rect->SetText("Left Alt: Settings");
-    rect->position = glm::vec2(-0.7, 0.75);
-    rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.3, 0.0425);
-    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
-    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    std::shared_ptr<TextRectWidget> settings = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
+    settings->SetText("Left Alt: Settings");
+    settings->position = glm::vec2(-0.8, 0.9);
+    settings->moveWithAspectRatio = true;
+    settings->scale = glm::vec2(0.275, 0.0425);
+    settings->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
+    settings->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
     //aircraft stats ui
     stats = CreateWidget<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
     stats->moveWithAspectRatio = true;
     stats->scale = glm::vec2(0.4, 0.16);
     stats->position = glm::vec2(0.7, -0.75);
-    stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
     stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 
     radar = CreateWidget<RadarWidget>("radar");
     radar->moveWithAspectRatio = true;
+    radar->stretchWithAspectRatio = false;
     radar->scale = glm::vec2(0.3, 0.3);
     radar->position = glm::vec2(-0.7, -0.6);
     radar->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
@@ -215,7 +216,7 @@ void AircraftWidgetLayer::CreateWidgets() {
 
     compass = CreateWidget<CompassWidget>("compass", app->graphicsBackend.globalFonts.defaultFont);
     compass->moveWithAspectRatio = true;
-    compass->stretchWithAspectRatio = true;
+    compass->stretchWithAspectRatio = false;
     compass->scale = glm::vec2(1.0, 0.0425);
     compass->position = glm::vec2(0.0, 0.9);
     compass->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);

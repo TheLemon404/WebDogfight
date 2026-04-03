@@ -84,7 +84,7 @@ void RectWidget::Draw() {
     FOX2_PROFILE_FUNCTION()
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, stretchWithAspectRatio, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
     app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
@@ -200,7 +200,7 @@ void TextRectWidget::Draw() {
         RectWidget::Draw();
     }
 
-    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, z_distance, false, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformInt(*textShader, 0, "uFontTexture");
     app->graphicsBackend.UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     app->graphicsBackend.UseTextureIDSlot(font.atlasTextureID, 0);
@@ -223,6 +223,7 @@ void TextButtonWidget::Draw() {
     TextRectWidget::Draw();
 
     if(hoveredState && !lastHoveredState) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
         color.value -= glm::vec4(0.15);
     }
     else if(!hoveredState && lastHoveredState) {
@@ -291,7 +292,7 @@ void CircleWidget::LoadResources() {
 void CircleWidget::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, false, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, false, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, radius, "uRadius");
     app->graphicsBackend.UploadShaderUniformInt(*shader, thickness, "uThickness");

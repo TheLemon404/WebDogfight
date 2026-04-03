@@ -33,6 +33,8 @@ class Terrain : public Entity {
     const std::string terrainResourcePath;
 
     public:
+    Texture& GetHeightMap() { return heightMap; }
+
     Terrain(const std::string& name, const std::string& resourcePath) : Entity(name), terrainResourcePath(resourcePath) {};
 
     void LoadResources() override;

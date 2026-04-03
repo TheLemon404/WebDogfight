@@ -9,6 +9,8 @@ class Widget {
     Shader* shader;
 
     public:
+    float z_distance = -1.0f;
+
     Color color;
     float rotation = 0.0;
     glm::vec2 position = glm::vec2(0.0f);

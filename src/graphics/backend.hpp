@@ -222,7 +222,7 @@ class GraphicsBackend {
     void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
     void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);
 
-    void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
+    void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
     void EndDrawMesh2D(Mesh& mesh);
 
     void ResetState(int viewportWidth, int viewportHeight) {

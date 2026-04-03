@@ -9,6 +9,7 @@ struct Sound {
 
 struct GlobalSounds {
     Sound buttonClick;
+    Sound hover;
 };
 
 class AudioBackend{

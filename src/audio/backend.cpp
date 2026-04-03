@@ -11,7 +11,8 @@ void AudioBackend::Initialize() {
     }
     std::cout << "Audio backend initialized successfully" << std::endl;
 
-    Loader::LoadSoundFromFile("resources/audio/click.wav", globalSounds.buttonClick);
+    Loader::LoadSoundFromFile("resources/audio/glass_006.wav", globalSounds.buttonClick);
+    Loader::LoadSoundFromFile("resources/audio/glitch_004.wav", globalSounds.hover);
 }
 
 void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, float pitchFactor) {
@@ -44,6 +45,7 @@ void AudioBackend::UnloadSoundAsset(Sound &sound) {
 
 void AudioBackend::Shutdown() {
     UnloadSoundAsset(globalSounds.buttonClick);
+    UnloadSoundAsset(globalSounds.hover);
 
     ma_engine_uninit(&audioEngine);
 }

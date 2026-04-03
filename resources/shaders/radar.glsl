@@ -40,6 +40,8 @@ uniform int uCornerLength;
 
 uniform ivec2 uWidgetResolution;
 
+uniform sampler2D uTerrainHeightmap;
+
 out vec4 FragColor;
 
 vec2 uvToPixel(vec2 uv) {
@@ -66,30 +68,18 @@ uniform float uLocalClientRotation;
 
 void main()
 {
-    FragColor = uColor;
+    FragColor = vec4(0.0);
 
     ivec2 currentWidgetPixel = ivec2(uvToPixel(pUV));
     float uvDist = distance(UV_CENTER, pUV);
-
-    //border
-    if (currentWidgetPixel.x < uBorder || currentWidgetPixel.x >= uWidgetResolution.x - uBorder || currentWidgetPixel.y < uBorder || currentWidgetPixel.y >= uWidgetResolution.y - uBorder) {
-        FragColor = uBorderColor;
-    }
-
-    //corner border
-    if (currentWidgetPixel.x < uCornerLength && (currentWidgetPixel.y < uCornerLength || currentWidgetPixel.y > uWidgetResolution.y - uCornerLength) || currentWidgetPixel.x > uWidgetResolution.x - uCornerLength && (currentWidgetPixel.y < uCornerLength || currentWidgetPixel.y > uWidgetResolution.y - uCornerLength)) {
-        if (currentWidgetPixel.x < uCornerBorder || currentWidgetPixel.x >= uWidgetResolution.x - uCornerBorder || currentWidgetPixel.y < uCornerBorder || currentWidgetPixel.y >= uWidgetResolution.y - uCornerBorder) {
-            FragColor = uCornerColor;
-        }
-    }
 
     float ringDistPixels = (1.0 / float(uWidgetResolution.x)) * float(uBorder * 2);
 
     //THIS IS FOR THE RADAR RINGS
     if (uvDist <= 0.45) {
-        FragColor += vec4(0.1, 0.1, 0.1, 0.0);
+        FragColor = floor(texture(uTerrainHeightmap, pUV) * 5.0) / 7.0;
         if (uvDist >= 0.45 - ringDistPixels) {
-            FragColor += vec4(0.4, 0.4, 0.4, 0.0);
+            FragColor = uBorderColor;
         }
 
         for (int i = 0; i < uPlayerCount; i++) {
@@ -97,7 +87,7 @@ void main()
             vec2 centeredUV = ((pUV - vec2(0.5)) * 2.0);
             float playerDist = distance(centeredUV, relativePosition);
             if (playerDist <= 0.03) {
-                FragColor += vec4(0.4, 0.4, 0.4, 0.0);
+                FragColor = uBorderColor;
             }
         }
     }
