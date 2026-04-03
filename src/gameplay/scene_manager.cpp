@@ -21,7 +21,7 @@ void SceneManager::CheckSceneChange() {
             break;
         case GAME_SCENE:
             asyncSceneChangeState = std::make_unique<AsyncSceneChangeState>(
-                std::make_shared<Scene>(TestScene::Create()),
+                std::make_shared<Scene>(TestScene::Create("resources/maps/island.json")),
                 false
             );
             asyncSceneChangeState->asyncLoadingScene->onResourcesLoadedCallback = [this] {

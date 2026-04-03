@@ -147,6 +147,7 @@ void RadarWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uTerrainHeightmap");
     app->graphicsBackend.UseTextureSlot(app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain")->GetHeightMap(), 0);
     app->graphicsBackend.EndDrawMesh2D(quad);
+    app->graphicsBackend.ResetTextureSlots();
 }
 
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {

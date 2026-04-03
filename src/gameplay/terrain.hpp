@@ -3,6 +3,9 @@
 #include "entity.hpp"
 #include "../graphics/types.hpp"
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 struct TerrainAssets {
     std::string shader;
     std::string heightmap;
@@ -30,12 +33,12 @@ class Terrain : public Entity {
     Texture heightMap;
     Texture discolorationMap;
 
-    const std::string terrainResourcePath;
+    const json resourceProperties;
 
     public:
     Texture& GetHeightMap() { return heightMap; }
 
-    Terrain(const std::string& name, const std::string& resourcePath) : Entity(name), terrainResourcePath(resourcePath) {};
+    Terrain(const std::string& name, const json& resourceProperties) : Entity(name), resourceProperties(resourceProperties) {};
 
     void LoadResources() override;
     void Initialize() override;

@@ -4,6 +4,9 @@
 #include "entity.hpp"
 #include <string.h>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 class CloudsVolume : public Entity {
     Mesh boundsMesh;
     Shader* shader;
@@ -12,7 +15,9 @@ class CloudsVolume : public Entity {
     Transform transform = Transform();
     Color color = Color();
 
-    CloudsVolume(const std::string& name) : Entity(name) {};
+    const json resourceProperties;
+
+    CloudsVolume(const std::string& name, const json& resourceProperties) : Entity(name), resourceProperties(resourceProperties) {};
 
     void LoadResources();
     void Initialize();

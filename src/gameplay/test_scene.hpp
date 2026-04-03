@@ -27,15 +27,15 @@ class SettingsWidgetLayer : public WidgetLayer {
 
 class TestScene {
     public:
-    static Scene Create() {
+    static Scene Create(const std::string& mapResourcePath) {
         Scene testScene = Scene();
-        testScene.entities.push_back(std::make_shared<Terrain>("terrain", "resources/terrains/default.json"));
-        testScene.entities.push_back(std::make_shared<Water>("water"));
+        std::cout << "Attemping to read Scene JSON file at: " << mapResourcePath << std::endl;
+        std::string resourceFileText = Files::ReadResourceString(mapResourcePath);
+        json JSON = json::parse(resourceFileText);
 
-        std::shared_ptr<CloudsVolume> cloud = std::make_shared<CloudsVolume>("clouds");
-        cloud->transform.position.y = 15000.0f;
-        cloud->transform.scale = glm::vec3(50000.0f, 5000.0f, 50000.0f);
-        testScene.entities.push_back(cloud);
+        testScene.entities.push_back(std::make_shared<Terrain>("terrain", JSON["terrain"]));
+        testScene.entities.push_back(std::make_shared<Water>("water", JSON["water"]));
+        testScene.entities.push_back(std::make_shared<CloudsVolume>("clouds", JSON["clouds"]));
 
         std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
         testScene.widgetLayers.push_back(menuLayer);

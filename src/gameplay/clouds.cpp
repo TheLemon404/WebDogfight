@@ -8,6 +8,18 @@
 void CloudsVolume::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
+    transform.position = {
+        resourceProperties["position"][0],
+        resourceProperties["position"][1],
+        resourceProperties["position"][2]
+    };
+
+    transform.scale = {
+        resourceProperties["scale"][0],
+        resourceProperties["scale"][1],
+        resourceProperties["scale"][2]
+    };
+
     boundsMesh = app->graphicsBackend.CreateCube();
     boundsMesh.material.albedo = glm::vec3(0.0f);
     shader = &app->graphicsBackend.globalShaders.clouds;

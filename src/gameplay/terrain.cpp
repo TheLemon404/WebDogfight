@@ -2,14 +2,10 @@
 #include "../graphics/backend.hpp"
 #include "../graphics/loader.hpp"
 #include "../utils/instrumentor.hpp"
-#include "entity.hpp"
 #include "aircraft.hpp"
 #include "scene_manager.hpp"
 #include <vector>
 #include "../application.hpp"
-
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 #define MAX_AIRCRAFT_HEIGHT 30000.0f
 
@@ -22,17 +18,14 @@ using json = nlohmann::json;
 void Terrain::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    std::cout << "Attemping to read Terrain Resource JSON file at: " << terrainResourcePath << std::endl;
-    std::string resourceFileText = Files::ReadResourceString(terrainResourcePath);
-    json JSON = json::parse(resourceFileText);
-    resource.assets.shader = JSON["assets"]["shader"];
-    resource.assets.heightmap = JSON["assets"]["heightmap"];
-    resource.assets.discolorationmap = JSON["assets"]["discolorationmap"];
-    resource.settings.heightFactor = JSON["settings"]["heightFactor"];
-    resource.settings.topColor = {JSON["settings"]["top-color"][0], JSON["settings"]["top-color"][1], JSON["settings"]["top-color"][2]};
-    resource.settings.middleColor = {JSON["settings"]["middle-color"][0], JSON["settings"]["middle-color"][1], JSON["settings"]["middle-color"][2]};
-    resource.settings.slopeColor = {JSON["settings"]["slope-color"][0], JSON["settings"]["slope-color"][1], JSON["settings"]["slope-color"][2]};
-    resource.settings.baseColor = {JSON["settings"]["base-color"][0], JSON["settings"]["base-color"][1], JSON["settings"]["base-color"][2]};
+    resource.assets.shader = resourceProperties["assets"]["shader"];
+    resource.assets.heightmap = resourceProperties["assets"]["heightmap"];
+    resource.assets.discolorationmap = resourceProperties["assets"]["discolorationmap"];
+    resource.settings.heightFactor = resourceProperties["settings"]["heightFactor"];
+    resource.settings.topColor = {resourceProperties["settings"]["top-color"][0], resourceProperties["settings"]["top-color"][1], resourceProperties["settings"]["top-color"][2]};
+    resource.settings.middleColor = {resourceProperties["settings"]["middle-color"][0], resourceProperties["settings"]["middle-color"][1], resourceProperties["settings"]["middle-color"][2]};
+    resource.settings.slopeColor = {resourceProperties["settings"]["slope-color"][0], resourceProperties["settings"]["slope-color"][1], resourceProperties["settings"]["slope-color"][2]};
+    resource.settings.baseColor = {resourceProperties["settings"]["base-color"][0], resourceProperties["settings"]["base-color"][1], resourceProperties["settings"]["base-color"][2]};
 
     shader = &app->graphicsBackend.globalShaders.terrain;
     heightMap = Loader::LoadTextureFromFile(resource.assets.heightmap.c_str());
