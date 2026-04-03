@@ -188,7 +188,8 @@ void AircraftWidgetLayer::CreateWidgets() {
     lobbyInfoRect->moveWithAspectRatio = true;
     lobbyInfoRect->scale = glm::vec2(0.2, 0.0425);
     lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
-    lobbyInfoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    lobbyInfoRect->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    lobbyInfoRect->cornerColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
     std::shared_ptr<TextRectWidget> settings = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     settings->SetText("Left Alt: Settings");
@@ -196,7 +197,8 @@ void AircraftWidgetLayer::CreateWidgets() {
     settings->moveWithAspectRatio = true;
     settings->scale = glm::vec2(0.275, 0.0425);
     settings->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
-    settings->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    settings->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    settings->cornerColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
     //aircraft stats ui
     stats = CreateWidget<TextRectWidget>("stats",app->graphicsBackend.globalFonts.defaultFont);
@@ -204,13 +206,13 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->scale = glm::vec2(0.4, 0.16);
     stats->position = glm::vec2(0.7, -0.75);
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
-    stats->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    stats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
     radar = CreateWidget<RadarWidget>("radar");
     radar->moveWithAspectRatio = true;
     radar->stretchWithAspectRatio = false;
     radar->scale = glm::vec2(0.3, 0.3);
-    radar->position = glm::vec2(-0.7, -0.6);
+    radar->position = glm::vec2(-0.8, -0.7);
     radar->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     radar->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
 

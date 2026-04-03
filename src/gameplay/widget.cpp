@@ -240,7 +240,6 @@ void TextButtonWidget::Draw() {
         }
         else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
             color.value += glm::vec4(0.15);
-            app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.buttonClick);
         }
     }
 
@@ -248,8 +247,11 @@ void TextButtonWidget::Draw() {
 }
 
 void InputWidget::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
         if(IsHovered()) {
+            app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.1f);
             focused = true;
         }
         else {
@@ -260,12 +262,16 @@ void InputWidget::Draw() {
     if(focused) {
         if(InputManager::IsKeyJustPressed(GLFW_KEY_BACKSPACE)) {
             if(text.length() > 0) {
+                app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
+
                 PopChar();
             }
         }
         else{
             char c = InputManager::GetChar();
             if(c != 0 && text.length() < maxCharacters) {
+                app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
+
                 std::string text(1, c);
                 AppendText(text);
             }
