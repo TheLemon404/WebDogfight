@@ -18,6 +18,7 @@
 #include "glm/trigonometric.hpp"
 #include "test_scene.hpp"
 #include "widget.hpp"
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -487,8 +488,9 @@ void Aircraft::Update() {
             glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
             glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - glm::abs(glm::dot(aircraftForward, GLOBAL_UP)));
 
-            glm::vec3 acceleration = thrust + gravity + lift + brake - (velocity * DRAG_COEFFICIENT);
+            glm::vec3 acceleration = thrust + gravity + lift + brake;
             velocity += acceleration * (float)app->clock.deltaTime;
+            velocity *= expf(-DRAG_COEFFICIENT * (float)app->clock.deltaTime);
 
             speed = glm::length(velocity);
 
