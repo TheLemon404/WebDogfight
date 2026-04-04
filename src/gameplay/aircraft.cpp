@@ -12,7 +12,6 @@
 #include "glm/ext/quaternion_common.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
-#include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
@@ -34,7 +33,6 @@
 #include "../utils/misc.hpp"
 #include <math.h>
 #include <nlohmann/json.hpp>
-
 #include "../application.hpp"
 
 #define BRAKE_ANGLE_LERP_TIME 1.0
@@ -121,7 +119,7 @@ void RadarWidget::Draw() {
                 aircrafts[i]->transform.position.z
             };
 
-            if(aircrafts[i]->networkId == app->networkManager.localClientId) {
+            if(aircrafts[i]->networkId == app->networkManager.localClientId || !app->networkManager.connected) {
                 localClientPosition = {
                     aircrafts[i]->transform.position.x,
                     aircrafts[i]->transform.position.z
@@ -145,6 +143,7 @@ void RadarWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
     glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
     app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
+    app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(TERRAIN_SIZE), "uTerrainSize");
     app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uTerrainHeightmap");
     app->graphicsBackend.UseTextureSlot(app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain")->GetHeightMap(), 0);
     app->graphicsBackend.EndDrawMesh2D(quad);

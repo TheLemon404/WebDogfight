@@ -24,9 +24,9 @@ void main()
 #version 300 es
 precision mediump float;
 
+#define PI 3.1415927
 #define UV_CENTER vec2(0.5)
 #define MAX_PLAYERS_PER_LOBBY 16
-#define RADAR_RANGE 0.00005
 
 in vec2 pPos;
 in vec2 pUV;
@@ -37,6 +37,12 @@ uniform vec4 uCornerColor;
 uniform int uBorder;
 uniform int uCornerBorder;
 uniform int uCornerLength;
+
+uniform vec2 uTerrainSize;
+uniform vec2 uPlayerWorldPositions[MAX_PLAYERS_PER_LOBBY];
+uniform int uPlayerCount;
+uniform vec2 uLocalClientPosition;
+uniform float uLocalClientRotation;
 
 uniform ivec2 uWidgetResolution;
 
@@ -61,10 +67,9 @@ vec2 rotateAroundPoint(vec2 v, vec2 pivot, float angle) {
     return p + pivot; // Translate back to the original pivot position
 }
 
-uniform vec2 uPlayerWorldPositions[MAX_PLAYERS_PER_LOBBY];
-uniform int uPlayerCount;
-uniform vec2 uLocalClientPosition;
-uniform float uLocalClientRotation;
+vec2 worldPositionToTerrainUV(vec2 worldPosition) {
+    return (worldPosition * vec2(1.0, -1.0) / (uTerrainSize / 2.0)) * 0.5 + 0.5;
+}
 
 void main()
 {
@@ -77,16 +82,28 @@ void main()
 
     //THIS IS FOR THE RADAR RINGS
     if (uvDist <= 0.45) {
-        FragColor = floor(texture(uTerrainHeightmap, pUV) * 5.0) / 7.0;
+        vec2 normalizeLocalClientPosition = worldPositionToTerrainUV(uLocalClientPosition);
+        vec2 normalizedMin = normalizeLocalClientPosition - vec2(0.5);
+        vec2 normalizedMax = normalizeLocalClientPosition + vec2(0.5);
+        vec2 radarUV = rotateAroundPoint(mix(normalizedMin, normalizedMax, pUV), normalizeLocalClientPosition, uLocalClientRotation + (PI / 2.0));
+
+        vec4 f = floor(texture(uTerrainHeightmap, radarUV) * 10.0);
+        FragColor = f / 12.0;
         if (uvDist >= 0.45 - ringDistPixels) {
             FragColor = uBorderColor;
         }
 
         for (int i = 0; i < uPlayerCount; i++) {
-            vec2 relativePosition = rotateAroundPoint((uPlayerWorldPositions[i] - uLocalClientPosition) * RADAR_RANGE, vec2(0.0), uLocalClientRotation) * vec2(-1.0, 1.0);
-            vec2 centeredUV = ((pUV - vec2(0.5)) * 2.0);
-            float playerDist = distance(centeredUV, relativePosition);
-            if (playerDist <= 0.03) {
+            vec2 terrainUVPlayerPosition = worldPositionToTerrainUV(uPlayerWorldPositions[i]);
+            if (terrainUVPlayerPosition.x > normalizedMax.x
+                    || terrainUVPlayerPosition.x < normalizedMin.x
+                    || terrainUVPlayerPosition.y > normalizedMax.y
+                    || terrainUVPlayerPosition.y < normalizedMin.y) {
+                continue;
+            }
+
+            float playerDist = distance(radarUV, terrainUVPlayerPosition);
+            if (playerDist <= 0.01) {
                 FragColor = uBorderColor;
             }
         }

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../graphics/types.hpp"
-#include "../networking/network_manager.hpp"
-#include "../networking/network_game.hpp"
 #include "entity.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/quaternion_float.hpp"
@@ -12,9 +10,6 @@
 #include <cstdlib>
 #include <string>
 #include <memory>
-#include <future>
-#include <iostream>
-
 #include "../audio/backend.hpp"
 
 #define BODY_PRESSURE_NUM_PARTICLES 5

@@ -12,7 +12,6 @@
 #define HEIGHT_CONSTANT 10000.0f
 
 #define TERRAIN_RESOLUTION 100
-#define TERRAIN_SIZE 100000
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
 void Terrain::LoadResources() {

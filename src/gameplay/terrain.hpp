@@ -6,6 +6,8 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#define TERRAIN_SIZE 100000
+
 struct TerrainAssets {
     std::string shader;
     std::string heightmap;
