@@ -456,7 +456,12 @@ void Aircraft::Update() {
             }
             rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
             extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
-            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)app->clock.deltaTime);
+
+            float maxDelta = resource.settings.maxTurnRate * (float)app->clock.deltaTime;
+            float angle = glm::angle(unrolledRotation * glm::inverse(targetRotation));
+            float maxDeltaAngle = MathUtils::Clamp<float>(maxDelta / angle, 0.0f, 1.0f);
+
+            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)app->clock.deltaTime * maxDeltaAngle);
             unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
             glm::vec3 velocityChange = (velocity - lastVelocity) / app->clock.deltaTime;
@@ -584,6 +589,7 @@ void Aircraft::Explode() {
                 menuWidgetLayer->SetDisabled(false);
             }
         };
+
         app->clock.timers.push_back(timer);
     }
 }
