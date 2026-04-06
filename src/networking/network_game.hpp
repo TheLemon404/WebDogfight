@@ -1,17 +1,19 @@
 #pragma once
 
 #include "network_types.hpp"
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 class ClientState {
     public:
-
     bool inGame = false;
 
     glm::vec3 position;
     glm::quat rotation;
     glm::vec3 velocity;
+
+    std::string name;
 
     std::string Serialize() {
         return Packet()
@@ -26,6 +28,8 @@ class ClientState {
             .WriteF32(velocity.x)
             .WriteF32(velocity.y)
             .WriteF32(velocity.z)
+            .WriteU8((uint8_t)name.length())
+            .WriteBuffer(name)
             .Build();
     }
 
@@ -42,6 +46,8 @@ class ClientState {
         velocity.x = packet.ReadF32();
         velocity.y = packet.ReadF32();
         velocity.z = packet.ReadF32();
+        size_t nameSize = packet.ReadU8();
+        name = packet.ReadBuffer(nameSize);
     }
 };
 

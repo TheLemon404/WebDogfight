@@ -248,15 +248,23 @@ void TextButtonWidget::Draw() {
 
 void InputWidget::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
+    bool hoveredState = IsHovered();
 
     if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
-        if(IsHovered()) {
+        if(hoveredState) {
             app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.1f);
             focused = true;
         }
         else {
             focused = false;
         }
+    }
+
+    if(hoveredState && !lastHoveredState && onFocus) {
+        onFocus();
+    }
+    else if(!hoveredState && lastHoveredState && onUnFocus) {
+        onUnFocus();
     }
 
     if(focused) {
@@ -286,6 +294,8 @@ void InputWidget::Draw() {
     }
 
     TextRectWidget::Draw();
+
+    lastHoveredState = hoveredState;
 }
 
 void CircleWidget::LoadResources() {

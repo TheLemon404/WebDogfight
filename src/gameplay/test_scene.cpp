@@ -28,6 +28,11 @@ void MenuWidgetLayer::CreateWidgets() {
     nameInput->color.value = glm::vec4(0.2);
     nameInput->borderColor.value = glm::vec4(0.4);
     nameInput->cornerColor.value = glm::vec4(0.7);
+    nameInput->onUnFocus = [this, &app] {
+        if(app->networkManager.connected && app->networkManager.GetLobbyId() != -1) {
+            app->networkManager.networkGameState.clientStates[app->networkManager.localClientId].name = nameInput->GetText();
+        }
+    };
 
     codeInput = CreateWidget<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
     codeInput->stretchWithAspectRatio = true;

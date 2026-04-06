@@ -95,6 +95,12 @@ class Packet {
         return std::bit_cast<float>(ival);
     }
 
+    std::string ReadBuffer(size_t size) {
+        std::string result = buffer.substr(readOffset, size);
+        readOffset += size;
+        return result;
+    }
+
     const std::string& Build() {
         return buffer;
     }

@@ -134,6 +134,7 @@ class TextRectWidget : public RectWidget {
 };
 
 class TextButtonWidget : public TextRectWidget {
+    protected:
     bool lastHoveredState = false;
 
     public:
@@ -145,7 +146,13 @@ class TextButtonWidget : public TextRectWidget {
 };
 
 class InputWidget : public TextRectWidget {
+    protected:
+    bool lastHoveredState = false;
+
     public:
+    std::function<void()> onFocus = nullptr;
+    std::function<void()> onUnFocus = nullptr;
+
     bool focused = false;
 
     int maxCharacters = 10;
