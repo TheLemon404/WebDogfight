@@ -10,10 +10,6 @@
 #include "../graphics/window.hpp"
 #include "../application.hpp"
 
-void WidgetLayer::SetDisabled(bool disabled) {
-    this->disabled = disabled;
-}
-
 std::shared_ptr<Widget> WidgetLayer::GetWidgetByName(const std::string& name) {
     for(std::shared_ptr<Widget>& widget : widgets) {
         if(widget->name == name) return widget;
@@ -43,7 +39,7 @@ void WidgetLayer::Initialize() {
 }
 
 void WidgetLayer::Update() {
-    if(disabled) return;
+    if(disabled || invisible) return;
 
     for(std::shared_ptr<Widget>& widget : widgets) {
         widget->Update();
@@ -51,7 +47,7 @@ void WidgetLayer::Update() {
 }
 
 void WidgetLayer::Draw() {
-    if(disabled) return;
+    if(invisible) return;
 
     for(std::shared_ptr<Widget>& widget : widgets) {
         widget->Draw();

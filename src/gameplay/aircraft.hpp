@@ -178,6 +178,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     glm::vec3 lastVelocity = glm::vec3(0.0f);
     glm::quat lastRotation = glm::identity<glm::quat>();
 
+    std::shared_ptr<Aircraft> lockedAircraft = nullptr;
+
     void ApplyControlSurfaces(float roll);
 
     float rollValue = 0.0f;

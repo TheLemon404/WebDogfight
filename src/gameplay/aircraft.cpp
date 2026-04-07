@@ -509,6 +509,30 @@ void Aircraft::Update() {
             camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
         }
         {
+            FOX2_PROFILE_SCOPE("Aircraft Target Locking")
+            if(lockedAircraft == nullptr) {
+                for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
+                    if(prospectiveTarget->id == id) {
+                        continue;
+                    }
+
+                    glm::vec3 toVector = glm::normalize(prospectiveTarget->transform.position - transform.position);
+                    float angle = glm::acos(glm::dot(aircraftForward, toVector));
+                    if(angle <= PI/5) {
+                        lockedAircraft = prospectiveTarget;
+                        break;
+                    }
+                }
+            }
+            else {
+                glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);
+                float angle = glm::acos(glm::dot(aircraftForward, toVector));
+                if(angle > PI/2) {
+                    lockedAircraft = nullptr;
+                }
+            }
+        }
+        {
             FOX2_PROFILE_SCOPE("Animations")
             ApplyControlSurfaces(rollAngle);
             skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
@@ -586,7 +610,7 @@ void Aircraft::Explode() {
             if(menuWidgetLayer) {
                 InputManager::mouseHidden = false;
                 glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-                menuWidgetLayer->SetDisabled(false);
+                menuWidgetLayer->invisible = false;
             }
         };
 

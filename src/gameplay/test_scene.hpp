@@ -12,12 +12,18 @@
 
 class MenuWidgetLayer : public WidgetLayer {
     std::shared_ptr<InputWidget> nameInput = nullptr;
-    std::shared_ptr<InputWidget> codeInput = nullptr;
     std::shared_ptr<TextRectWidget> connectionStatus = nullptr;
     unsigned int connectionStatusId;
 
     void CreateWidgets() override;
     void UpdateLayer() override;
+};
+
+class LobbyWidgetLayer : public WidgetLayer {
+    std::shared_ptr<InputWidget> codeInput = nullptr;
+
+    void CreateWidgets() override;
+    void UpdateLayer() override {};
 };
 
 class SettingsWidgetLayer : public WidgetLayer {
@@ -40,8 +46,12 @@ class TestScene {
         std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
         testScene.widgetLayers.push_back(menuLayer);
 
+        std::shared_ptr<LobbyWidgetLayer> lobbyLayer = std::make_shared<LobbyWidgetLayer>();
+        lobbyLayer->invisible = true;
+        testScene.widgetLayers.push_back(lobbyLayer);
+
         std::shared_ptr<SettingsWidgetLayer> settingsLayer = std::make_shared<SettingsWidgetLayer>();
-        settingsLayer->SetDisabled(true);
+        settingsLayer->invisible = true;
         testScene.widgetLayers.push_back(settingsLayer);
         return testScene;
     }
