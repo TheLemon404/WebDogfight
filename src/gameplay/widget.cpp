@@ -66,7 +66,7 @@ bool RectWidget::IsHovered() {
     glm::vec2 fractionMousePosition = InputManager::mousePosition / glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
     fractionMousePosition -= glm::vec2(0.5f);
     fractionMousePosition *= 2.0f;
-    return -scale.x - position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x - position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
+    return -scale.x + position.x <= fractionMousePosition.x && -scale.y - position.y <= fractionMousePosition.y && scale.x + position.x >= fractionMousePosition.x && scale.y - position.y >= fractionMousePosition.y;
 }
 
 void RectWidget::LoadResources() {
@@ -242,7 +242,7 @@ void TextButtonWidget::Draw() {
     lastHoveredState = hoveredState;
 }
 
-void InputWidget::Draw() {
+void InputWidget::Update() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     bool hoveredState = IsHovered();
 
@@ -282,6 +282,12 @@ void InputWidget::Draw() {
         }
     }
 
+    lastHoveredState = hoveredState;
+}
+
+void InputWidget::Draw() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     if(focused) {
         color.value = glm::vec4(0.1);
     }
@@ -290,8 +296,6 @@ void InputWidget::Draw() {
     }
 
     TextRectWidget::Draw();
-
-    lastHoveredState = hoveredState;
 }
 
 void CircleWidget::LoadResources() {

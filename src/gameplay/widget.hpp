@@ -157,6 +157,7 @@ class InputWidget : public TextRectWidget {
 
     int maxCharacters = 10;
 
+    void Update() override;
     void Draw() override;
 
     InputWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}

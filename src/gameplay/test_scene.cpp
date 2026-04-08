@@ -128,14 +128,16 @@ void LobbyWidgetLayer::CreateWidgets() {
     closeButton->centerText = true;
     closeButton->SetText("X");
     closeButton->font.fontScale = 1.0f;
-    closeButton->scale = glm::vec2(0.035f);
-    closeButton->position = glm::vec2(0.3f, 0.25f);
+    closeButton->scale = glm::vec2(0.04);
+    closeButton->position = glm::vec2(0.28f, 0.25f);
     closeButton->color.value = glm::vec4(0.2);
     closeButton->borderColor.value = glm::vec4(0.4);
-    closeButton->cornerColor.value = glm::vec4(0.7);
+    closeButton->cornerColor.value = glm::vec4(0.4);
     closeButton->z_distance = -0.1f;
-    closeButton->onPressed = [this] {
-        invisible = false;
+    closeButton->onPressed = [this, &app] {
+        std::shared_ptr<MenuWidgetLayer> menuLayer = app->sceneManager.currentScene->GetWidgetLayerByType<MenuWidgetLayer>();
+        menuLayer->disabled = false;
+        invisible = true;
     };
 
     codeInput = CreateWidget<InputWidget>("codeInput", app->graphicsBackend.globalFonts.defaultFont);
