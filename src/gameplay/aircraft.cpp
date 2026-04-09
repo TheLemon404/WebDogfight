@@ -190,7 +190,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->cornerLength = 7;
     mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
-    std::shared_ptr<RectWidget> lockWidget = CreateWidget<RectWidget>("lockWidget");
+    lockWidget = CreateWidget<RectWidget>("lockWidget");
     lockWidget->moveWithAspectRatio = true;
     lockWidget->scale = glm::vec2(0.02);
     lockWidget->position = glm::vec2(2.0f, 0.0);
@@ -200,7 +200,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockWidget->z_distance = -0.95f;
     lockWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
-    std::shared_ptr<TextRectWidget> lockNameWidget = CreateWidget<TextRectWidget>("lockNameWidget", app->graphicsBackend.globalFonts.defaultFont);
+    lockNameWidget = CreateWidget<TextRectWidget>("lockNameWidget", app->graphicsBackend.globalFonts.defaultFont);
     lockNameWidget->moveWithAspectRatio = true;
     lockNameWidget->scale = glm::vec2(0.1f, 0.045f);
     lockNameWidget->position = glm::vec2(2.0f, 0.0);
@@ -553,8 +553,8 @@ void Aircraft::Update() {
         {
             FOX2_PROFILE_SCOPE("Aircraft Target Locking")
             if(lockedAircraft == nullptr) {
-                std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
-                std::shared_ptr<TextRectWidget> lockNameWidget = dynamic_pointer_cast<TextRectWidget>(aircraftWidgetLayer->GetWidgetByName("lockNameWidget"));
+                std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
+                std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
                 if(lockWidget != nullptr && lockNameWidget != nullptr) {
                     lockWidget->position = glm::vec2(2.0f, 0.0);
                     lockNameWidget->position = glm::vec2(2.0f, 0.075f);
@@ -577,8 +577,8 @@ void Aircraft::Update() {
                 }
             }
             else {
-                std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
-                std::shared_ptr<TextRectWidget> lockNameWidget = dynamic_pointer_cast<TextRectWidget>(aircraftWidgetLayer->GetWidgetByName("lockNameWidget"));
+                std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
+                std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
                 if(lockWidget != nullptr && lockNameWidget != nullptr) {
                     lockWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position), glm::vec2(-0.9f), glm::vec2(0.9f));
                     lockNameWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position) + glm::vec2(0.0f, 0.075f), glm::vec2(-0.9f), glm::vec2(0.9f));
