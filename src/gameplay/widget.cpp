@@ -217,6 +217,25 @@ void TextRectWidget::UnloadResources() {
     app->graphicsBackend.DeleteMesh(textMesh);
 }
 
+void TextButtonWidget::Update() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    bool hoveredState = IsHovered();
+
+    if(hoveredState && !lastHoveredState) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
+    }
+
+    if(hoveredState) {
+        if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
+            app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.buttonClick, false, 0.5f);
+            if(onPressed){
+                onPressed();
+            }
+        }
+    }
+}
+
 void TextButtonWidget::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
@@ -225,7 +244,6 @@ void TextButtonWidget::Draw() {
     TextRectWidget::Draw();
 
     if(hoveredState && !lastHoveredState) {
-        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
         color.value -= glm::vec4(0.15);
     }
     else if(!hoveredState && lastHoveredState) {
@@ -235,10 +253,6 @@ void TextButtonWidget::Draw() {
     if(hoveredState) {
         if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
             color.value -= glm::vec4(0.15);
-            app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.buttonClick, false, 0.5f);
-            if(onPressed){
-                onPressed();
-            }
         }
         else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)){
             color.value += glm::vec4(0.15);

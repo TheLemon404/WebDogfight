@@ -138,6 +138,7 @@ class TextButtonWidget : public TextRectWidget {
     bool lastHoveredState = false;
 
     public:
+    void Update() override;
     void Draw() override;
 
     std::function<void()> onPressed;

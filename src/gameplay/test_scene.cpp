@@ -167,8 +167,13 @@ void LobbyWidgetLayer::CreateWidgets() {
     joinButton->cornerColor.value = glm::vec4(0.7);
     joinButton->onPressed = [this, &app]{
         uint32_t lobbyId = 0;
-        if((lobbyId = (uint32_t)std::stoi(this->codeInput->GetText())) != 0) {
-            app->networkManager.JoinLobby(lobbyId);
+        try {
+            if((lobbyId = (uint32_t)std::stoi(this->codeInput->GetText())) != 0) {
+                app->networkManager.JoinLobby(lobbyId);
+            }
+        }
+        catch (const std::exception& e) {
+            std::cout << "Lobby code is invalid" << std::endl;
         }
     };
     joinButton->z_distance = -0.1f;
