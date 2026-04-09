@@ -39,6 +39,11 @@ struct GlobalShaders {
     Shader uiSquare;
     Shader radar;
     Shader compass;
+    Shader aircraft;
+};
+
+struct GlobalMeshes {
+    Mesh FA_XX;
 };
 
 struct GlobalFonts {
@@ -66,6 +71,7 @@ class GraphicsBackend {
     bool debugMode = false;
 
     GlobalShaders globalShaders;
+    GlobalMeshes globalMeshes;
     GlobalFonts globalFonts;
     GlobalTextures globalTextures;
 

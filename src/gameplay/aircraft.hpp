@@ -146,10 +146,12 @@ class AircraftWidgetLayer : public WidgetLayer {
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
+    std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;
 
+    glm::vec2 UIAlignmentWithWorldPosition(glm::vec3 worldPosition);
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
 
     void CreateWidgets() override;
@@ -198,7 +200,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     public:
     AircraftControls controls;
 
-    Shader shader;
+    Shader* shader;
     SkeletalMesh skeletalMesh;
     Transform transform;
 

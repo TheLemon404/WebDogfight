@@ -150,6 +150,12 @@ void RadarWidget::Draw() {
     app->graphicsBackend.ResetTextureSlots();
 }
 
+glm::vec2 AircraftWidgetLayer::UIAlignmentWithWorldPosition(glm::vec3 worldPosition) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+    glm::vec4 clipPosition = app->sceneManager.activeCamera.GetProjectionMatrix() * app->sceneManager.activeCamera.GetViewMatrix() * glm::vec4(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
+    return glm::vec2(clipPosition.x / clipPosition.w, clipPosition.y / clipPosition.w);
+}
+
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
@@ -179,6 +185,16 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->borderColor.value = glm::vec4(0.0);
     mouse->cornerLength = 7;
     mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+
+    lockWidget = CreateWidget<RectWidget>("lockWidget");
+    lockWidget->moveWithAspectRatio = true;
+    lockWidget->scale = glm::vec2(0.02);
+    lockWidget->position = glm::vec2(2.0f, 0.0);
+    lockWidget->color.value.a = 0.0;
+    lockWidget->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    lockWidget->cornerLength = 7;
+    lockWidget->z_distance = -0.95f;
+    lockWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
     //demo window ui
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -275,6 +291,8 @@ Aircraft::~Aircraft() {
 }
 
 void Aircraft::LoadResources() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     std::string resourceFileText = Files::ReadResourceString(resourcePath);
     std::cout << "successfully loaded Aircraft Resource JSON file at: " << resourcePath << std::endl;
     json JSON = json::parse(resourceFileText);
@@ -312,16 +330,26 @@ void Aircraft::LoadResources() {
     resource.settings.wingTipL = { JSON["settings"]["wing-tip-l"][0], JSON["settings"]["wing-tip-l"][1], JSON["settings"]["wing-tip-l"][2] };
     resource.settings.wingTipR = { JSON["settings"]["wing-tip-r"][0], JSON["settings"]["wing-tip-r"][1], JSON["settings"]["wing-tip-r"][2] };
 
-    shader = Loader::LoadShaderFromGLSL(resource.description.shaderResourcePath.c_str());
-    skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
+    {
+        FOX2_PROFILE_SCOPE("Aircraft Shader Load")
+        shader = &app->graphicsBackend.globalShaders.aircraft;
+    }
+    {
+        FOX2_PROFILE_SCOPE("Aircraft Mesh Load")
+        skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
+    }
 
     transform.position.y = 12000.0f;
 
-    exhaustParticles.LoadResources();
-    leftTrails.LoadResources();
-    rightTrails.LoadResources();
-
-    std::unique_ptr<Application>& app = Application::GetInstance();
+    {
+        FOX2_PROFILE_SCOPE("exhaust particles")
+        exhaustParticles.LoadResources();
+    }
+    {
+        FOX2_PROFILE_SCOPE("trails")
+        leftTrails.LoadResources();
+        rightTrails.LoadResources();
+    }
 
     if(networkId == app->networkManager.localClientId) {
         Loader::LoadSoundFromFile("resources/audio/engine.wav", engineSound);
@@ -417,8 +445,9 @@ void Aircraft::Update() {
                 InputManager::mouseDelta.y / app->windowManager.primaryWindow->height
             );
             //this ugly one-liner makes for smooth camera rotation
+            const float PITCH_LIMIT = (PI / 2.0f) - 0.01f;
             cameraRotationInputValue += targetDelta * app->clock.deltaTime * 100.0f;
-            cameraRotationInputValue.y = MathUtils::Clamp<float>(cameraRotationInputValue.y, (-PI/2) + 0.00001f , (PI/2) - 0.00001f);
+            cameraRotationInputValue.y = std::clamp(cameraRotationInputValue.y, -PITCH_LIMIT, PITCH_LIMIT);
             camera.aspect = static_cast<float>(app->windowManager.primaryWindow->width) / app->windowManager.primaryWindow->height;
             cameraForward = glm::normalize(camera.target - camera.position);
             glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
@@ -511,6 +540,11 @@ void Aircraft::Update() {
         {
             FOX2_PROFILE_SCOPE("Aircraft Target Locking")
             if(lockedAircraft == nullptr) {
+                std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
+                if(lockWidget != nullptr) {
+                    lockWidget->position = glm::vec2(2.0f, 0.0);
+                }
+
                 for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
                     if(prospectiveTarget->id == id) {
                         continue;
@@ -525,6 +559,11 @@ void Aircraft::Update() {
                 }
             }
             else {
+                std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
+                if(lockWidget != nullptr) {
+                    lockWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position), glm::vec2(-0.9f), glm::vec2(0.9f));
+                }
+
                 glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);
                 float angle = glm::acos(glm::dot(aircraftForward, toVector));
                 if(angle > PI/2) {
@@ -624,12 +663,12 @@ void Aircraft::Draw()  {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     //Note: here we only animate the local client's aircraft. Other clients' aircraft are static.
-    app->graphicsBackend.BeginDrawSkeletalMesh(skeletalMesh, shader, app->sceneManager.activeCamera, transform);
-    app->graphicsBackend.UploadShaderUniformVec3(shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
-    app->graphicsBackend.UploadShaderUniformVec3(shader, app->sceneManager.activeCamera.position, "uCameraPosition");
-    app->graphicsBackend.UploadShaderUniformInt(shader, 0, "uAlbedoTexture");
+    app->graphicsBackend.BeginDrawSkeletalMesh(skeletalMesh, *shader, app->sceneManager.activeCamera, transform);
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.activeCamera.position, "uCameraPosition");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uAlbedoTexture");
     app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
-    app->graphicsBackend.UploadShaderUniformInt(shader, 1, "uEmmissionTexture");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 1, "uEmmissionTexture");
     app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 1);
     app->graphicsBackend.EndDrawSkeletalMesh(skeletalMesh);
     app->graphicsBackend.ResetTextureSlots();
@@ -668,7 +707,6 @@ void Aircraft::UnloadResources()  {
     }
 
     app->graphicsBackend.DeleteSkeletalMesh(skeletalMesh);
-    app->graphicsBackend.DeleteShader(shader);
 
     exhaustParticles.UnloadResources();
 

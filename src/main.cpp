@@ -88,6 +88,5 @@ int main() {
     app->networkManager.Shutdown();
     app->graphicsBackend.UnloadResources();
     app->windowManager.primaryWindow->Close();
-
     return 0;
 }

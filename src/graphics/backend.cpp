@@ -25,6 +25,9 @@ void GraphicsBackend::LoadResources() {
     globalShaders.uiSquare = Loader::LoadShaderFromGLSL("resources/shaders/ui_square.glsl");
     globalShaders.radar = Loader::LoadShaderFromGLSL("resources/shaders/radar.glsl");
     globalShaders.compass = Loader::LoadShaderFromGLSL("resources/shaders/compass.glsl");
+    globalShaders.aircraft = Loader::LoadShaderFromGLSL("resources/shaders/aircraft.glsl");
+
+    globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
@@ -47,6 +50,9 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.uiSquare);
     DeleteShader(globalShaders.radar);
     DeleteShader(globalShaders.compass);
+    DeleteShader(globalShaders.aircraft);
+
+    DeleteMesh(globalMeshes.FA_XX);
 
     DeleteFont(globalFonts.defaultFont);
 

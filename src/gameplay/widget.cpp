@@ -80,6 +80,9 @@ void RectWidget::Draw() {
     FOX2_PROFILE_FUNCTION()
     std::unique_ptr<Application>& app = Application::GetInstance();
 
+    if(color.value.a != 1.0f) {
+        app->graphicsBackend.SetDepthMask(false);
+    }
     app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
@@ -90,6 +93,9 @@ void RectWidget::Draw() {
     glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
     app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
     app->graphicsBackend.EndDrawMesh2D(quad);
+    if(color.value.a != 1.0f) {
+        app->graphicsBackend.SetDepthMask(true);
+    }
 }
 
 void RectWidget::UnloadResources() {
