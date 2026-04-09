@@ -146,7 +146,6 @@ class AircraftWidgetLayer : public WidgetLayer {
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
-    std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;

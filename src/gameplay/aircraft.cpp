@@ -47,6 +47,8 @@
 #define GFORCE_BODY_THRESHOLD 7
 #define GFORCE_TRAIL_THRESHOLD 9
 
+#define FONT_CHAR_WIDTH_PIXELS 0.0175f
+
 using json = nlohmann::json;
 
 void CompassWidget::LoadResources() {
@@ -173,6 +175,8 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
 }
 
 void AircraftWidgetLayer::CreateWidgets() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     //aircraft aiming ui
     aim = CreateWidget<CircleWidget>("aimWidget");
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
@@ -186,7 +190,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     mouse->cornerLength = 7;
     mouse->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
-    lockWidget = CreateWidget<RectWidget>("lockWidget");
+    std::shared_ptr<RectWidget> lockWidget = CreateWidget<RectWidget>("lockWidget");
     lockWidget->moveWithAspectRatio = true;
     lockWidget->scale = glm::vec2(0.02);
     lockWidget->position = glm::vec2(2.0f, 0.0);
@@ -196,8 +200,17 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockWidget->z_distance = -0.95f;
     lockWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
-    //demo window ui
-    std::unique_ptr<Application>& app = Application::GetInstance();
+    std::shared_ptr<TextRectWidget> lockNameWidget = CreateWidget<TextRectWidget>("lockNameWidget", app->graphicsBackend.globalFonts.defaultFont);
+    lockNameWidget->moveWithAspectRatio = true;
+    lockNameWidget->scale = glm::vec2(0.1f, 0.045f);
+    lockNameWidget->position = glm::vec2(2.0f, 0.0);
+    lockNameWidget->centerText = true;
+    lockNameWidget->color.value.a = 0.0;
+    lockNameWidget->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    lockNameWidget->fontColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    lockNameWidget->cornerLength = 7;
+    lockNameWidget->z_distance = -0.95f;
+    lockNameWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
     std::shared_ptr<TextRectWidget> lobbyInfoRect = CreateWidget<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
     lobbyInfoRect->SetText("Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
@@ -541,8 +554,10 @@ void Aircraft::Update() {
             FOX2_PROFILE_SCOPE("Aircraft Target Locking")
             if(lockedAircraft == nullptr) {
                 std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
-                if(lockWidget != nullptr) {
+                std::shared_ptr<TextRectWidget> lockNameWidget = dynamic_pointer_cast<TextRectWidget>(aircraftWidgetLayer->GetWidgetByName("lockNameWidget"));
+                if(lockWidget != nullptr && lockNameWidget != nullptr) {
                     lockWidget->position = glm::vec2(2.0f, 0.0);
+                    lockNameWidget->position = glm::vec2(2.0f, 0.075f);
                 }
 
                 for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
@@ -554,14 +569,19 @@ void Aircraft::Update() {
                     float angle = glm::acos(glm::dot(aircraftForward, toVector));
                     if(angle <= PI/5) {
                         lockedAircraft = prospectiveTarget;
+                        const std::string clientName = app->networkManager.networkGameState.clientStates[lockedAircraft->networkId].name;
+                        lockNameWidget->scale.x = clientName.length() * FONT_CHAR_WIDTH_PIXELS;
+                        lockNameWidget->SetText(clientName);
                         break;
                     }
                 }
             }
             else {
                 std::shared_ptr<Widget> lockWidget = aircraftWidgetLayer->GetWidgetByName("lockWidget");
-                if(lockWidget != nullptr) {
+                std::shared_ptr<TextRectWidget> lockNameWidget = dynamic_pointer_cast<TextRectWidget>(aircraftWidgetLayer->GetWidgetByName("lockNameWidget"));
+                if(lockWidget != nullptr && lockNameWidget != nullptr) {
                     lockWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position), glm::vec2(-0.9f), glm::vec2(0.9f));
+                    lockNameWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position) + glm::vec2(0.0f, 0.075f), glm::vec2(-0.9f), glm::vec2(0.9f));
                 }
 
                 glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);

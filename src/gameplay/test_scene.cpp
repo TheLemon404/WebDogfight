@@ -21,7 +21,7 @@ void MenuWidgetLayer::CreateWidgets() {
     nameInput->moveWithAspectRatio = true;
     nameInput->centerText = true;
     nameInput->maxCharacters = 6;
-    nameInput->SetText("name");
+    nameInput->SetText("guest");
     nameInput->font.fontScale = 2.0;
     nameInput->scale = glm::vec2(0.2, 0.09);
     nameInput->position.y = 0.1f;

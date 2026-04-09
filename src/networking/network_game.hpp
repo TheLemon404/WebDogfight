@@ -13,7 +13,7 @@ class ClientState {
     glm::quat rotation;
     glm::vec3 velocity;
 
-    std::string name;
+    std::string name = "guest";
 
     std::string Serialize() {
         return Packet()
