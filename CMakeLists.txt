@@ -5,81 +5,81 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
 if(EMSCRIPTEN)
-    message(STATUS "Building for WebGL with Emscripten")
-    # Delete the previous .data file so that it automatically updates
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGL2=1")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MIN_WEBGL_VERSION=2")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MAX_WEBGL_VERSION=2")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
+  message(STATUS "Building for WebGL with Emscripten")
+  # Delete the previous .data file so that it automatically updates
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGL2=1")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MIN_WEBGL_VERSION=2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s MAX_WEBGL_VERSION=2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
 
-    # Use custom html file
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/shell_minimal.html")
+  # Use custom html file
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/shell_minimal.html")
 
-    # Add uniforms for transformations
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_WEBGL2=1")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s MIN_WEBGL_VERSION=2")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s MAX_WEBGL_VERSION=2")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fexceptions")
+  # Add uniforms for transformations
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_WEBGL2=1")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s MIN_WEBGL_VERSION=2")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s MAX_WEBGL_VERSION=2")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fexceptions")
 
-    # compile resources to .data file
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/resources@/resources")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lwebsocket.js")
+  # compile resources to .data file
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/resources@/resources")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lwebsocket.js")
 
-    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
-    # readable debug output
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s ASSERTIONS=2")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s SAFE_HEAP=1")
+  # readable debug output
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s ASSERTIONS=2")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s SAFE_HEAP=1")
 
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_DISABLE_EXCEPTION_CATCHING")
 
-    # Only add GLM for Emscripten (skip GLFW since it's provided)
-    add_subdirectory("vendor/glm")
-    add_subdirectory("vendor/json")
-    add_subdirectory("vendor/freetype")
+  # Only add GLM for Emscripten (skip GLFW since it's provided)
+  add_subdirectory("vendor/glm")
+  add_subdirectory("vendor/json")
+  add_subdirectory("vendor/freetype")
 
-    #--IMPORTANT-- we only use IXWebSocket for the desktop build
+  #--IMPORTANT-- we only use IXWebSocket for the desktop build
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    add_executable(WebDogfight ${src}
+  file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
+  add_executable(WebDogfight ${src}
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
     )
 
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/serve.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/serve.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
-    target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor" "vendor/freetype/include")
-    target_link_libraries(WebDogfight glm nlohmann_json freetype)
+  target_include_directories(WebDogfight PUBLIC "vendor/stb_image" "vendor/miniaudio" "vendor" "vendor/freetype/include")
+  target_link_libraries(WebDogfight glm nlohmann_json freetype)
 else()
-    message(STATUS "Building for GLFW")
+  message(STATUS "Building for GLFW")
 
-    add_subdirectory("vendor/glfw")
-    add_subdirectory("vendor/glm")
-    add_subdirectory("vendor/json")
-    add_subdirectory("vendor/freetype")
+  add_subdirectory("vendor/glfw")
+  add_subdirectory("vendor/glm")
+  add_subdirectory("vendor/json")
+  add_subdirectory("vendor/freetype")
 
-    #disable unuseed ixwebsocket functionality
-    set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
-    set(USE_TLS OFF CACHE BOOL "" FORCE)
-    set(USE_ZLIB OFF CACHE BOOL "" FORCE)
+  #disable unuseed ixwebsocket functionality
+  set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+  set(USE_TLS OFF CACHE BOOL "" FORCE)
+  set(USE_ZLIB OFF CACHE BOOL "" FORCE)
 
-    add_subdirectory("vendor/IXWebSocket")
+  add_subdirectory("vendor/IXWebSocket")
 
-    file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
-    add_executable(WebDogfight ${src}
+  file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
+  add_executable(WebDogfight ${src}
         "vendor/glad/src/glad.c"
         "vendor/stb_image/stb_image.h"
         "vendor/librg/librg.h"
         "vendor/miniaudio/miniaudio.h"
     )
 
-    target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/stb_image" "vendor" "vendor/miniaudio" "vendor/freetype/include")
-    target_link_libraries(WebDogfight glfw glm nlohmann_json freetype ixwebsocket)
+  target_include_directories(WebDogfight PUBLIC "vendor/glad/include" "vendor/stb_image" "vendor" "vendor/miniaudio" "vendor/freetype/include")
+  target_link_libraries(WebDogfight glfw glm nlohmann_json freetype ixwebsocket)
 
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()

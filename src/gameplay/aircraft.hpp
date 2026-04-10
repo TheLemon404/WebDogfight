@@ -77,7 +77,8 @@ class AircraftSmokeParticleSystem : public ParticleSystem {
     float particleStartLifetime = 1.0;
 
     public:
-    glm::vec3 albedo = glm::vec3(0.7f);
+    glm::vec3 startAlbedo = glm::vec3(0.7f);
+    glm::vec3 endAlbedo = glm::vec3(0.7f);
     float alpha = 0.1f;
     float scale = 4.0f;
     glm::vec3 aircraftPosition;

@@ -357,8 +357,8 @@ void Aircraft::LoadResources() {
     {
         FOX2_PROFILE_SCOPE("exhaust and smoke particles")
         smokeParticles.emitting = false;
-        smokeParticles.albedo = glm::vec3(0.1f);
-        smokeParticles.alpha = 0.4f;
+        smokeParticles.startAlbedo = glm::vec3(1.0f, 0.5f, 0.4f);
+        smokeParticles.alpha = 0.7f;
         smokeParticles.scale = 10.0f;
         smokeParticles.scaleType = BIG_SMALL;
         smokeParticles.disableBackfaceCulling = false;
@@ -558,7 +558,7 @@ void Aircraft::Update() {
                 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
             }
             else {
-                thrust /= 1.005f;
+                thrust = MathUtils::Lerp<glm::vec3>(thrust, glm::vec3(0.0f, -GRAVITY, 0.0f), app->clock.deltaTime * 0.1f);
             }
 
             glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
@@ -790,7 +790,7 @@ void AircraftSmokeParticleSystem::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     mesh = app->graphicsBackend.CreateQuad();
-    mesh.material.albedo = albedo;
+    mesh.material.albedo = startAlbedo;
     mesh.material.alpha = alpha;
     shader = &app->graphicsBackend.globalShaders.particles;
 }
@@ -847,6 +847,11 @@ void AircraftSmokeParticleSystem::Draw() {
         app->graphicsBackend.SetBackfaceCulling(false);
     }
     app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
+
+    for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
+        app->graphicsBackend.UploadShaderUniformVec3(*shader, glm::mix(startAlbedo, endAlbedo, (float)pow(1.0 - particleLifetimes[i] / particleStartLifetime, 0.2f)), "uAlbedos[" + std::to_string(i) + "]");
+    }
+
     app->graphicsBackend.EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
     if(disableBackfaceCulling) {
         app->graphicsBackend.SetBackfaceCulling(true);
