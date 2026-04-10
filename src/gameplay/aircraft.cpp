@@ -355,8 +355,16 @@ void Aircraft::LoadResources() {
     transform.position.y = 12000.0f;
 
     {
-        FOX2_PROFILE_SCOPE("exhaust particles")
+        FOX2_PROFILE_SCOPE("exhaust and smoke particles")
+        smokeParticles.emitting = false;
+        smokeParticles.albedo = glm::vec3(0.1f);
+        smokeParticles.alpha = 0.4f;
+        smokeParticles.scale = 10.0f;
+        smokeParticles.scaleType = BIG_SMALL;
+        smokeParticles.disableBackfaceCulling = false;
+
         exhaustParticles.LoadResources();
+        smokeParticles.LoadResources();
     }
     {
         FOX2_PROFILE_SCOPE("trails")
@@ -382,6 +390,7 @@ void Aircraft::Initialize() {
     skeletalMesh.material.shadowColor = glm::vec3(0.8f);
 
     exhaustParticles.Initialize();
+    smokeParticles.Initialize();
 
     leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
     rightTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipR);
@@ -480,10 +489,14 @@ void Aircraft::Update() {
             aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
             aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
             extraRotation = glm::identity<glm::quat>();
-            if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden){
+            if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden && !shotDown){
                 uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, app->clock.deltaTime * 10.0f);
                 targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
             }
+            else if(shotDown) {
+                targetRotation = glm::quatLookAt(glm::normalize(lastPosition - transform.position), GLOBAL_UP);
+            }
+
             if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
                 rollInput -= resource.settings.rollRate * app->clock.deltaTime;
                 restingRollRotation = 0.0f;
@@ -496,6 +509,7 @@ void Aircraft::Update() {
                 rollInput = fmodf(rollInput, 2.0 * PI);
                 rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, app->clock.deltaTime * 2.0f);
             }
+
             rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
             extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
 
@@ -522,14 +536,31 @@ void Aircraft::Update() {
             else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 controls.throttle -= resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
+
+            if(shotDown) {
+                controls.throttle = 0.001f;
+            }
+
             controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
+
+            //DEBUGGING FOR SHOOT DOWN
+            if(InputManager::IsKeyJustPressed(GLFW_KEY_I)) {
+                ShootDown();
+            }
 
             app->audioBackend.SoundAssetSetPitch(engineSound, controls.throttle);
         }
         {
             FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
             transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-            glm::vec3 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
+
+            if(!shotDown) {
+                thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
+            }
+            else {
+                thrust /= 1.005f;
+            }
+
             glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
             glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
             glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - glm::abs(glm::dot(aircraftForward, GLOBAL_UP)));
@@ -546,7 +577,11 @@ void Aircraft::Update() {
         {
             FOX2_PROFILE_SCOPE("More Camera Controls")
             camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
-            camera.position = camera.target + GLOBAL_FORWARD * (InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance);
+            float cameraZoom = InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance;
+            if(shotDown) {
+                cameraZoom = resource.settings.cameraDistance * 4.0f;
+            }
+            camera.position = camera.target + GLOBAL_FORWARD * cameraZoom;
             glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
             camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
         }
@@ -596,19 +631,6 @@ void Aircraft::Update() {
             ApplyControlSurfaces(rollAngle);
             skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
         }
-        {
-            FOX2_PROFILE_SCOPE("Particles")
-            exhaustParticles.aircraftPosition = transform.position;
-            exhaustParticles.Update();
-            leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
-            leftTrails.aircraftRotation = transform.rotation;
-            leftTrails.gForce = gForce;
-            leftTrails.Update();
-            rightTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipR);
-            rightTrails.aircraftRotation = transform.rotation;
-            rightTrails.gForce = gForce;
-            rightTrails.Update();
-        }
 
         app->networkManager.networkGameState.clientStates[networkId].position = transform.position;
         app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
@@ -634,6 +656,9 @@ void Aircraft::Update() {
         FOX2_PROFILE_SCOPE("Particles")
         exhaustParticles.aircraftPosition = transform.position;
         exhaustParticles.Update();
+        smokeParticles.aircraftPosition = transform.position;
+        smokeParticles.Update();
+
         leftTrails.aircraftPosition = transform.position + (transform.rotation * resource.settings.wingTipL);
         leftTrails.aircraftRotation = transform.rotation;
         leftTrails.gForce = gForce;
@@ -677,6 +702,26 @@ void Aircraft::Explode() {
     }
 }
 
+void Aircraft::ShootDown() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    smokeParticles.emitting = true;
+    exhaustParticles.emitting = false;
+    shotDown = true;
+    aircraftWidgetLayer->aim->radius = 0.0f;
+    aircraftWidgetLayer->mouse->cornerBorder = 0;
+
+    if(networkId == app->networkManager.localClientId) {
+        Timer timer;
+        timer.endTime = 15.0f;
+        timer.callback = [this]() {
+            Explode();
+        };
+
+        app->clock.timers.push_back(timer);
+    }
+}
+
 void Aircraft::Draw()  {
     FOX2_PROFILE_FUNCTION()
 
@@ -712,6 +757,7 @@ void Aircraft::Draw()  {
     leftTrails.Draw();
     rightTrails.Draw();
     exhaustParticles.Draw();
+    smokeParticles.Draw();
 
     if(aircraftWidgetLayer) {
         aircraftWidgetLayer->Draw();
@@ -729,6 +775,7 @@ void Aircraft::UnloadResources()  {
     app->graphicsBackend.DeleteSkeletalMesh(skeletalMesh);
 
     exhaustParticles.UnloadResources();
+    smokeParticles.UnloadResources();
 
     leftTrails.UnloadResources();
     rightTrails.UnloadResources();
@@ -738,26 +785,27 @@ void Aircraft::UnloadResources()  {
     }
 }
 
-void AircraftExhaustParticleSystem::LoadResources() {
+
+void AircraftSmokeParticleSystem::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     mesh = app->graphicsBackend.CreateQuad();
-    mesh.material.albedo = glm::vec3(0.7f);
-    mesh.material.alpha = 0.1f;
+    mesh.material.albedo = albedo;
+    mesh.material.alpha = alpha;
     shader = &app->graphicsBackend.globalShaders.particles;
 }
 
-void AircraftExhaustParticleSystem::Initialize() {
+void AircraftSmokeParticleSystem::Initialize() {
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
         transforms[i] = Transform();
         transforms[i].position = aircraftPosition;
     }
 }
 
-void AircraftExhaustParticleSystem::Update() {
-    std::unique_ptr<Application>& app = Application::GetInstance();
-
+void AircraftSmokeParticleSystem::Update() {
     FOX2_PROFILE_FUNCTION()
+
+    std::unique_ptr<Application>& app = Application::GetInstance();
 
     glm::vec3 toCameraDir = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
@@ -771,23 +819,41 @@ void AircraftExhaustParticleSystem::Update() {
         }
 
         transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP) * glm::angleAxis(particleRotations[i], GLOBAL_FORWARD);
-        float scaleByLifetime = (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))) * 4.0;
-        transforms[i].scale = glm::vec3(scaleByLifetime);
+        switch(scaleType) {
+            case SMALL_BIG_SMALL:
+                transforms[i].scale = glm::vec3(scale * (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime / 2.0f)) / (particleStartLifetime / 2.0))));
+                break;
+            case SMALL_BIG:
+                transforms[i].scale = glm::vec3(scale * ((abs(particleLifetimes[i] - (particleStartLifetime)) / particleStartLifetime)));
+                break;
+            case BIG_SMALL:
+                transforms[i].scale = glm::vec3(scale * (1.0 - (abs(particleLifetimes[i] - (particleStartLifetime)) / particleStartLifetime)));
+                break;
+            case BIG:
+                transforms[i].scale = glm::vec3(scale);
+                break;
+        }
     }
 }
 
-void AircraftExhaustParticleSystem::Draw() {
+void AircraftSmokeParticleSystem::Draw() {
     FOX2_PROFILE_FUNCTION()
+
+    if(!emitting) return;
 
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    app->graphicsBackend.SetBackfaceCulling(false);
+    if(disableBackfaceCulling) {
+        app->graphicsBackend.SetBackfaceCulling(false);
+    }
     app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
     app->graphicsBackend.EndDrawMeshInstanced(mesh, MAX_PARTICLE_TRANSFORMS);
-    app->graphicsBackend.SetBackfaceCulling(true);
+    if(disableBackfaceCulling) {
+        app->graphicsBackend.SetBackfaceCulling(true);
+    }
 }
 
-void AircraftExhaustParticleSystem::UnloadResources() {
+void AircraftSmokeParticleSystem::UnloadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->graphicsBackend.DeleteMesh(mesh);

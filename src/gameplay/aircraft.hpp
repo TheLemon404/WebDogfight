@@ -64,13 +64,27 @@ struct AircraftControls {
     float throttle = 0.5;
 };
 
-class AircraftExhaustParticleSystem : public ParticleSystem {
+enum SmokeParticleScaleType {
+    SMALL_BIG_SMALL,
+    SMALL_BIG,
+    BIG_SMALL,
+    BIG
+};
+
+class AircraftSmokeParticleSystem : public ParticleSystem {
     float particleLifetimes[MAX_PARTICLE_TRANSFORMS];
     float particleRotations[MAX_PARTICLE_TRANSFORMS];
     float particleStartLifetime = 1.0;
 
     public:
+    glm::vec3 albedo = glm::vec3(0.7f);
+    float alpha = 0.1f;
+    float scale = 4.0f;
     glm::vec3 aircraftPosition;
+    SmokeParticleScaleType scaleType = SMALL_BIG_SMALL;
+
+    bool emitting = true;
+    bool disableBackfaceCulling = true;
 
     void LoadResources() override;
     void Initialize() override;
@@ -78,7 +92,7 @@ class AircraftExhaustParticleSystem : public ParticleSystem {
     void Draw() override;
     void UnloadResources() override;
 
-    AircraftExhaustParticleSystem() {
+    AircraftSmokeParticleSystem() {
         for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++){
             particleLifetimes[i] = particleStartLifetime * ((float)i / (MAX_PARTICLE_TRANSFORMS - 1.0));
             particleRotations[i] = (float)rand() / 10.0f;
@@ -180,6 +194,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     glm::vec3 lastPosition = glm::vec3(0.0f);
     glm::vec3 lastVelocity = glm::vec3(0.0f);
     glm::quat lastRotation = glm::identity<glm::quat>();
+    glm::vec3 thrust = glm::vec3(0.0f);
 
     std::shared_ptr<Aircraft> lockedAircraft = nullptr;
 
@@ -191,9 +206,11 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     const glm::quat downQuaternion = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    AircraftExhaustParticleSystem exhaustParticles;
+    AircraftSmokeParticleSystem exhaustParticles;
+    AircraftSmokeParticleSystem smokeParticles;
     AircraftTrails leftTrails;
     AircraftTrails rightTrails;
+    bool shotDown = false;
 
     //audio
     Sound engineSound = Sound();
@@ -221,6 +238,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     ~Aircraft();
 
     void Explode();
+    void ShootDown();
 
     void LoadResources() override;
     void Initialize() override;
