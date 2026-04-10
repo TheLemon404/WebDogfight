@@ -643,6 +643,12 @@ void Aircraft::Update() {
             float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
             glm::vec3 predictedPosition = clientState.position + clientState.velocity * dt;
 
+            if(!shotDown && app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown) {
+                smokeParticles.emitting = true;
+                exhaustParticles.emitting = false;
+            }
+            shotDown = app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown;
+
             transform.position = MathUtils::Lerp<glm::vec3>(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
             transform.rotation = glm::slerp(transform.rotation, clientState.rotation, (float)app->clock.deltaTime);
         }
@@ -705,13 +711,14 @@ void Aircraft::Explode() {
 void Aircraft::ShootDown() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    smokeParticles.emitting = true;
-    exhaustParticles.emitting = false;
-    shotDown = true;
-    aircraftWidgetLayer->aim->radius = 0.0f;
-    aircraftWidgetLayer->mouse->cornerBorder = 0;
-
     if(networkId == app->networkManager.localClientId) {
+        smokeParticles.emitting = true;
+        exhaustParticles.emitting = false;
+        aircraftWidgetLayer->aim->radius = 0.0f;
+        aircraftWidgetLayer->mouse->cornerBorder = 0;
+        shotDown = true;
+        app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown = true;
+
         Timer timer;
         timer.endTime = 15.0f;
         timer.callback = [this]() {
