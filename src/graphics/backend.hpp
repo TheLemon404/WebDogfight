@@ -44,6 +44,9 @@ struct GlobalShaders {
 
 struct GlobalMeshes {
     Mesh FA_XX;
+    Mesh quad;
+    Mesh cube;
+    Mesh sphere;
 };
 
 struct GlobalFonts {
@@ -77,9 +80,11 @@ class GraphicsBackend {
 
     glm::vec3 clearColor = glm::vec3(1.0f);
 
-    void LoadResources();
     Mesh CreateCube();
     Mesh CreateQuad();
+    Mesh CreateSphere();
+
+    void LoadResources();
 
     void UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices);
 

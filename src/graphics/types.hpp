@@ -187,7 +187,7 @@ class SkeletalMesh : public Mesh {
 };
 
 struct Skybox {
-    Mesh mesh;
+    Mesh* mesh;
     Shader* shader;
 
     public:
@@ -195,7 +195,6 @@ struct Skybox {
     Color horizonColor;
 
     Skybox();
-    ~Skybox();
 };
 
 class ParticleSystem {

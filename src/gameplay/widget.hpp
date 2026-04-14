@@ -5,7 +5,7 @@
 
 class Widget {
     protected:
-    Mesh quad;
+    Mesh* quad;
     Shader* shader;
 
     public:

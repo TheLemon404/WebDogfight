@@ -54,7 +54,7 @@ using json = nlohmann::json;
 void CompassWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    quad = app->graphicsBackend.CreateQuad();
+    quad = &app->graphicsBackend.globalMeshes.quad;
     shader = &app->graphicsBackend.globalShaders.compass;
 
     textShader = &app->graphicsBackend.globalShaders.font;
@@ -72,7 +72,7 @@ void CompassWidget::Draw() {
 
     app->graphicsBackend.SetDepthTest(false);
     if(showPanelRect){
-        app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance,stretchWithAspectRatio, moveWithAspectRatio);
+        app->graphicsBackend.BeginDrawMesh2D(*quad, *shader, position, scale, rotation, z_distance,stretchWithAspectRatio, moveWithAspectRatio);
         app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
         app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
         app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
@@ -82,7 +82,7 @@ void CompassWidget::Draw() {
         glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
         app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
         app->graphicsBackend.UploadShaderUniformFloat(*shader, cameraRotation, "uCameraRotation");
-        app->graphicsBackend.EndDrawMesh2D(quad);
+        app->graphicsBackend.EndDrawMesh2D(*quad);
     }
 
     app->graphicsBackend.BeginDrawMesh2D(textMesh, *textShader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
@@ -97,7 +97,7 @@ void CompassWidget::Draw() {
 void RadarWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    quad = app->graphicsBackend.CreateQuad();
+    quad = &app->graphicsBackend.globalMeshes.quad;
     shader = &app->graphicsBackend.globalShaders.radar;
 
     playerWorldPositions.resize(MAX_PLAYERS_PER_LOBBY);
@@ -109,7 +109,7 @@ void RadarWidget::Draw() {
 
     std::vector<std::shared_ptr<Aircraft>> aircrafts = app->sceneManager.currentScene->GetEntitiesByType<Aircraft>();
 
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(*quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     int numAircrafts = aircrafts.size();
     glm::vec2 localClientPosition = glm::vec2(0.0f);
     float localClientRotation = 0.0f;
@@ -148,7 +148,7 @@ void RadarWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(TERRAIN_SIZE), "uTerrainSize");
     app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uTerrainHeightmap");
     app->graphicsBackend.UseTextureSlot(app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain")->GetHeightMap(), 0);
-    app->graphicsBackend.EndDrawMesh2D(quad);
+    app->graphicsBackend.EndDrawMesh2D(*quad);
     app->graphicsBackend.ResetTextureSlots();
 }
 
