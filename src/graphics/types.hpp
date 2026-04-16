@@ -56,7 +56,7 @@ class Camera {
     public:
     glm::vec3 position = glm::vec3(1.0f);
     glm::vec3 target = glm::vec3(0.0f);
-    float near = 10.0f;
+    float near = 8.0f;
     float far = 100000.0f;
     float fov = 60.0f;
     float aspect = 1.0f;
@@ -187,7 +187,7 @@ class SkeletalMesh : public Mesh {
 };
 
 struct Skybox {
-    Mesh* mesh;
+    Mesh mesh;
     Shader* shader;
 
     public:
@@ -195,6 +195,7 @@ struct Skybox {
     Color horizonColor;
 
     Skybox();
+    ~Skybox();
 };
 
 class ParticleSystem {

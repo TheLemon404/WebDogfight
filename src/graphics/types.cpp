@@ -26,8 +26,14 @@ void Skeleton::UpdateGlobalBoneTransforms()  {
 Skybox::Skybox() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    mesh = &app->graphicsBackend.globalMeshes.sphere;
+    mesh = app->graphicsBackend.CreateSphere(app->sceneManager.activeCamera.near + 5.0f);
     shader = &app->graphicsBackend.globalShaders.skybox;
     skyColor.value = glm::vec4(0.68f, 0.85f, 0.90f, 1.0);
     horizonColor.value = glm::vec4(0.9f, 1.0f, 1.0f, 1.0f);
+}
+
+Skybox::~Skybox() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->graphicsBackend.DeleteMesh(mesh);
 }

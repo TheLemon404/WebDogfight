@@ -204,14 +204,13 @@ Mesh GraphicsBackend::CreateQuad() {
     return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
-Mesh GraphicsBackend::CreateSphere() {
+Mesh GraphicsBackend::CreateSphere(float radius) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     // Lower resolution: 16 segments (longitude), 8 rings (latitude)
     const int segments = 16;
     const int rings = 8;
-    const float radius = 4.0f;
 
     // Generate vertices
     for (int ring = 0; ring <= rings; ++ring) {
@@ -478,7 +477,7 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
 
     glUseProgram(skybox.shader->programID);
 
-    glBindVertexArray(skybox.mesh->vao);
+    glBindVertexArray(skybox.mesh.vao);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -492,7 +491,7 @@ void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {
     UploadShaderUniformVec3(*skybox.shader, app->sceneManager.currentScene->environment.sunColor, "uSunColor");
     UploadShaderUniformVec3(*skybox.shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
 
-    glDrawElements(GL_TRIANGLES, skybox.mesh->indexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, skybox.mesh.indexCount, GL_UNSIGNED_INT, 0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

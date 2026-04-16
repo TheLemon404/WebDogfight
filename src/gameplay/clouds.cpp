@@ -31,6 +31,7 @@ void CloudsVolume::Initialize() {
 }
 
 void CloudsVolume::Draw() {
+    return;
     FOX2_PROFILE_FUNCTION()
 
     std::unique_ptr<Application>& app = Application::GetInstance();

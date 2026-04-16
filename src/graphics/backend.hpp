@@ -82,7 +82,7 @@ class GraphicsBackend {
 
     Mesh CreateCube();
     Mesh CreateQuad();
-    Mesh CreateSphere();
+    Mesh CreateSphere(float radius = 1.0f);
 
     void LoadResources();
 
