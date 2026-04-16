@@ -212,6 +212,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     AircraftTrails leftTrails;
     AircraftTrails rightTrails;
     bool shotDown = false;
+    bool exploded = false;
 
     //audio
     Sound engineSound = Sound();

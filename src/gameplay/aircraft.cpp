@@ -6,6 +6,7 @@
 #include "../io/input.hpp"
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
+#include "explosion.hpp"
 #include "glm/common.hpp"
 #include "glm/detail/qualifier.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -34,6 +35,9 @@
 #include <math.h>
 #include <nlohmann/json.hpp>
 #include "../application.hpp"
+
+#define SHOT_DOWN_EXPLOSION_SIZE 75.0f
+#define EXPLODE_EXPLOSION_SIZE 120.0f
 
 #define BRAKE_ANGLE_LERP_TIME 1.0
 
@@ -637,6 +641,7 @@ void Aircraft::Update() {
         app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
         app->networkManager.networkGameState.clientStates[networkId].velocity = velocity;
         app->networkManager.networkGameState.clientStates[networkId].shotDown = shotDown;
+        app->networkManager.networkGameState.clientStates[networkId].exploded = exploded;
     }
     else {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
@@ -645,11 +650,18 @@ void Aircraft::Update() {
             float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
             glm::vec3 predictedPosition = clientState.position + clientState.velocity * dt;
 
-            if(!shotDown && app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown) {
+            shotDown = clientState.shotDown;
+            exploded = clientState.exploded;
+
+            if(shotDown && !app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown) {
                 smokeParticles.emitting = true;
                 exhaustParticles.emitting = false;
+                app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
             }
-            shotDown = app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown;
+            else if(exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded) {
+                app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
+            }
+
 
             transform.position = MathUtils::Lerp<glm::vec3>(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
             transform.rotation = glm::slerp(transform.rotation, clientState.rotation, (float)app->clock.deltaTime);
@@ -691,7 +703,10 @@ void Aircraft::Update() {
 void Aircraft::Explode() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
+    app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
+
     if(networkId == app->networkManager.localClientId) {
+        exploded = true;
         app->sceneManager.currentScene->RuntimeDespawn(shared_from_this());
         app->networkManager.networkGameState.clientStates[networkId].inGame = false;
 
@@ -712,6 +727,8 @@ void Aircraft::Explode() {
 
 void Aircraft::ShootDown() {
     std::unique_ptr<Application>& app = Application::GetInstance();
+
+    app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
 
     if(networkId == app->networkManager.localClientId) {
         smokeParticles.emitting = true;

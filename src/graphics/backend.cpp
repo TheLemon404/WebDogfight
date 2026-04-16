@@ -26,6 +26,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.radar = Loader::LoadShaderFromGLSL("resources/shaders/radar.glsl");
     globalShaders.compass = Loader::LoadShaderFromGLSL("resources/shaders/compass.glsl");
     globalShaders.aircraft = Loader::LoadShaderFromGLSL("resources/shaders/aircraft.glsl");
+    globalShaders.explosion = Loader::LoadShaderFromGLSL("resources/shaders/explosion.glsl");
 
     globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
     globalMeshes.quad = CreateQuad();
@@ -54,6 +55,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.radar);
     DeleteShader(globalShaders.compass);
     DeleteShader(globalShaders.aircraft);
+    DeleteShader(globalShaders.explosion);
 
     DeleteMesh(globalMeshes.FA_XX);
     DeleteMesh(globalMeshes.quad);
