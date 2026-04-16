@@ -28,6 +28,9 @@ void GraphicsBackend::LoadResources() {
     globalShaders.aircraft = Loader::LoadShaderFromGLSL("resources/shaders/aircraft.glsl");
 
     globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
+    globalMeshes.quad = CreateQuad();
+    globalMeshes.cube = CreateCube();
+    globalMeshes.sphere = CreateSphere();
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
@@ -53,6 +56,9 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.aircraft);
 
     DeleteMesh(globalMeshes.FA_XX);
+    DeleteMesh(globalMeshes.quad);
+    DeleteMesh(globalMeshes.cube);
+    DeleteMesh(globalMeshes.sphere);
 
     DeleteFont(globalFonts.defaultFont);
 
@@ -170,6 +176,84 @@ Mesh GraphicsBackend::CreateQuad() {
         0, 1, 2,
         2, 3, 0,
     };
+
+    unsigned int vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
+}
+
+Mesh GraphicsBackend::CreateSphere(float radius) {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    // Lower resolution: 16 segments (longitude), 8 rings (latitude)
+    const int segments = 16;
+    const int rings = 8;
+
+    // Generate vertices
+    for (int ring = 0; ring <= rings; ++ring) {
+        float phi = PI * ring / rings; // 0 to PI (top to bottom)
+        float y = radius * cos(phi);
+        float ringRadius = radius * sin(phi);
+
+        for (int seg = 0; seg <= segments; ++seg) {
+            float theta = 2.0f * PI * seg / segments; // 0 to 2PI (around)
+            float x = ringRadius * cos(theta);
+            float z = ringRadius * sin(theta);
+
+            // Position
+            glm::vec3 position(x, y, z);
+
+            // Normal (for a sphere centered at origin, normal = normalized position)
+            glm::vec3 normal = glm::normalize(position);
+
+            // UV coordinates
+            float u = (float)seg / segments;
+            float v = (float)ring / rings;
+            glm::vec2 uv(u, v);
+
+            vertices.push_back({position, normal, uv});
+        }
+    }
+
+    // Generate indices
+    for (int ring = 0; ring < rings; ++ring) {
+        for (int seg = 0; seg < segments; ++seg) {
+            int current = ring * (segments + 1) + seg;
+            int next = current + segments + 1;
+
+            // Two triangles per quad
+            indices.push_back(current);
+            indices.push_back(next);
+            indices.push_back(current + 1);
+
+            indices.push_back(current + 1);
+            indices.push_back(next);
+            indices.push_back(next + 1);
+        }
+    }
 
     unsigned int vao, vbo, ebo;
     glGenVertexArrays(1, &vao);

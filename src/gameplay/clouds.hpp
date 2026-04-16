@@ -8,7 +8,7 @@
 using json = nlohmann::json;
 
 class CloudsVolume : public Entity {
-    Mesh boundsMesh;
+    Mesh* boundsMesh;
     Shader* shader;
 
     public:

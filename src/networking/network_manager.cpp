@@ -90,8 +90,6 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             std::cout << "lobby joined: " << state->lobbyId << std::endl;
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
-            lagPosition = networkGameState.clientStates[localClientId].position;
-            lagRotation = networkGameState.clientStates[localClientId].rotation;
             networkGameState.clientStates[localClientId] = preservedClientState;
             app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;

@@ -72,7 +72,7 @@ bool RectWidget::IsHovered() {
 void RectWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    quad = app->graphicsBackend.CreateQuad();
+    quad = &app->graphicsBackend.globalMeshes.quad;
     shader = &app->graphicsBackend.globalShaders.uiSquare;
 }
 
@@ -83,7 +83,7 @@ void RectWidget::Draw() {
     if(color.value.a != 1.0f) {
         app->graphicsBackend.SetDepthMask(false);
     }
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(*quad, *shader, position, scale, rotation, z_distance, stretchWithAspectRatio, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, border, "uBorder");
     app->graphicsBackend.UploadShaderUniformInt(*shader, cornerBorder, "uCornerBorder");
@@ -92,16 +92,13 @@ void RectWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformVec4(*shader, cornerColor.value, "uCornerColor");
     glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / (stretchWithAspectRatio ? 1.0f : app->windowManager.primaryWindow->aspect), app->windowManager.primaryWindow->height * scale.y);
     app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
-    app->graphicsBackend.EndDrawMesh2D(quad);
+    app->graphicsBackend.EndDrawMesh2D(*quad);
     if(color.value.a != 1.0f) {
         app->graphicsBackend.SetDepthMask(true);
     }
 }
 
 void RectWidget::UnloadResources() {
-    std::unique_ptr<Application>& app = Application::GetInstance();
-
-    app->graphicsBackend.DeleteMesh(quad);
 }
 
 void TextRectWidget::LoadResources() {
@@ -321,26 +318,23 @@ void InputWidget::Draw() {
 void CircleWidget::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    quad = app->graphicsBackend.CreateQuad();
+    quad = &app->graphicsBackend.globalMeshes.quad;
     shader = &app->graphicsBackend.globalShaders.uiCircle;
 }
 
 void CircleWidget::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    app->graphicsBackend.BeginDrawMesh2D(quad, *shader, position, scale, rotation, z_distance, false, moveWithAspectRatio);
+    app->graphicsBackend.BeginDrawMesh2D(*quad, *shader, position, scale, rotation, z_distance, false, moveWithAspectRatio);
     app->graphicsBackend.UploadShaderUniformVec4(*shader, color.value, "uColor");
     app->graphicsBackend.UploadShaderUniformInt(*shader, radius, "uRadius");
     app->graphicsBackend.UploadShaderUniformInt(*shader, thickness, "uThickness");
     glm::ivec2 widgetResolution = glm::ivec2(app->windowManager.primaryWindow->width * scale.x / app->windowManager.primaryWindow->aspect, app->windowManager.primaryWindow->height * scale.y);
     app->graphicsBackend.UploadShaderUniformIVec2(*shader, widgetResolution, "uWidgetResolution");
-    app->graphicsBackend.EndDrawMesh2D(quad);
+    app->graphicsBackend.EndDrawMesh2D(*quad);
 }
 
 void CircleWidget::UnloadResources() {
-    std::unique_ptr<Application>& app = Application::GetInstance();
-
-    app->graphicsBackend.DeleteMesh(quad);
 }
 
 void ContainerWidget::Update() {

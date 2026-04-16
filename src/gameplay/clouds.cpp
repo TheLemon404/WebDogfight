@@ -20,30 +20,32 @@ void CloudsVolume::LoadResources() {
         resourceProperties["scale"][2]
     };
 
-    boundsMesh = app->graphicsBackend.CreateCube();
-    boundsMesh.material.albedo = glm::vec3(0.0f);
+    //IMPORTANT --- This is bad practice because it changes the GLOBAL material, but it seems to work so... eh.
+    boundsMesh = &app->graphicsBackend.globalMeshes.cube;
+    boundsMesh->material.albedo = glm::vec3(0.0f);
     shader = &app->graphicsBackend.globalShaders.clouds;
 }
 
 void CloudsVolume::Initialize() {
-    boundsMesh.material.albedo = glm::vec3(0.58f, 0.75f, 0.80f);
+    boundsMesh->material.albedo = glm::vec3(0.58f, 0.75f, 0.80f);
 }
 
 void CloudsVolume::Draw() {
+    return;
     FOX2_PROFILE_FUNCTION()
 
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->graphicsBackend.SetDepthMask(false);
     app->graphicsBackend.SetBackfaceCulling(false);
-    app->graphicsBackend.BeginDrawMesh(boundsMesh, *shader, app->sceneManager.activeCamera, transform, true, true);
+    app->graphicsBackend.BeginDrawMesh(*boundsMesh, *shader, app->sceneManager.activeCamera, transform, true, true);
     app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height), "uScreenResolution");
     app->graphicsBackend.UploadShaderUniformMat4(*shader, app->sceneManager.activeCamera.GetViewMatrix(), "uView");
-    app->graphicsBackend.UploadShaderUniformFloat(*shader, boundsMesh.material.alpha, "uAlpha");
-    app->graphicsBackend.UploadShaderUniformVec3(*shader, boundsMesh.material.albedo, "uAlbedo");
+    app->graphicsBackend.UploadShaderUniformFloat(*shader, boundsMesh->material.alpha, "uAlpha");
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, boundsMesh->material.albedo, "uAlbedo");
     app->graphicsBackend.UseTexture3DSlot(app->graphicsBackend.globalTextures.noiseTexture3D, 0);
     app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "noiseTexture");
-    app->graphicsBackend.EndDrawMesh(boundsMesh);
+    app->graphicsBackend.EndDrawMesh(*boundsMesh);
     app->graphicsBackend.ResetTextureSlots();
     app->graphicsBackend.SetBackfaceCulling(true);
     app->graphicsBackend.SetDepthMask(true);
@@ -51,6 +53,4 @@ void CloudsVolume::Draw() {
 
 void CloudsVolume::UnloadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
-
-    app->graphicsBackend.DeleteMesh(boundsMesh);
 }
