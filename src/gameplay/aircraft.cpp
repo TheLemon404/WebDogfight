@@ -49,6 +49,7 @@
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
 
+
 using json = nlohmann::json;
 
 void CompassWidget::LoadResources() {
@@ -635,6 +636,7 @@ void Aircraft::Update() {
         app->networkManager.networkGameState.clientStates[networkId].position = transform.position;
         app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
         app->networkManager.networkGameState.clientStates[networkId].velocity = velocity;
+        app->networkManager.networkGameState.clientStates[networkId].shotDown = shotDown;
     }
     else {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
@@ -717,7 +719,6 @@ void Aircraft::ShootDown() {
         aircraftWidgetLayer->aim->radius = 0.0f;
         aircraftWidgetLayer->mouse->cornerBorder = 0;
         shotDown = true;
-        app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown = true;
 
         Timer timer;
         timer.endTime = 15.0f;
@@ -803,10 +804,16 @@ void AircraftSmokeParticleSystem::LoadResources() {
 }
 
 void AircraftSmokeParticleSystem::Initialize() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    glm::mat4 transformationMatrices[MAX_PARTICLE_TRANSFORMS];
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
         transforms[i] = Transform();
         transforms[i].position = aircraftPosition;
+        transformationMatrices[i] = transforms[i].GetMatrix();
     }
+
+    app->graphicsBackend.UploadInstancedMeshTransforms(mesh, transformationMatrices, MAX_PARTICLE_TRANSFORMS);
 }
 
 void AircraftSmokeParticleSystem::Update() {
@@ -839,8 +846,16 @@ void AircraftSmokeParticleSystem::Update() {
             case BIG:
                 transforms[i].scale = glm::vec3(scale);
                 break;
+                break;
         }
     }
+
+    glm::mat4 transformationMatrices[MAX_PARTICLE_TRANSFORMS];
+    for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
+        transformationMatrices[i] = transforms[i].GetMatrix();
+    }
+
+    app->graphicsBackend.UpdateInstancedMeshTransforms(mesh, transformationMatrices, MAX_PARTICLE_TRANSFORMS);
 }
 
 void AircraftSmokeParticleSystem::Draw() {

@@ -237,6 +237,28 @@ void GraphicsBackend::UploadMeshData(unsigned int& vao, unsigned int& vbo, unsig
     glBindVertexArray(0);
 }
 
+void GraphicsBackend::UploadInstancedMeshTransforms(Mesh& mesh, glm::mat4* transforms, size_t numTransforms) {
+    glBindVertexArray(mesh.vao);
+
+    glGenBuffers(1, &mesh.ibo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.ibo);
+    glBufferData(GL_ARRAY_BUFFER, numTransforms * sizeof(glm::mat4), transforms, GL_DYNAMIC_DRAW);
+
+    for(int i = 0; i < 4; i++) {
+        glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4),
+                             (void*)(i * sizeof(glm::vec4)));
+        glVertexAttribDivisor(4 + i, 1);
+        glEnableVertexAttribArray(4 + i);
+    }
+
+    glBindVertexArray(0);
+}
+
+void GraphicsBackend::UpdateInstancedMeshTransforms(Mesh& mesh, glm::mat4* transforms, size_t numTransforms) {
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.ibo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, numTransforms * sizeof(glm::mat4), transforms);
+}
+
 void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
     glUseProgram(shader.programID);
 
@@ -322,16 +344,14 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(6);
+    glEnableVertexAttribArray(7);
 
     //vertex uniforms
+    UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
     UploadShaderUniformMat4(shader, camera.GetProjectionMatrix(), "uProjection");
-    glm::mat4 cameraView = camera.GetViewMatrix();
-
-    for(size_t i = 0; i < numParticles; i++) {
-        glm::mat4 transformMatrix = transforms[i].GetMatrix();
-        UploadShaderUniformMat4(shader, cameraView * transformMatrix, "uViewTransforms[" + std::to_string(i) + "]");
-        UploadShaderUniformMat4(shader, transformMatrix, "uTransforms[" + std::to_string(i) + "]");
-    }
 
     //fragment uniforms
     UploadShaderUniformFloat(shader, mesh.material.alpha, "uAlpha");
@@ -344,6 +364,10 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(5);
+    glDisableVertexAttribArray(6);
+    glDisableVertexAttribArray(7);
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -384,6 +408,13 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void GraphicsBackend::CollectErrors() {
+    auto result = glGetError();
+    if(result != GL_NO_ERROR) {
+        std::cout << "gl error is: " << result << std::endl;
+    }
 }
 
 void GraphicsBackend::DrawSkybox(Skybox &skybox, Camera& camera) {

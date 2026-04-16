@@ -5,11 +5,11 @@ precision highp float;
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
+layout(location = 4) in mat4 aTransform;
 
 #define MAX_PARTICLES 25
 
-uniform mat4 uTransforms[MAX_PARTICLES];
-uniform mat4 uViewTransforms[MAX_PARTICLES];
+uniform mat4 uView;
 uniform mat4 uProjection;
 uniform vec3 uAlbedos[MAX_PARTICLES];
 
@@ -37,10 +37,10 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uViewTransforms[gl_InstanceID] * vec4(aPos, 1.0f);
+    vec4 worldPosition = uView * aTransform * vec4(aPos, 1.0f);
     gl_Position = uProjection * worldPosition;
 
-    mat3 rotationMatrix = extractRotation(uTransforms[gl_InstanceID]);
+    mat3 rotationMatrix = extractRotation(aTransform);
     pNormal = rotationMatrix * aNormal;
     pAlbedo = uAlbedos[gl_InstanceID];
 }

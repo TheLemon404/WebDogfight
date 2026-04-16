@@ -24,7 +24,7 @@
     "rudder-max-angle": 20,
     "throttle-increase-rate": 0.3,
     "throttle-cruise": 0.5,
-    "max-thrust": 40000,
+    "max-thrust": 60000,
     "max-turn-rate": 4000.0,
     "terminal-lift-speed": 200,
     "camera-ride-height": 6,

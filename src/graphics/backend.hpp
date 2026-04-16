@@ -82,8 +82,9 @@ class GraphicsBackend {
     Mesh CreateQuad();
 
     void UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices);
-
     void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+    void UploadInstancedMeshTransforms(Mesh& mesh, glm::mat4* transforms, size_t numTransforms);
+    void UpdateInstancedMeshTransforms(Mesh& mesh, glm::mat4* transforms, size_t numTransforms);
 
     void UploadShaderUniformMat4(Shader& shader, const glm::mat4& matrix, const std::string& var) {
         GLint location = GetUniformLocation(shader, var);
@@ -230,6 +231,8 @@ class GraphicsBackend {
 
     void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
     void EndDrawMesh2D(Mesh& mesh);
+
+    void CollectErrors();
 
     void ResetState(int viewportWidth, int viewportHeight) {
        	glViewport(0, 0, viewportWidth, viewportHeight);

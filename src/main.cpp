@@ -44,6 +44,7 @@ void main_loop() {
     {
         FOX2_PROFILE_SCOPE("Scene Draw")
         app->sceneManager.currentScene->Draw();
+        app->graphicsBackend.CollectErrors();
     }
     {
         FOX2_PROFILE_SCOPE("Swap buffers and Tick")
