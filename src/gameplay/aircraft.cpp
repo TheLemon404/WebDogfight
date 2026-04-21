@@ -221,7 +221,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     lobbyInfoRect->SetText("Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
     lobbyInfoRect->position = glm::vec2(0.8, 0.9);
     lobbyInfoRect->moveWithAspectRatio = true;
-    lobbyInfoRect->scale = glm::vec2(0.2, 0.0425);
+    lobbyInfoRect->scale = glm::vec2(0.28, 0.0425);
     lobbyInfoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
     lobbyInfoRect->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     lobbyInfoRect->cornerColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
