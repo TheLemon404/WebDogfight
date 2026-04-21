@@ -43,7 +43,9 @@ void main_loop() {
     }
     {
         FOX2_PROFILE_SCOPE("Scene Draw")
-        app->sceneManager.currentScene->Draw();
+        if(app->IsVisible()) {
+            app->sceneManager.currentScene->Draw();
+        }
         app->graphicsBackend.CollectErrors();
     }
     {
@@ -77,7 +79,7 @@ int main() {
     app->graphicsBackend.SetBackfaceCulling(true);
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(main_loop, 0, 1);
+    emscripten_set_main_loop(main_loop, 60, 1);
 #else
     while(!app->windowManager.primaryWindow->ShouldClose()) {
         main_loop();

@@ -31,6 +31,8 @@ class Application {
 
     static std::unique_ptr<Application>& GetInstance();
 
+    bool IsVisible();
+
     GraphicsBackend graphicsBackend;
     SceneManager sceneManager;
     AudioBackend audioBackend;
