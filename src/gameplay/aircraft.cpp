@@ -475,7 +475,7 @@ void Aircraft::Update() {
             const float PITCH_LIMIT = (PI / 2.0f) - 0.01f;
             cameraRotationInputValue += targetDelta * app->clock.deltaTime * 100.0f;
             cameraRotationInputValue.y = std::clamp(cameraRotationInputValue.y, -PITCH_LIMIT, PITCH_LIMIT);
-            camera.aspect = static_cast<float>(app->windowManager.primaryWindow->width) / app->windowManager.primaryWindow->height;
+            camera.aspect = app->windowManager.primaryWindow->aspect;
             cameraForward = glm::normalize(camera.target - camera.position);
             glm::vec3 cameraRight = glm::cross(GLOBAL_UP, cameraForward);
             glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);

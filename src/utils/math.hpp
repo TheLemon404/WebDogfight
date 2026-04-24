@@ -4,6 +4,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/scalar_multiplication.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #define GLOBAL_FORWARD glm::vec3(0.0, 0.0, 1.0)
 #define GLOBAL_LEFT glm::vec3(1.0, 0.0, 0.0)

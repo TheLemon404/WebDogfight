@@ -19,6 +19,10 @@
 #include "GLFW/glfw3.h"
 #include "application.hpp"
 
+#ifdef __EMSCRIPTEN__
+#define MAX_BROWSER_FRAMERATE 100
+#endif
+
 void main_loop() {
     FOX2_PROFILE_FUNCTION()
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -43,9 +47,7 @@ void main_loop() {
     }
     {
         FOX2_PROFILE_SCOPE("Scene Draw")
-        if(app->IsVisible()) {
-            app->sceneManager.currentScene->Draw();
-        }
+        app->sceneManager.currentScene->Draw();
         app->graphicsBackend.CollectErrors();
     }
     {
@@ -79,7 +81,7 @@ int main() {
     app->graphicsBackend.SetBackfaceCulling(true);
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(main_loop, 60, 1);
+    emscripten_set_main_loop(main_loop, MAX_BROWSER_FRAMERATE, 1);
 #else
     while(!app->windowManager.primaryWindow->ShouldClose()) {
         main_loop();

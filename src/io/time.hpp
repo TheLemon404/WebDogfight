@@ -1,8 +1,7 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <vector>
+#include <functional>
 
 struct Timer {
     float endTime = 0.0f;
@@ -18,16 +17,5 @@ class Clock {
     std::vector<Timer> timers;
 
     public:
-    void Tick() {
-        deltaTime = glfwGetTime() - currentTime;
-        currentTime = glfwGetTime();
-
-        for (size_t i = 0; i < timers.size(); i++) {
-            timers[i].timeElapsed += deltaTime;
-            if(timers[i].timeElapsed >= timers[i].endTime) {
-                timers[i].callback();
-                timers.erase(timers.begin() + i);
-            }
-        }
-    }
+    void Tick();
 };

@@ -39,7 +39,12 @@ void CloudsVolume::Draw() {
     app->graphicsBackend.SetDepthMask(false);
     app->graphicsBackend.SetBackfaceCulling(false);
     app->graphicsBackend.BeginDrawMesh(*boundsMesh, *shader, app->sceneManager.activeCamera, transform, true, true);
-    app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height), "uScreenResolution");
+    if(app->IsVisible()) {
+        app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height), "uScreenResolution");
+    }
+    else {
+        app->graphicsBackend.UploadShaderUniformVec2(*shader, glm::vec2(1.0f), "uScreenResolution");
+    }
     app->graphicsBackend.UploadShaderUniformMat4(*shader, app->sceneManager.activeCamera.GetViewMatrix(), "uView");
     app->graphicsBackend.UploadShaderUniformFloat(*shader, boundsMesh->material.alpha, "uAlpha");
     app->graphicsBackend.UploadShaderUniformVec3(*shader, boundsMesh->material.albedo, "uAlbedo");
