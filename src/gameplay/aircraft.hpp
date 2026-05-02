@@ -162,6 +162,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
+    std::shared_ptr<RectWidget> leadAimWidget = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
@@ -216,6 +217,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     //audio
     Sound engineSound = Sound();
+
+    glm::vec3 ComputeTargetLeadPoint();
 
     public:
     AircraftControls controls;

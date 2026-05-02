@@ -53,6 +53,8 @@
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
 
+#define BULLET_SPEED 100000.0f
+
 
 using json = nlohmann::json;
 
@@ -216,6 +218,14 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockNameWidget->cornerLength = 7;
     lockNameWidget->z_distance = -0.95f;
     lockNameWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+
+    leadAimWidget = CreateWidget<RectWidget>("leadAimWidget");
+    leadAimWidget->rotation = 45.0;
+    leadAimWidget->scale = glm::vec2(0.015);
+    leadAimWidget->color.value.a = 0.0f;
+    leadAimWidget->borderColor.value = glm::vec4(0.0);
+    leadAimWidget->cornerLength = 10;
+    leadAimWidget->cornerColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
 
     std::shared_ptr<TextRectWidget> lobbyInfoRect = CreateWidget<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
     lobbyInfoRect->SetText("Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
@@ -454,6 +464,19 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesR].scale = glm::vec3(pressureScale);
 }
 
+glm::vec3 Aircraft::ComputeTargetLeadPoint() {
+    if(lockedAircraft == nullptr) {
+        return glm::vec3(0.0);
+    }
+
+    Transform lockedTargetTransform = lockedAircraft->transform;
+    float dist = glm::distance(transform.position, lockedTargetTransform.position);
+    float timeToTarget = dist / BULLET_SPEED;
+    glm::vec3 predictedPos = lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
+
+    return lockedTargetTransform.position + lockedAircraft->velocity + timeToTarget;
+}
+
 void Aircraft::Update() {
     if(pendingDespawn) return;
 
@@ -595,9 +618,11 @@ void Aircraft::Update() {
             if(lockedAircraft == nullptr) {
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
-                if(lockWidget != nullptr && lockNameWidget != nullptr) {
+                std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
+                if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
                     lockWidget->position = glm::vec2(2.0f, 0.0);
                     lockNameWidget->position = glm::vec2(2.0f, 0.075f);
+                    leadAimWidget->position = glm::vec2(2.0f, 0.075f);
                 }
 
                 for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
@@ -619,7 +644,11 @@ void Aircraft::Update() {
             else {
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
-                if(lockWidget != nullptr && lockNameWidget != nullptr) {
+                std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
+                if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
+                    glm::vec3 leadPoint = ComputeTargetLeadPoint();
+                    leadAimWidget->position = aircraftWidgetLayer->UIAlignmentWithWorldPosition(leadPoint);
+
                     lockWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position), glm::vec2(-0.9f), glm::vec2(0.9f));
                     lockNameWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position) + glm::vec2(0.0f, 0.075f), glm::vec2(-0.9f), glm::vec2(0.9f));
                 }
