@@ -472,7 +472,12 @@ glm::vec3 Aircraft::ComputeTargetLeadPoint() {
     Transform lockedTargetTransform = lockedAircraft->transform;
     float dist = glm::distance(transform.position, lockedTargetTransform.position);
     float timeToTarget = dist / BULLET_SPEED;
-    glm::vec3 predictedPos = lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
+
+    for(int i = 0; i < 3; i++) {
+        glm::vec3 predictedPos = lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
+        dist = glm::distance(transform.position, predictedPos);
+        timeToTarget = dist / BULLET_SPEED;
+    }
 
     return lockedTargetTransform.position + lockedAircraft->velocity + timeToTarget;
 }
