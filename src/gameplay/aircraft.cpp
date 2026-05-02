@@ -53,7 +53,7 @@
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
 
-#define BULLET_SPEED 100000.0f
+#define BULLET_SPEED 10000.0f
 
 
 using json = nlohmann::json;
@@ -220,6 +220,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockNameWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
     leadAimWidget = CreateWidget<RectWidget>("leadAimWidget");
+    leadAimWidget->moveWithAspectRatio = true;
     leadAimWidget->rotation = 45.0;
     leadAimWidget->scale = glm::vec2(0.015);
     leadAimWidget->color.value.a = 0.0f;
@@ -474,12 +475,12 @@ glm::vec3 Aircraft::ComputeTargetLeadPoint() {
     float timeToTarget = dist / BULLET_SPEED;
 
     for(int i = 0; i < 3; i++) {
-        glm::vec3 predictedPos = lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
-        dist = glm::distance(transform.position, predictedPos);
+        glm::vec3 predictedTarget = lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
+        dist = glm::distance(transform.position, lockedTargetTransform.position);
         timeToTarget = dist / BULLET_SPEED;
     }
 
-    return lockedTargetTransform.position + lockedAircraft->velocity + timeToTarget;
+    return lockedTargetTransform.position + lockedAircraft->velocity * timeToTarget;
 }
 
 void Aircraft::Update() {
@@ -681,6 +682,8 @@ void Aircraft::Update() {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
             ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
 
+            velocity = clientState.velocity;
+
             float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
             glm::vec3 predictedPosition = clientState.position + clientState.velocity * dt;
 
@@ -695,7 +698,6 @@ void Aircraft::Update() {
             else if(exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded) {
                 app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
             }
-
 
             transform.position = MathUtils::Lerp<glm::vec3>(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
             transform.rotation = glm::slerp(transform.rotation, clientState.rotation, (float)app->clock.deltaTime);
