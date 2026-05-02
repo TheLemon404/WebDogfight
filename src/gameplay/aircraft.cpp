@@ -55,7 +55,6 @@
 
 #define BULLET_SPEED 10000.0f
 
-
 using json = nlohmann::json;
 
 void CompassWidget::LoadResources() {
@@ -517,7 +516,6 @@ void Aircraft::Update() {
         float rollAngle;
 
         float terminalLiftFactor = MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
-
         {
             FOX2_PROFILE_SCOPE("Aircraft Orientation")
             aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
@@ -667,16 +665,39 @@ void Aircraft::Update() {
             }
         }
         {
+            FOX2_PROFILE_SCOPE("Shooting Gun")
+            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)) {
+                //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
+                if(lockedAircraft != nullptr) {
+                    app->networkManager.RequestStartFireGun(lockedAircraft->networkId);
+                }
+            }
+            else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
+                if(lockedAircraft != nullptr) {
+                    app->networkManager.RequestStopFireGun();
+                }
+            }
+        }
+        {
             FOX2_PROFILE_SCOPE("Animations")
             ApplyControlSurfaces(rollAngle);
             skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
         }
 
-        app->networkManager.networkGameState.clientStates[networkId].position = transform.position;
-        app->networkManager.networkGameState.clientStates[networkId].rotation = transform.rotation;
-        app->networkManager.networkGameState.clientStates[networkId].velocity = velocity;
-        app->networkManager.networkGameState.clientStates[networkId].shotDown = shotDown;
-        app->networkManager.networkGameState.clientStates[networkId].exploded = exploded;
+        ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
+
+        if(clientState.shotDown && !app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown && !shotDown) {
+            ShootDown();
+        }
+        if(clientState.exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded && !exploded) {
+            Explode();
+        }
+
+        clientState.position = transform.position;
+        clientState.rotation = transform.rotation;
+        clientState.velocity = velocity;
+        clientState.shotDown = shotDown;
+        clientState.exploded = exploded;
     }
     else {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
@@ -742,6 +763,7 @@ void Aircraft::Explode() {
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
 
     if(networkId == app->networkManager.localClientId) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.explosion, false, 1.0f);
         exploded = true;
         app->sceneManager.currentScene->RuntimeDespawn(shared_from_this());
         app->networkManager.networkGameState.clientStates[networkId].inGame = false;
@@ -767,6 +789,7 @@ void Aircraft::ShootDown() {
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
 
     if(networkId == app->networkManager.localClientId) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shotDown, false, 1.0f);
         smokeParticles.emitting = true;
         exhaustParticles.emitting = false;
         aircraftWidgetLayer->aim->radius = 0.0f;
@@ -798,14 +821,6 @@ void Aircraft::Draw()  {
     app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 1);
     app->graphicsBackend.EndDrawSkeletalMesh(skeletalMesh);
     app->graphicsBackend.ResetTextureSlots();
-
-    if(app->graphicsBackend.debugMode){
-        Transform t = Transform();
-        t.position = transform.position;
-        t.rotation = transform.rotation;
-        t.scale = glm::vec3(10.0);
-        app->graphicsBackend.DrawDebugCube(app->sceneManager.activeCamera, COLOR_BLUE, t);
-    }
 
     leftTrails.Draw();
     rightTrails.Draw();

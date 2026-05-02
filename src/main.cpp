@@ -34,7 +34,7 @@ void main_loop() {
         app->windowManager.primaryWindow->Poll();
 
         //--- IMPORTANT --- remove this line from production. Users should not be able to see debug graphics
-        if(InputManager::IsKeyJustPressed(GLFW_KEY_P)) app->graphicsBackend.debugMode = !app->graphicsBackend.debugMode;
+        if(InputManager::IsKeyJustPressed(GLFW_KEY_O)) app->graphicsBackend.debugMode = !app->graphicsBackend.debugMode;
     }
     {
         FOX2_PROFILE_SCOPE("Graphics State Reset")

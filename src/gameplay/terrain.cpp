@@ -109,7 +109,7 @@ void Terrain::Update() {
 
         //boundaries and terrain collision
         if(aircraft->transform.position.y < height) {
-            aircraft->Explode();
+            aircraft->exploded = true;
         }
         else if(aircraft->transform.position.y > MAX_AIRCRAFT_HEIGHT) {
             aircraft->transform.position.y = 6000.0;

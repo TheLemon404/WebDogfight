@@ -53,9 +53,6 @@ class NetworkManager {
 
     float interpolationFactor = 10.0f;
 
-    glm::vec3 lagPosition = glm::vec3(0.0f);
-    glm::quat lagRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-
     std::mutex pendingStateChangeMutex;
     bool hasPendingStateChange = false;
 
@@ -63,6 +60,9 @@ class NetworkManager {
     GameState lastNetworkGameState;
     GameState networkGameState;
     bool connected = false;
+
+    void RequestStartFireGun(uint32_t targetNetworkID);
+    void RequestStopFireGun();
 
     void Initialize();
     void Tick();

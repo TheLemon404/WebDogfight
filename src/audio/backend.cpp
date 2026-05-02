@@ -13,6 +13,8 @@ void AudioBackend::Initialize() {
 
     Loader::LoadSoundFromFile("resources/audio/glass_006.wav", globalSounds.buttonClick);
     Loader::LoadSoundFromFile("resources/audio/glitch_004.wav", globalSounds.hover);
+    Loader::LoadSoundFromFile("resources/audio/shotDown.wav", globalSounds.shotDown);
+    Loader::LoadSoundFromFile("resources/audio/explosion.wav", globalSounds.explosion);
 }
 
 void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, float pitchFactor) {
@@ -43,7 +45,10 @@ void AudioBackend::UnloadSoundAsset(Sound &sound) {
     ma_sound_uninit(&sound.value);
 }
 
-void AudioBackend::Shutdown() {
+void AudioBackend::Shutdown() {\
+
+    UnloadSoundAsset(globalSounds.explosion);
+    UnloadSoundAsset(globalSounds.shotDown);
     UnloadSoundAsset(globalSounds.buttonClick);
     UnloadSoundAsset(globalSounds.hover);
 

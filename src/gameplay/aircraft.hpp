@@ -212,8 +212,6 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     AircraftSmokeParticleSystem smokeParticles;
     AircraftTrails leftTrails;
     AircraftTrails rightTrails;
-    bool shotDown = false;
-    bool exploded = false;
 
     //audio
     Sound engineSound = Sound();
@@ -221,6 +219,9 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     glm::vec3 ComputeTargetLeadPoint();
 
     public:
+    bool shotDown = false;
+    bool exploded = false;
+
     AircraftControls controls;
 
     Shader* shader;

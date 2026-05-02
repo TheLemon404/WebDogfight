@@ -111,9 +111,12 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             ClientState preservedClientState = networkGameState.clientStates[localClientId];
             networkGameState.Deserialize(packet);
             networkGameState.lastUpdateTimeStamp = app->clock.currentTime;
-            lagPosition = networkGameState.clientStates[localClientId].position;
-            lagRotation = networkGameState.clientStates[localClientId].rotation;
+            //this nasty code ensures we cannot overwrite our being shot down by the server
+            bool externalShotDownCommand = networkGameState.clientStates[localClientId].shotDown;
+            bool externalExplodedCommand = networkGameState.clientStates[localClientId].exploded;
             networkGameState.clientStates[localClientId] = preservedClientState;
+            networkGameState.clientStates[localClientId].shotDown = externalShotDownCommand;
+            networkGameState.clientStates[localClientId].exploded = externalExplodedCommand;
             app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
             break;
@@ -123,6 +126,23 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
 
 void NetworkManager::OnError(const std::string& msg) {
     std::cout << "Network Error: " << msg << std::endl;
+}
+
+void NetworkManager::RequestStartFireGun(uint32_t targetNetworkID) {
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::REQUEST_BEGIN_FIRE_GUN)
+        .WriteU32(targetNetworkID)
+        .Build()
+    );
+}
+
+void NetworkManager::RequestStopFireGun() {
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::REQUEST_END_FIRE_GUN)
+        .Build()
+    );
 }
 
 void NetworkManager::Initialize() {

@@ -10,6 +10,8 @@ struct Sound {
 struct GlobalSounds {
     Sound buttonClick;
     Sound hover;
+    Sound shotDown;
+    Sound explosion;
 };
 
 class AudioBackend{
