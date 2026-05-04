@@ -121,6 +121,20 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             hasPendingStateChange = true;
             break;
         }
+        case PacketType::SHOOT_DOWN_DEMAND:
+        {
+            if(onShotDownDemand != nullptr){
+                onShotDownDemand();
+            }
+            break;
+        }
+        case PacketType::EXPLODE_DEMAND:
+        {
+            if(onExplodeDemand != nullptr) {
+                onExplodeDemand();
+            }
+            break;
+        }
     }
 }
 
@@ -128,19 +142,11 @@ void NetworkManager::OnError(const std::string& msg) {
     std::cout << "Network Error: " << msg << std::endl;
 }
 
-void NetworkManager::RequestStartFireGun(uint32_t targetNetworkID) {
+void NetworkManager::RequestFireGun(uint32_t targetNetworkID) {
     state->SocketSendBinary(
         Packet()
-        .WritePacketType(PacketType::REQUEST_BEGIN_FIRE_GUN)
+        .WritePacketType(PacketType::REQUEST_FIRE_GUN)
         .WriteU32(targetNetworkID)
-        .Build()
-    );
-}
-
-void NetworkManager::RequestStopFireGun() {
-    state->SocketSendBinary(
-        Packet()
-        .WritePacketType(PacketType::REQUEST_END_FIRE_GUN)
         .Build()
     );
 }

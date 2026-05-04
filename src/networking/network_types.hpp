@@ -14,15 +14,17 @@ enum class PacketType : uint8_t {
 
     UPDATE_CLIENT_STATE = 0x04,
 
-    REQUEST_BEGIN_FIRE_GUN = 0x05,
-    REQUEST_END_FIRE_GUN = 0x06,
+    REQUEST_FIRE_GUN = 0x05,
 
     //response types
-    CONNECTED_TO_SERVER = 0x07,
-    LOBBY_JOINED = 0x08,
-    LOBBY_LEFT = 0x09,
+    CONNECTED_TO_SERVER = 0x06,
+    LOBBY_JOINED = 0x07,
+    LOBBY_LEFT = 0x08,
 
-    LOBBY_STATE_UPDATED = 0x0A,
+    LOBBY_STATE_UPDATED = 0x09,
+
+    SHOOT_DOWN_DEMAND = 0x0A,
+    EXPLODE_DEMAND = 0x0B,
 };
 
 class Packet {

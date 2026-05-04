@@ -414,6 +414,13 @@ void Aircraft::Initialize() {
 
     if(networkId == app->networkManager.localClientId) {
         app->audioBackend.StartSoundAsset(engineSound, true, 0.3f);
+
+        app->networkManager.onShotDownDemand = [this]() {
+            ShootDown();
+        };
+        app->networkManager.onExplodeDemand = [this]() {
+            Explode();
+        };
     }
 
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
@@ -669,12 +676,7 @@ void Aircraft::Update() {
             if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 if(lockedAircraft != nullptr) {
-                    app->networkManager.RequestStartFireGun(lockedAircraft->networkId);
-                }
-            }
-            else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
-                if(lockedAircraft != nullptr) {
-                    app->networkManager.RequestStopFireGun();
+                    app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }
             }
         }
@@ -685,13 +687,6 @@ void Aircraft::Update() {
         }
 
         ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
-
-        if(clientState.shotDown && !app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown && !shotDown) {
-            ShootDown();
-        }
-        if(clientState.exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded && !exploded) {
-            Explode();
-        }
 
         clientState.position = transform.position;
         clientState.rotation = transform.rotation;
@@ -758,6 +753,10 @@ void Aircraft::Update() {
 }
 
 void Aircraft::Explode() {
+    if(exploded) {
+        return;
+    }
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
@@ -784,6 +783,10 @@ void Aircraft::Explode() {
 }
 
 void Aircraft::ShootDown() {
+    if(shotDown) {
+        return;
+    }
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);

@@ -61,8 +61,10 @@ class NetworkManager {
     GameState networkGameState;
     bool connected = false;
 
-    void RequestStartFireGun(uint32_t targetNetworkID);
-    void RequestStopFireGun();
+    std::function<void()> onShotDownDemand = nullptr;
+    std::function<void()> onExplodeDemand = nullptr;
+
+    void RequestFireGun(uint32_t targetNetworkID);
 
     void Initialize();
     void Tick();

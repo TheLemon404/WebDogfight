@@ -43,7 +43,7 @@ void Water::Update() {
 
     for(std::shared_ptr<Aircraft> aircraft : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
         if(aircraft->transform.position.y < WATER_LEVEL) {
-            aircraft->exploded = true;
+            aircraft->Explode();
         }
     }
 }
