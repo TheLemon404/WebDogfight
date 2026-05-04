@@ -29,7 +29,7 @@ void MenuWidgetLayer::CreateWidgets() {
     nameInput->borderColor.value = glm::vec4(0.4);
     nameInput->cornerColor.value = glm::vec4(0.7);
     nameInput->onUnFocus = [this, &app] {
-        if(app->networkManager.connected && app->networkManager.GetLobbyId() != -1) {
+        if(app->networkManager.IsConnected() && app->networkManager.GetLobbyId() != -1) {
             app->networkManager.networkGameState.clientStates[app->networkManager.localClientId].name = nameInput->GetText();
         }
     };
@@ -100,7 +100,7 @@ void MenuWidgetLayer::UpdateLayer() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     if(connectionStatus) {
-        std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.connected ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
+        std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.IsConnected() ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
     }
 }
 

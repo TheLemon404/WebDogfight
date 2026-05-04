@@ -14,6 +14,8 @@
 
 class NetworkManagerState {
     public:
+    bool connected = false;
+
     #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_WEBSOCKET_T socket = 0;
     #else
@@ -21,6 +23,10 @@ class NetworkManagerState {
     #endif
 
     void SocketSendBinary(std::string buffer) {
+        if(!connected) {
+            return;
+        }
+
         #ifdef __EMSCRIPTEN__
             emscripten_websocket_send_binary(socket, (void*)buffer.data(), buffer.size());
         #else
@@ -59,7 +65,10 @@ class NetworkManager {
     uint32_t localClientId;
     GameState lastNetworkGameState;
     GameState networkGameState;
-    bool connected = false;
+
+    bool IsConnected() {
+        return state->connected;
+    }
 
     std::function<void()> onShotDownDemand = nullptr;
     std::function<void()> onExplodeDemand = nullptr;

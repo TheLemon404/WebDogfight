@@ -127,7 +127,7 @@ void RadarWidget::Draw() {
                 aircrafts[i]->transform.position.z
             };
 
-            if(aircrafts[i]->networkId == app->networkManager.localClientId || !app->networkManager.connected) {
+            if(aircrafts[i]->networkId == app->networkManager.localClientId || !app->networkManager.IsConnected()) {
                 localClientPosition = {
                     aircrafts[i]->transform.position.x,
                     aircrafts[i]->transform.position.z

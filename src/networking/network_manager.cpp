@@ -56,7 +56,7 @@ EM_BOOL NetworkManager::OnEMError(int type, const EmscriptenWebSocketErrorEvent*
 
 void NetworkManager::OnConnectedToServer() {
     std::cout << "connected to server" << std::endl;
-    connected = true;
+    state->connected = true;
     //state->SocketSendBinary(Packet().WritePacketType(PacketType::NAME_UPDATE))
     state->SocketSendBinary(Packet().WritePacketType(PacketType::JOIN_RANDOM_LOBBY).Build());
 }
@@ -166,7 +166,7 @@ void NetworkManager::Tick() {
 
     timeSinceLastStateSend += app->clock.deltaTime;
 
-    if(timeSinceLastStateSend >= STATE_SEND_INTERVAL && connected) {
+    if(timeSinceLastStateSend >= STATE_SEND_INTERVAL && state->connected) {
         ClientState localClientState = networkGameState.clientStates[localClientId];
         state->SocketSendBinary(
             Packet()
@@ -243,7 +243,7 @@ void NetworkManager::Shutdown() {
 #ifdef __EMSCRIPTEN__
     emscripten_websocket_delete(state->socket);
 #else
-    if(state && connected) {
+    if(state && state->connected) {
         state->socket.stop();
     }
     ix::uninitNetSystem();
