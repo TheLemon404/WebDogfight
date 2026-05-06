@@ -12,9 +12,9 @@
 > YouTube Channel Link: https://www.youtube.com/@thelemon9300
 
 # Screenshots
-<img width="966" height="821" alt="Screenshot 2026-04-09 095557" src="https://github.com/user-attachments/assets/29ba1334-00a5-4b9a-8bb9-2846d6377fdc" />
+<img width="1280" height="507" alt="1777136193558 (1)" src="https://github.com/user-attachments/assets/7159863d-f135-4483-9dc5-5bac03ec5307" />
 <img width="1919" height="818" alt="Screenshot 2026-04-03 112945" src="https://github.com/user-attachments/assets/6548a387-edfe-43b0-834e-c79eb3d1fe83" />
-<img width="1596" height="972" alt="Screenshot 2026-02-05 090735" src="https://github.com/user-attachments/assets/3e0a4745-05e4-4d22-b175-53928a8dd3f3" />
+<img width="1500" height="500" alt="1500x500" src="https://github.com/user-attachments/assets/df794711-aa61-4e06-ad50-72b1a78a6c9d" />
 
 
 
