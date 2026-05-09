@@ -35,6 +35,7 @@
 #include <math.h>
 #include <nlohmann/json.hpp>
 #include "../application.hpp"
+#include "tracer.hpp"
 
 #define SHOT_DOWN_EXPLOSION_SIZE 75.0f
 #define EXPLODE_EXPLOSION_SIZE 120.0f
@@ -52,8 +53,6 @@
 #define GFORCE_TRAIL_THRESHOLD 9
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
-
-#define BULLET_SPEED 10000.0f
 
 using json = nlohmann::json;
 
@@ -675,6 +674,11 @@ void Aircraft::Update() {
             FOX2_PROFILE_SCOPE("Shooting Gun")
             if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
+                std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
+                if(tracerSystem != nullptr) {
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 10000.0f);
+                }
+
                 if(lockedAircraft != nullptr) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }

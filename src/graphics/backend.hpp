@@ -232,8 +232,8 @@ class GraphicsBackend {
     void EndDrawSkeletalMesh(Mesh& mesh);
     void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform = true, bool ignoreDefaultMaterialProps = false);
     void EndDrawMesh(Mesh& mesh);
-    void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numParticles);
-    void EndDrawMeshInstanced(Mesh& mesh, size_t numParticles);
+    void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numInstances);
+    void EndDrawMeshInstanced(Mesh& mesh, size_t numInstances);
 
     void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
     void EndDrawMesh2D(Mesh& mesh);

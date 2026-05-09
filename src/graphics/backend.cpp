@@ -422,7 +422,7 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera, Transform* transforms, size_t numParticles) {
+void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera, Transform* transforms, size_t numInstances) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -444,8 +444,8 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
 }
 
-void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numParticles) {
-    glDrawElementsInstanced(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0, numParticles);
+void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances) {
+    glDrawElementsInstanced(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0, numInstances);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

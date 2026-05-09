@@ -1,9 +1,9 @@
 #pragma once
 
-#include "explosion.hpp"
 #include "scene.hpp"
 #include "aircraft.hpp"
 #include "terrain.hpp"
+#include "tracer.hpp"
 #include "water.hpp"
 #include "clouds.hpp"
 #include "explosion.hpp"
@@ -45,6 +45,7 @@ class TestScene {
         testScene.entities.push_back(std::make_shared<Water>("water", JSON["water"]));
         testScene.entities.push_back(std::make_shared<CloudsVolume>("clouds", JSON["clouds"]));
         testScene.entities.push_back(std::make_shared<ExplosionSystemEntity>("explosionSystem"));
+        testScene.entities.push_back(std::make_shared<TracerSystemEntity>("tracerSystem"));
 
         std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
         testScene.widgetLayers.push_back(menuLayer);
