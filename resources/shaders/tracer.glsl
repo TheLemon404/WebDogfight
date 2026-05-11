@@ -8,14 +8,10 @@ layout(location = 2) in vec2 aUV;
 layout(location = 4) in mat4 aTransform;
 layout(location = 8) in float aSpawnTime;
 
-#define MAX_PARTICLES 25
-
 uniform mat4 uView;
 uniform mat4 uProjection;
-uniform vec3 uAlbedos[MAX_PARTICLES];
 
 out vec3 pNormal;
-out vec3 pAlbedo;
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -43,7 +39,6 @@ void main()
 
     mat3 rotationMatrix = extractRotation(aTransform);
     pNormal = rotationMatrix * aNormal;
-    pAlbedo = uAlbedos[gl_InstanceID];
 }
 
 #fragment
@@ -51,7 +46,6 @@ void main()
 precision highp float;
 
 in vec3 pNormal;
-in vec3 pAlbedo;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
@@ -62,5 +56,5 @@ out vec4 FragColor;
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(pAlbedo, uAlpha);
+    FragColor = vec4(uAlbedo, uAlpha);
 }
