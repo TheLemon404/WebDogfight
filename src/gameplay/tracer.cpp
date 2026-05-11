@@ -44,7 +44,7 @@ void TracerSystemEntity::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     tracerMesh = app->graphicsBackend.CreateCube();
     app->graphicsBackend.UploadInstancedMeshTransforms(tracerMesh, nullptr, MAX_TRACERS);
-    tracerShader = &app->graphicsBackend.globalShaders.particles;
+    tracerShader = &app->graphicsBackend.globalShaders.tracer;
 }
 
 void TracerSystemEntity::Update() {

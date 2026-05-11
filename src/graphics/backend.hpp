@@ -41,6 +41,7 @@ struct GlobalShaders {
     Shader compass;
     Shader aircraft;
     Shader explosion;
+    Shader tracer;
 };
 
 struct GlobalMeshes {
