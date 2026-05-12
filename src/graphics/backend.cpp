@@ -436,6 +436,7 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     glEnableVertexAttribArray(5);
     glEnableVertexAttribArray(6);
     glEnableVertexAttribArray(7);
+    glEnableVertexAttribArray(8);
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
@@ -456,6 +457,7 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances) {
     glDisableVertexAttribArray(5);
     glDisableVertexAttribArray(6);
     glDisableVertexAttribArray(7);
+    glDisableVertexAttribArray(8);
 
     glBindVertexArray(0);
     glUseProgram(0);

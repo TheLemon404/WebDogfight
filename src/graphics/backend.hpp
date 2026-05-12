@@ -88,6 +88,27 @@ class GraphicsBackend {
 
     void LoadResources();
 
+    void BindVertexArray(int id) {
+        glBindVertexArray(id);
+    }
+
+    void BindBuffer(int id, int type = GL_ARRAY_BUFFER) {
+        glBindBuffer(type, id);
+    }
+
+    void BufferData(int type, int size, void* data, int mode) {
+        glBufferData(type, size, data, mode);
+    }
+
+    void SetVertexAttribPointer(int index, int numFloats, int stride, void* pointer) {
+        glVertexAttribPointer(index, numFloats, GL_FLOAT, GL_FALSE, stride, pointer);
+        glEnableVertexAttribArray(index);
+    }
+
+    void BufferSubData(int type, int index, int size, void* data) {
+        glBufferSubData(type, index, size, data);
+    }
+
     void UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices);
     void UploadMeshData(unsigned int& vao, unsigned int& vbo, unsigned int& ebo, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
     void UploadInstancedMeshTransforms(Mesh& mesh, glm::mat4* transforms, size_t numTransforms);
@@ -201,12 +222,14 @@ class GraphicsBackend {
         glDeleteVertexArrays(1, &mesh.vao);
         glDeleteBuffers(1, &mesh.vbo);
         glDeleteBuffers(1, &mesh.ebo);
+        glDeleteBuffers(1, &mesh.ibo);
     }
 
     void DeleteSkeletalMesh(SkeletalMesh& mesh) {
         glDeleteVertexArrays(1, &mesh.vao);
         glDeleteBuffers(1, &mesh.vbo);
         glDeleteBuffers(1, &mesh.ebo);
+        glDeleteBuffers(1, &mesh.ibo);
     }
 
     void DeleteShader(Shader& shader) {

@@ -5,6 +5,7 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 #include "../utils/math.hpp"
+#include <cstddef>
 
 #define MAX_TRACERS 100
 #define TRACER_LIFETIME_SECONDS 1.0f
@@ -18,6 +19,10 @@ void TracerSystemEntity::UpdateInstanceMeshTransforms() {
     }
 
     app->graphicsBackend.UpdateInstancedMeshTransforms(tracerMesh, tracerMatrices.data(), tracerMatrices.size());
+    app->graphicsBackend.BindVertexArray(tracerMesh.vao);
+    app->graphicsBackend.BindBuffer(tracerMesh.ibo);
+    app->graphicsBackend.BufferSubData(GL_ARRAY_BUFFER, 0, tracerSpawnTimes.size(), tracerSpawnTimes.data());
+    app->graphicsBackend.BindBuffer(0);
 }
 
 void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
@@ -44,6 +49,11 @@ void TracerSystemEntity::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     tracerMesh = app->graphicsBackend.CreateCube();
     app->graphicsBackend.UploadInstancedMeshTransforms(tracerMesh, nullptr, MAX_TRACERS);
+    app->graphicsBackend.BindVertexArray(tracerMesh.vao);
+    app->graphicsBackend.BindBuffer(tracerMesh.ibo);
+    app->graphicsBackend.BufferData(GL_ARRAY_BUFFER, MAX_TRACERS * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    app->graphicsBackend.BindBuffer(0);
+    app->graphicsBackend.BindVertexArray(0);
     tracerShader = &app->graphicsBackend.globalShaders.tracer;
 }
 
@@ -71,6 +81,7 @@ void TracerSystemEntity::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     app->graphicsBackend.SetBackfaceCulling(false);
     app->graphicsBackend.BeginDrawMeshInstanced(tracerMesh, *tracerShader, app->sceneManager.activeCamera, tracerTransforms.data(), tracerTransforms.size());
+    app->graphicsBackend.UploadShaderUniformFloat(*tracerShader, app->clock.currentTime, "uTime");
     app->graphicsBackend.EndDrawMeshInstanced(tracerMesh, tracerTransforms.size());
     app->graphicsBackend.SetBackfaceCulling(true);
 }

@@ -12,6 +12,7 @@ uniform mat4 uView;
 uniform mat4 uProjection;
 
 out vec3 pNormal;
+out float pSpawnTime;
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -39,22 +40,29 @@ void main()
 
     mat3 rotationMatrix = extractRotation(aTransform);
     pNormal = rotationMatrix * aNormal;
+
+    pSpawnTime = aSpawnTime;
 }
 
 #fragment
 #version 300 es
 precision highp float;
 
+#define TRACER_LIFETIME_SECONDS 1.0f
+
 in vec3 pNormal;
+in float pSpawnTime;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
+uniform float uTime;
 
 out vec4 FragColor;
 
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(uAlbedo, uAlpha);
+    vec3 timeColor = mix(vec3(1.0), vec3(0.0f), (uTime - pSpawnTime) / TRACER_LIFETIME_SECONDS);
+    FragColor = vec4(timeColor, uAlpha);
 }
