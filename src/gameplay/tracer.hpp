@@ -5,11 +5,15 @@
 
 #define BULLET_SPEED 10000.0f
 
+struct BulletInstanceData {
+    glm::mat4 transform;
+    float spawnTime;
+};
+
 class TracerSystemEntity : public Entity {
     Mesh tracerMesh;
     Shader* tracerShader;
-    std::vector<Transform> tracerTransforms;
-    std::vector<float> tracerSpawnTimes;
+    std::vector<BulletInstanceData> tracerInstances;
 
     void UpdateInstanceMeshTransforms();
 

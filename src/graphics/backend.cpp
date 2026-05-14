@@ -424,7 +424,7 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera, Transform* transforms, size_t numInstances) {
+void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);

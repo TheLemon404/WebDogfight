@@ -13,20 +13,14 @@
 void TracerSystemEntity::UpdateInstanceMeshTransforms() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    std::vector<glm::mat4> tracerMatrices;
-    for(size_t i = 0; i < tracerTransforms.size(); i++) {
-        tracerMatrices.push_back(tracerTransforms[i].GetMatrix());
-    }
-
-    app->graphicsBackend.UpdateInstancedMeshTransforms(tracerMesh, tracerMatrices.data(), tracerMatrices.size());
     app->graphicsBackend.BindVertexArray(tracerMesh.vao);
     app->graphicsBackend.BindBuffer(tracerMesh.ibo);
-    app->graphicsBackend.BufferSubData(GL_ARRAY_BUFFER, 0, tracerSpawnTimes.size(), tracerSpawnTimes.data());
+    app->graphicsBackend.BufferSubData(GL_ARRAY_BUFFER, 0, tracerInstances.size() * sizeof(BulletInstanceData), tracerInstances.data());
     app->graphicsBackend.BindBuffer(0);
 }
 
 void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
-    if(tracerTransforms.size() > MAX_TRACERS) {
+    if(tracerInstances.size() > MAX_TRACERS) {
         return;
     }
 
@@ -39,8 +33,10 @@ void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
     glm::vec3 targetVector = diffVector / length;
     tracerTransform.rotation = glm::quatLookAt(targetVector, GLOBAL_UP);
     tracerTransform.scale = glm::vec3(0.5f, 0.5f, length / 2.0f);
-    tracerTransforms.push_back(tracerTransform);
-    tracerSpawnTimes.push_back(app->clock.currentTime);
+    tracerInstances.push_back({
+        .transform = tracerTransform.GetMatrix(),
+        .spawnTime = (float)app->clock.currentTime,
+    });
 
     UpdateInstanceMeshTransforms();
 }
@@ -48,10 +44,18 @@ void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
 void TracerSystemEntity::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     tracerMesh = app->graphicsBackend.CreateCube();
-    app->graphicsBackend.UploadInstancedMeshTransforms(tracerMesh, nullptr, MAX_TRACERS);
     app->graphicsBackend.BindVertexArray(tracerMesh.vao);
+    app->graphicsBackend.GenBuffer(tracerMesh.ibo);
     app->graphicsBackend.BindBuffer(tracerMesh.ibo);
-    app->graphicsBackend.BufferData(GL_ARRAY_BUFFER, MAX_TRACERS * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    app->graphicsBackend.BufferData(GL_ARRAY_BUFFER, MAX_TRACERS * sizeof(BulletInstanceData), tracerInstances.data(), GL_DYNAMIC_DRAW);
+    for(int i = 0; i < 4; i++) {
+        app->graphicsBackend.VertexAttribPointer(4 + i, 4, sizeof(BulletInstanceData), (void*)(i * sizeof(glm::vec4)));
+        app->graphicsBackend.EnableVertexAttribDivisor(4 + i, 1);
+        app->graphicsBackend.EnableVertexAttribArray(4 + i);
+    }
+    app->graphicsBackend.VertexAttribPointer(8, 1, sizeof(BulletInstanceData), (void*)offsetof(BulletInstanceData, spawnTime));
+    app->graphicsBackend.EnableVertexAttribDivisor(8, 1);
+    app->graphicsBackend.EnableVertexAttribArray(8);
     app->graphicsBackend.BindBuffer(0);
     app->graphicsBackend.BindVertexArray(0);
     tracerShader = &app->graphicsBackend.globalShaders.tracer;
@@ -61,10 +65,9 @@ void TracerSystemEntity::Update() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     bool transformsChangedFlag = false;
 
-    for(size_t i = 0; i < tracerSpawnTimes.size();) {
-        if(app->clock.currentTime - tracerSpawnTimes[i] > TRACER_LIFETIME_SECONDS) {
-            tracerSpawnTimes.erase(tracerSpawnTimes.begin() + i);
-            tracerTransforms.erase(tracerTransforms.begin() + i);
+    for(size_t i = 0; i < tracerInstances.size();) {
+        if(app->clock.currentTime - tracerInstances[i].spawnTime > TRACER_LIFETIME_SECONDS) {
+            tracerInstances.erase(tracerInstances.begin() + i);
             transformsChangedFlag = true;
         }
         else {
@@ -80,9 +83,9 @@ void TracerSystemEntity::Update() {
 void TracerSystemEntity::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     app->graphicsBackend.SetBackfaceCulling(false);
-    app->graphicsBackend.BeginDrawMeshInstanced(tracerMesh, *tracerShader, app->sceneManager.activeCamera, tracerTransforms.data(), tracerTransforms.size());
+    app->graphicsBackend.BeginDrawMeshInstanced(tracerMesh, *tracerShader, app->sceneManager.activeCamera);
     app->graphicsBackend.UploadShaderUniformFloat(*tracerShader, app->clock.currentTime, "uTime");
-    app->graphicsBackend.EndDrawMeshInstanced(tracerMesh, tracerTransforms.size());
+    app->graphicsBackend.EndDrawMeshInstanced(tracerMesh, tracerInstances.size());
     app->graphicsBackend.SetBackfaceCulling(true);
 }
 

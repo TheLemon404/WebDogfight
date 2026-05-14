@@ -92,6 +92,10 @@ class GraphicsBackend {
         glBindVertexArray(id);
     }
 
+    void GenBuffer(unsigned int& id) {
+        glGenBuffers(1, &id);
+    }
+
     void BindBuffer(int id, int type = GL_ARRAY_BUFFER) {
         glBindBuffer(type, id);
     }
@@ -102,7 +106,18 @@ class GraphicsBackend {
 
     void SetVertexAttribPointer(int index, int numFloats, int stride, void* pointer) {
         glVertexAttribPointer(index, numFloats, GL_FLOAT, GL_FALSE, stride, pointer);
+    }
+
+    void EnableVertexAttribArray(int index) {
         glEnableVertexAttribArray(index);
+    }
+
+    void VertexAttribPointer(int index, int numFloats, int stride, void* pointer) {
+        glVertexAttribPointer(index, numFloats, GL_FLOAT, GL_FALSE, stride, pointer);
+    }
+
+    void EnableVertexAttribDivisor(int index, int divisor) {
+        glVertexAttribDivisor(index, divisor);
     }
 
     void BufferSubData(int type, int index, int size, void* data) {
@@ -256,7 +271,7 @@ class GraphicsBackend {
     void EndDrawSkeletalMesh(Mesh& mesh);
     void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform = true, bool ignoreDefaultMaterialProps = false);
     void EndDrawMesh(Mesh& mesh);
-    void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, Transform* transforms, size_t numInstances);
+    void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera);
     void EndDrawMeshInstanced(Mesh& mesh, size_t numInstances);
 
     void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);

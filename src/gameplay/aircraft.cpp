@@ -935,7 +935,7 @@ void AircraftSmokeParticleSystem::Draw() {
     if(disableBackfaceCulling) {
         app->graphicsBackend.SetBackfaceCulling(false);
     }
-    app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera, transforms, MAX_PARTICLE_TRANSFORMS);
+    app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera);
 
     for(size_t i = 0; i < MAX_PARTICLE_TRANSFORMS; i++) {
         app->graphicsBackend.UploadShaderUniformVec3(*shader, glm::mix(startAlbedo, endAlbedo, (float)pow(1.0 - particleLifetimes[i] / particleStartLifetime, 0.2f)), "uAlbedos[" + std::to_string(i) + "]");
