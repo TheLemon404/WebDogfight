@@ -736,7 +736,7 @@ void Aircraft::Update() {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 10000.0f);
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
                 }
 
                 if(lockedAircraft != nullptr) {
@@ -747,7 +747,7 @@ void Aircraft::Update() {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 10000.0f);
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
                 }
 
                 if(lockedAircraft != nullptr) {
