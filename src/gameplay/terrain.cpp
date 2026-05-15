@@ -10,6 +10,7 @@
 #define MAX_AIRCRAFT_HEIGHT 30000.0f
 
 #define HEIGHT_CONSTANT 10000.0f
+#define HEIGHT_FORGIVENESS_FACTOR 1.0f
 
 #define TERRAIN_RESOLUTION 100
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
@@ -108,7 +109,7 @@ void Terrain::Update() {
         float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.settings.heightFactor;
 
         //boundaries and terrain collision
-        if(aircraft->transform.position.y < height) {
+        if(aircraft->transform.position.y < height - HEIGHT_FORGIVENESS_FACTOR) {
             aircraft->Explode();
         }
         else if(aircraft->transform.position.y > MAX_AIRCRAFT_HEIGHT) {

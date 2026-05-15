@@ -36,6 +36,7 @@ struct AircraftResourceDescription {
 };
 
 struct AircraftResourceSettings {
+    float fireRate;
     float flapsMaxAngle;
     float brakeMaxAngle;
     float tailMaxAngle;
@@ -162,6 +163,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
+    std::shared_ptr<TextRectWidget> lockDistanceWidget = nullptr;
     std::shared_ptr<RectWidget> leadAimWidget = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
@@ -215,6 +217,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     //audio
     Sound engineSound = Sound();
+    float shotCountDown = 0.0f;
 
     glm::vec3 ComputeTargetLeadPoint();
 

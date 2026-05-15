@@ -18,7 +18,9 @@ class TracerSystemEntity : public Entity {
     void UpdateInstanceMeshTransforms();
 
     public:
-    TracerSystemEntity(const std::string& name) : Entity(name) {};
+    TracerSystemEntity(const std::string& name) : Entity(name) {
+        drawPriority = 5;
+    };
 
     void SpawnTracer(glm::vec3 start, glm::vec3 end);
 

@@ -424,7 +424,7 @@ void GraphicsBackend::EndDrawMesh(Mesh& mesh) {
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera) {
+void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera &camera, bool enableExtraAttribs) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -436,7 +436,10 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     glEnableVertexAttribArray(5);
     glEnableVertexAttribArray(6);
     glEnableVertexAttribArray(7);
-    glEnableVertexAttribArray(8);
+
+    if(enableExtraAttribs) {
+        glEnableVertexAttribArray(8);
+    }
 
     //vertex uniforms
     UploadShaderUniformMat4(shader, camera.GetViewMatrix(), "uView");
@@ -447,7 +450,7 @@ void GraphicsBackend::BeginDrawMeshInstanced(Mesh &mesh, Shader &shader, Camera 
     UploadShaderUniformVec3(shader, mesh.material.albedo, "uAlbedo");
 }
 
-void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances) {
+void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances, bool enableExtraAttribs) {
     glDrawElementsInstanced(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0, numInstances);
 
     glDisableVertexAttribArray(0);
@@ -457,7 +460,10 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances) {
     glDisableVertexAttribArray(5);
     glDisableVertexAttribArray(6);
     glDisableVertexAttribArray(7);
-    glDisableVertexAttribArray(8);
+
+    if(enableExtraAttribs) {
+        glDisableVertexAttribArray(8);
+    }
 
     glBindVertexArray(0);
     glUseProgram(0);

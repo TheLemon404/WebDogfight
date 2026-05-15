@@ -32,7 +32,7 @@ void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
     float length = glm::length(diffVector);
     glm::vec3 targetVector = diffVector / length;
     tracerTransform.rotation = glm::quatLookAt(targetVector, GLOBAL_UP);
-    tracerTransform.scale = glm::vec3(0.5f, 0.5f, length / 2.0f);
+    tracerTransform.scale = glm::vec3(0.2f, 0.2f, length / 2.0f);
     tracerInstances.push_back({
         .transform = tracerTransform.GetMatrix(),
         .spawnTime = (float)app->clock.currentTime,
@@ -44,6 +44,7 @@ void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
 void TracerSystemEntity::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     tracerMesh = app->graphicsBackend.CreateCube();
+    tracerMesh.material.albedo = glm::vec3(0.988, 0.698, 0.275);
     app->graphicsBackend.BindVertexArray(tracerMesh.vao);
     app->graphicsBackend.GenBuffer(tracerMesh.ibo);
     app->graphicsBackend.BindBuffer(tracerMesh.ibo);
@@ -83,9 +84,9 @@ void TracerSystemEntity::Update() {
 void TracerSystemEntity::Draw() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     app->graphicsBackend.SetBackfaceCulling(false);
-    app->graphicsBackend.BeginDrawMeshInstanced(tracerMesh, *tracerShader, app->sceneManager.activeCamera);
+    app->graphicsBackend.BeginDrawMeshInstanced(tracerMesh, *tracerShader, app->sceneManager.activeCamera, true);
     app->graphicsBackend.UploadShaderUniformFloat(*tracerShader, app->clock.currentTime, "uTime");
-    app->graphicsBackend.EndDrawMeshInstanced(tracerMesh, tracerInstances.size());
+    app->graphicsBackend.EndDrawMeshInstanced(tracerMesh, tracerInstances.size(), true);
     app->graphicsBackend.SetBackfaceCulling(true);
 }
 

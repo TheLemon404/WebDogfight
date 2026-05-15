@@ -11,6 +11,7 @@ layout(location = 8) in float aSpawnTime;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out vec3 pPosition;
 out vec3 pNormal;
 out float pSpawnTime;
 
@@ -42,6 +43,7 @@ void main()
     pNormal = rotationMatrix * aNormal;
 
     pSpawnTime = aSpawnTime;
+    pPosition = aPos;
 }
 
 #fragment
@@ -50,6 +52,7 @@ precision highp float;
 
 #define TRACER_LIFETIME_SECONDS 1.0f
 
+in vec3 pPosition;
 in vec3 pNormal;
 in float pSpawnTime;
 
@@ -63,6 +66,9 @@ out vec4 FragColor;
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    vec3 timeColor = mix(vec3(1.0), vec3(0.0f), (uTime - pSpawnTime) / TRACER_LIFETIME_SECONDS);
-    FragColor = vec4(timeColor, uAlpha);
+    float t = (uTime - pSpawnTime) / TRACER_LIFETIME_SECONDS;
+    float normalizedZPosition = (-pPosition.z + 1.0) / 2.0;
+    float vertexDistance = abs(normalizedZPosition - t);
+    float colorFactor = pow(1.0 - vertexDistance, 100.0);
+    FragColor = vec4(vec3(uAlbedo), colorFactor);
 }

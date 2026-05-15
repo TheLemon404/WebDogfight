@@ -266,6 +266,7 @@ void InputWidget::Update() {
     if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)){
         if(hoveredState) {
             app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.1f);
+            SetText("");
             focused = true;
         }
         else {

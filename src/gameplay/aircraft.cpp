@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstddef>
 #include <memory>
+#include <string>
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/euler_angles.hpp"
 #include <glm/gtx/rotate_vector.hpp>
@@ -217,6 +218,18 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockNameWidget->z_distance = -0.95f;
     lockNameWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
+    lockDistanceWidget = CreateWidget<TextRectWidget>("lockDistanceWidget", app->graphicsBackend.globalFonts.defaultFont);
+    lockDistanceWidget->moveWithAspectRatio = true;
+    lockDistanceWidget->scale = glm::vec2(0.1f, 0.045f);
+    lockDistanceWidget->position = glm::vec2(2.0f, 0.0);
+    lockDistanceWidget->centerText = true;
+    lockDistanceWidget->color.value.a = 0.0;
+    lockDistanceWidget->borderColor.value = glm::vec4(0.3, 1.0, 0.4, 0.0);
+    lockDistanceWidget->fontColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    lockDistanceWidget->cornerLength = 7;
+    lockDistanceWidget->z_distance = -0.95f;
+    lockDistanceWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+
     leadAimWidget = CreateWidget<RectWidget>("leadAimWidget");
     leadAimWidget->moveWithAspectRatio = true;
     leadAimWidget->rotation = 45.0;
@@ -227,7 +240,10 @@ void AircraftWidgetLayer::CreateWidgets() {
     leadAimWidget->cornerColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
 
     std::shared_ptr<TextRectWidget> lobbyInfoRect = CreateWidget<TextRectWidget>("lobbyInfoRect", app->graphicsBackend.globalFonts.defaultFont);
-    lobbyInfoRect->SetText("Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n");
+    lobbyInfoRect->SetText(
+        "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n"
+    );
+
     lobbyInfoRect->position = glm::vec2(0.8, 0.9);
     lobbyInfoRect->moveWithAspectRatio = true;
     lobbyInfoRect->scale = glm::vec2(0.28, 0.0425);
@@ -307,6 +323,7 @@ void AircraftWidgetLayer::UpdateLayer() {
 
 Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
     std::unique_ptr<Application>& app = Application::GetInstance();
+    drawPriority = 4;
     if(app->networkManager.localClientId == networkId) {
         std::lock_guard<std::mutex> lock(app->networkManager.pendingStateChangeMutex);
         app->networkManager.networkGameState.clientStates[networkId].inGame = true;
@@ -339,6 +356,7 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.pressureVorticesL = JSON["description"]["bone-mappings"]["pressureVortices.l"];
     resource.description.boneMappings.pressureVorticesR = JSON["description"]["bone-mappings"]["pressureVortices.r"];
 
+    resource.settings.fireRate = JSON["settings"]["fire-rate"];
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
@@ -628,6 +646,36 @@ void Aircraft::Update() {
             if(lockedAircraft == nullptr) {
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
+                std::shared_ptr<TextRectWidget> lockDistanceWidget = aircraftWidgetLayer->lockDistanceWidget;
+                std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
+                if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
+                    lockWidget->position = glm::vec2(2.0f, 0.0);
+                    lockNameWidget->position = glm::vec2(2.0f, 0.075f);
+                    leadAimWidget->position = glm::vec2(2.0f, 0.075f);
+                    lockDistanceWidget->position = glm::vec2(2.0f, 0.075f);
+                }
+
+                for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
+                    if(prospectiveTarget->id == id) {
+                        continue;
+                    }
+
+                    glm::vec3 toVector = glm::normalize(prospectiveTarget->transform.position - transform.position);
+                    float angle = glm::acos(glm::dot(aircraftForward, toVector));
+                    if(angle <= PI/5 && !prospectiveTarget->shotDown) {
+                        lockedAircraft = prospectiveTarget;
+                        const std::string clientName = app->networkManager.networkGameState.clientStates[lockedAircraft->networkId].name;
+                        lockNameWidget->scale.x = clientName.length() * FONT_CHAR_WIDTH_PIXELS;
+                        lockNameWidget->SetText(clientName);
+                        break;
+                    }
+                }
+            }
+            else if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) {
+                lockedAircraft = nullptr;
+
+                std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
+                std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
                 std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
                 if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
                     lockWidget->position = glm::vec2(2.0f, 0.0);
@@ -642,7 +690,7 @@ void Aircraft::Update() {
 
                     glm::vec3 toVector = glm::normalize(prospectiveTarget->transform.position - transform.position);
                     float angle = glm::acos(glm::dot(aircraftForward, toVector));
-                    if(angle <= PI/5) {
+                    if(angle <= PI/5 && !prospectiveTarget->shotDown) {
                         lockedAircraft = prospectiveTarget;
                         const std::string clientName = app->networkManager.networkGameState.clientStates[lockedAircraft->networkId].name;
                         lockNameWidget->scale.x = clientName.length() * FONT_CHAR_WIDTH_PIXELS;
@@ -655,24 +703,27 @@ void Aircraft::Update() {
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
                 std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
+                std::shared_ptr<TextRectWidget> lockDistanceWidget = aircraftWidgetLayer->lockDistanceWidget;
                 if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
                     glm::vec3 leadPoint = ComputeTargetLeadPoint();
                     leadAimWidget->position = aircraftWidgetLayer->UIAlignmentWithWorldPosition(leadPoint);
 
                     lockWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position), glm::vec2(-0.9f), glm::vec2(0.9f));
                     lockNameWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position) + glm::vec2(0.0f, 0.075f), glm::vec2(-0.9f), glm::vec2(0.9f));
-                }
 
-                glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);
-                float angle = glm::acos(glm::dot(aircraftForward, toVector));
-                if(angle > PI/2) {
-                    lockedAircraft = nullptr;
+                    lockDistanceWidget->position = glm::clamp(aircraftWidgetLayer->UIAlignmentWithWorldPosition(lockedAircraft->transform.position) + glm::vec2(0.0f, -0.075f), glm::vec2(-0.9f), glm::vec2(0.9f));
+                    lockDistanceWidget->SetText(MiscUtils::Truncate(std::to_string((float)glm::distance(transform.position, lockedAircraft->transform.position)), 5));
                 }
             }
         }
         {
             FOX2_PROFILE_SCOPE("Shooting Gun")
-            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1)) {
+            shotCountDown -= app->clock.deltaTime;
+
+            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
+                shotCountDown = resource.settings.fireRate;
+                app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shot, true, 1.0f);
+
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
@@ -682,6 +733,22 @@ void Aircraft::Update() {
                 if(lockedAircraft != nullptr) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }
+            }
+            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && shotCountDown <= 0.0f) {
+                //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
+                std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
+                if(tracerSystem != nullptr) {
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 10000.0f);
+                }
+
+                if(lockedAircraft != nullptr) {
+                    app->networkManager.RequestFireGun(lockedAircraft->networkId);
+                }
+
+                shotCountDown = resource.settings.fireRate;
+            }
+            else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
+                app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
             }
         }
         {

@@ -58,7 +58,7 @@ uniform sampler3D noiseTexture;
 
 out vec4 FragColor;
 
-#define ABSORBTION 100.0f
+#define ABSORBTION 15.0f
 
 #define STEPS 18
 #define RADIUS 1.0

@@ -119,13 +119,26 @@ void Scene::Update()  {
         app->networkManager.hasPendingStateChange = false;
     }
 
+    bool sortFlag = false;
     while(!spawnQueue.empty()) {
         std::shared_ptr<Entity> entity = spawnQueue.front();
         entity->LoadResources();
         entity->Initialize();
         entities.push_back(entity);
         spawnQueue.pop();
+        sortFlag = true;
     }
+
+    if(sortFlag) {
+        std::sort(entities.begin(), entities.end(), [](std::shared_ptr<Entity>& a, std::shared_ptr<Entity>& b) {
+            return a->drawPriority < b->drawPriority;
+        });
+
+        for(std::shared_ptr<Entity>& entity : entities) {
+            std::cout << entity->name << " -> ";
+        }
+    }
+
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->Update();
     }

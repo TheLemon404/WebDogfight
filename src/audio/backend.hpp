@@ -11,6 +11,7 @@ struct GlobalSounds {
     Sound buttonClick;
     Sound hover;
     Sound shotDown;
+    Sound shot;
     Sound explosion;
 };
 

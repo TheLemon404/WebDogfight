@@ -10,6 +10,8 @@ class Entity {
     const unsigned int id = rand();
     const std::string name;
 
+    int drawPriority = 3;
+
     virtual void LoadResources() = 0;
     virtual void Initialize() = 0;
     virtual void Update() = 0;
