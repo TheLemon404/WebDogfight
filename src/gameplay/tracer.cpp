@@ -44,7 +44,7 @@ void TracerSystemEntity::SpawnTracer(glm::vec3 start, glm::vec3 end) {
 void TracerSystemEntity::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     tracerMesh = app->graphicsBackend.CreateCube();
-    tracerMesh.material.albedo = glm::vec3(0.988, 0.698, 0.275);
+    tracerMesh.material.albedo = glm::vec3(1, 0.863, 0);
     app->graphicsBackend.BindVertexArray(tracerMesh.vao);
     app->graphicsBackend.GenBuffer(tracerMesh.ibo);
     app->graphicsBackend.BindBuffer(tracerMesh.ibo);

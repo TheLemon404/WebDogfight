@@ -567,11 +567,22 @@ void Aircraft::Update() {
             rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
             extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
 
-            float maxDelta = resource.settings.maxTurnRate * (float)app->clock.deltaTime;
-            float angle = glm::angle(unrolledRotation * glm::inverse(targetRotation));
-            float maxDeltaAngle = MathUtils::Clamp<float>(maxDelta / angle, 0.0f, 1.0f);
+            //Disclaimer, this code is sloppy and was partially implimented with the help of my good friend Claude.
+            //Claude may not be the best programmer, but he understands quaternion algebra better than I do... so I guess im stuck using him for this
 
-            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, (float)app->clock.deltaTime * maxDeltaAngle);
+            //compute the maxmimum angle we can change in this tick
+            float maxTurnDelta = resource.settings.maxTurnRate * (float)app->clock.deltaTime;
+            //safely get the difference in our direction and our desired direction
+            glm::quat angleDiff = unrolledRotation * glm::inverse(targetRotation);
+            if (angleDiff.w < 0.0f) {
+                angleDiff = glm::quat(-angleDiff.w, -angleDiff.x, -angleDiff.y, -angleDiff.z);
+            }
+            float remainingAngle = 2.0f * acosf(glm::clamp(angleDiff.w, -1.0f, 1.0f));
+
+            //compute how much we will turn this frame based on slerp
+            float frameTurnT = MathUtils::Clamp<float>(maxTurnDelta / remainingAngle, 0.0f, 1.0f);
+
+            unrolledRotation = glm::slerp(unrolledRotation, targetRotation, frameTurnT);
             unrotatedForward = glm::normalize(glm::rotate(unrolledRotation, GLOBAL_FORWARD));
 
             glm::vec3 velocityChange = (velocity - lastVelocity) / app->clock.deltaTime;
