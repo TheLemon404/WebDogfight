@@ -405,8 +405,6 @@ void Aircraft::LoadResources() {
     }
 
     if(networkId == app->networkManager.localClientId) {
-        Loader::LoadSoundFromFile("resources/audio/engine.wav", engineSound);
-
         aircraftWidgetLayer = std::make_unique<AircraftWidgetLayer>();
         aircraftWidgetLayer->CreateWidgets();
         aircraftWidgetLayer->LoadResources();
@@ -430,7 +428,7 @@ void Aircraft::Initialize() {
     rightTrails.Initialize();
 
     if(networkId == app->networkManager.localClientId) {
-        app->audioBackend.StartSoundAsset(engineSound, true, 0.3f);
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.engineSound, true, 0.3f);
 
         app->networkManager.onShotDownDemand = [this]() {
             ShootDown();
@@ -604,7 +602,7 @@ void Aircraft::Update() {
                 ShootDown();
             }
 
-            app->audioBackend.SoundAssetSetPitch(engineSound, controls.throttle);
+            app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.engineSound, controls.throttle);
         }
         {
             FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
@@ -908,11 +906,6 @@ void Aircraft::Draw()  {
 
 void Aircraft::UnloadResources()  {
     std::unique_ptr<Application>& app = Application::GetInstance();
-
-    if(networkId == app->networkManager.localClientId) {
-        app->audioBackend.EndSoundAsset(engineSound);
-        app->audioBackend.UnloadSoundAsset(engineSound);
-    }
 
     app->graphicsBackend.DeleteSkeletalMesh(skeletalMesh);
 

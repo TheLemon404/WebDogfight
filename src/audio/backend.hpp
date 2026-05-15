@@ -13,6 +13,7 @@ struct GlobalSounds {
     Sound shotDown;
     Sound shot;
     Sound explosion;
+    Sound engineSound;
 };
 
 class AudioBackend{
