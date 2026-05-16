@@ -4,6 +4,8 @@
 #include <string>
 
 struct Sound {
+    //started only applies after StartSoundAsset() not PlayAudio()
+    bool started = false;
     ma_sound value;
 };
 
@@ -14,6 +16,7 @@ struct GlobalSounds {
     Sound shot;
     Sound explosion;
     Sound engineSound;
+    Sound lockAlert;
 };
 
 class AudioBackend{

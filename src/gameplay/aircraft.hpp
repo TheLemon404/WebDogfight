@@ -222,6 +222,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     glm::vec3 ComputeTargetLeadPoint();
 
     public:
+    uint32_t lockedAircraftNetworkId = 0;
+
     bool shotDown = false;
     bool exploded = false;
     bool shooting = false;

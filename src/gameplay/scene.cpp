@@ -139,9 +139,26 @@ void Scene::Update()  {
         }
     }
 
-    for(std::shared_ptr<Entity>& entity : entities) {
+    bool lockedFlag = false;
+    for(std::shared_ptr<Entity> entity : entities) {
         entity->Update();
+
+        std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entity);
+        if(aircraft != nullptr && aircraft->lockedAircraftNetworkId == app->networkManager.localClientId) {
+            lockedFlag = true;
+        }
     }
+
+
+    if(!app->audioBackend.globalSounds.lockAlert.started && lockedFlag) {
+        std::cout << "start" << std::endl;
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.lockAlert, true, 1.0f);
+    }
+    else if (app->audioBackend.globalSounds.lockAlert.started && !lockedFlag) {
+        std::cout << "end" << std::endl;
+        app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
+    }
+
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
         widgetLayer->UpdateLayer();
         widgetLayer->Update();

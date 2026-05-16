@@ -12,6 +12,8 @@ class ClientState {
     bool exploded = false;
     bool shooting = false;
 
+    uint32_t lockedTargetNetworkID = 0;
+
     glm::vec3 position;
     glm::quat rotation;
     glm::vec3 velocity;
@@ -24,6 +26,7 @@ class ClientState {
             .WriteU8(shotDown)
             .WriteU8(exploded)
             .WriteU8(shooting)
+            .WriteU32(lockedTargetNetworkID)
             .WriteF32(position.x)
             .WriteF32(position.y)
             .WriteF32(position.z)
@@ -45,6 +48,7 @@ class ClientState {
         shotDown = packet.ReadU8();
         exploded = packet.ReadU8();
         shooting = packet.ReadU8();
+        lockedTargetNetworkID = packet.ReadU32();
         position.x = packet.ReadF32();
         position.y = packet.ReadF32();
         position.z = packet.ReadF32();
