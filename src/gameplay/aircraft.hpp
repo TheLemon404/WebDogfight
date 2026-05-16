@@ -224,6 +224,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     public:
     bool shotDown = false;
     bool exploded = false;
+    bool shooting = false;
 
     AircraftControls controls;
 

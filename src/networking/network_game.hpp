@@ -10,6 +10,7 @@ class ClientState {
     bool inGame = false;
     bool shotDown = false;
     bool exploded = false;
+    bool shooting = false;
 
     glm::vec3 position;
     glm::quat rotation;
@@ -22,6 +23,7 @@ class ClientState {
             .WriteU8(inGame)
             .WriteU8(shotDown)
             .WriteU8(exploded)
+            .WriteU8(shooting)
             .WriteF32(position.x)
             .WriteF32(position.y)
             .WriteF32(position.z)
@@ -42,6 +44,7 @@ class ClientState {
         inGame = packet.ReadU8();
         shotDown = packet.ReadU8();
         exploded = packet.ReadU8();
+        shooting = packet.ReadU8();
         position.x = packet.ReadF32();
         position.y = packet.ReadF32();
         position.z = packet.ReadF32();

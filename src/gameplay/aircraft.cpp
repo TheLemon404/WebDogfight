@@ -746,6 +746,8 @@ void Aircraft::Update() {
                 if(lockedAircraft != nullptr) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }
+
+                shooting = true;
             }
             else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && shotCountDown <= 0.0f) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
@@ -762,6 +764,8 @@ void Aircraft::Update() {
             }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
+
+                shooting = false;
             }
         }
         {
@@ -777,6 +781,7 @@ void Aircraft::Update() {
         clientState.velocity = velocity;
         clientState.shotDown = shotDown;
         clientState.exploded = exploded;
+        clientState.shooting = shooting;
     }
     else {
         if(app->networkManager.networkGameState.clientStates.contains(networkId)) {
@@ -789,6 +794,22 @@ void Aircraft::Update() {
 
             shotDown = clientState.shotDown;
             exploded = clientState.exploded;
+            shooting = clientState.shooting;
+
+            if(shooting) {
+                shotCountDown -= app->clock.deltaTime;
+
+                if(shotCountDown <= 0.0f) {
+                    glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
+
+                    std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
+                    if(tracerSystem != nullptr) {
+                        tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
+                    }
+
+                    shotCountDown = resource.settings.fireRate;
+                }
+            }
 
             if(shotDown && !app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown) {
                 smokeParticles.emitting = true;
