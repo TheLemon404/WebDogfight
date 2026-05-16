@@ -161,7 +161,10 @@ void RadarWidget::Draw() {
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithWorldPosition(glm::vec3 worldPosition) {
     std::unique_ptr<Application>& app = Application::GetInstance();
     glm::vec4 clipPosition = app->sceneManager.activeCamera.GetProjectionMatrix() * app->sceneManager.activeCamera.GetViewMatrix() * glm::vec4(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
-    return glm::vec2(clipPosition.x / clipPosition.w, clipPosition.y / clipPosition.w);
+    if(clipPosition.w <= 0.0f) {
+        return glm::vec2(clipPosition.x, clipPosition.y);
+    }
+    return glm::vec2(clipPosition.x, clipPosition.y) / clipPosition.w;
 }
 
 glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::quat rotation) {
@@ -601,6 +604,7 @@ void Aircraft::Update() {
             else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 controls.throttle -= resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
+
 
             if(shotDown) {
                 controls.throttle = 0.001f;
