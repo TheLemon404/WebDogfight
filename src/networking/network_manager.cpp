@@ -124,7 +124,8 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
         case PacketType::SHOOT_DOWN_DEMAND:
         {
             if(onShotDownDemand != nullptr){
-                onShotDownDemand();
+                uint32_t killerId = packet.ReadU32();
+                onShotDownDemand(killerId);
             }
             break;
         }

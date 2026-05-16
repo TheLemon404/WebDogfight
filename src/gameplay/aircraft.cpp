@@ -38,6 +38,7 @@
 #include "../application.hpp"
 #include "tracer.hpp"
 
+#define MAX_GUNS_RANGE 3000.0f
 #define SHOT_DOWN_EXPLOSION_SIZE 75.0f
 #define EXPLODE_EXPLOSION_SIZE 120.0f
 
@@ -49,7 +50,7 @@
 
 #define GRAVITY 17000.0f
 #define DRAG_COEFFICIENT 50.0f
-#define GFORCE_COEFFICIENT 0.005f
+#define GFORCE_COEFFICIENT 0.015f
 #define GFORCE_BODY_THRESHOLD 7
 #define GFORCE_TRAIL_THRESHOLD 9
 
@@ -246,7 +247,6 @@ void AircraftWidgetLayer::CreateWidgets() {
     lobbyInfoRect->SetText(
         "Lobby Id: " + std::to_string(app->networkManager.GetLobbyId()) + "\n"
     );
-
     lobbyInfoRect->position = glm::vec2(0.8, 0.9);
     lobbyInfoRect->moveWithAspectRatio = true;
     lobbyInfoRect->scale = glm::vec2(0.28, 0.0425);
@@ -288,6 +288,16 @@ void AircraftWidgetLayer::CreateWidgets() {
     compass->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     compass->font.fontScale = 1.0f;
     compass->SetText("                                0 deg");
+
+    killFeedWidget = CreateWidget<TextRectWidget>("killFeedWidget", app->graphicsBackend.globalFonts.defaultFont);
+    killFeedWidget->position = glm::vec2(0.0, 0.3);
+    killFeedWidget->moveWithAspectRatio = true;
+    killFeedWidget->scale = glm::vec2(0.3, 0.15);
+    killFeedWidget->centerText = true;
+    killFeedWidget->color.value = glm::vec4(0.0f);
+    killFeedWidget->borderColor.value = glm::vec4(0.0f);
+    killFeedWidget->cornerColor.value = glm::vec4(0.0f);
+    killFeedWidget->fontColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
@@ -430,10 +440,29 @@ void Aircraft::Initialize() {
     leftTrails.Initialize();
     rightTrails.Initialize();
 
+
+    if(aircraftWidgetLayer) {
+        aimWidget = static_pointer_cast<RectWidget>(aircraftWidgetLayer->GetWidgetByName("aimWidget"));
+        mouseWidget = static_pointer_cast<CircleWidget>(aircraftWidgetLayer->GetWidgetByName("mouseWidget"));
+        killFeedWidget = static_pointer_cast<TextRectWidget>(aircraftWidgetLayer->GetWidgetByName("killFeedWidget"));
+        aircraftWidgetLayer->Initialize();
+    }
+
     if(networkId == app->networkManager.localClientId) {
         app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.engineSound, true, 0.3f);
 
-        app->networkManager.onShotDownDemand = [this]() {
+        std::shared_ptr<TextRectWidget> tempKillFeedWidget = killFeedWidget;
+
+        app->networkManager.onShotDownDemand = [this, &app, tempKillFeedWidget](uint32_t killerId) {
+            if(tempKillFeedWidget != nullptr) {
+                if(app->networkManager.networkGameState.clientStates.contains(killerId)) {
+                    std::string killerName = app->networkManager.networkGameState.clientStates[killerId].name;
+                    tempKillFeedWidget->SetText("You were killed by " + killerName + "\n");
+                }
+                else {
+                    tempKillFeedWidget->SetText("You died.\n");
+                }
+            }
             ShootDown();
         };
         app->networkManager.onExplodeDemand = [this]() {
@@ -442,12 +471,6 @@ void Aircraft::Initialize() {
     }
 
     skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
-
-    if(aircraftWidgetLayer) {
-        aimWidget = static_pointer_cast<RectWidget>(aircraftWidgetLayer->GetWidgetByName("aimWidget"));
-        mouseWidget = static_pointer_cast<CircleWidget>(aircraftWidgetLayer->GetWidgetByName("mouseWidget"));
-        aircraftWidgetLayer->Initialize();
-    }
 }
 
 void Aircraft::ApplyControlSurfaces(float roll) {
@@ -647,10 +670,13 @@ void Aircraft::Update() {
             FOX2_PROFILE_SCOPE("More Camera Controls")
             camera.target = transform.position + GLOBAL_UP * resource.settings.cameraRideHeight;
             float cameraZoom = InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_2) ? resource.settings.cameraZoomDistance : resource.settings.cameraDistance;
+
             if(shotDown) {
                 cameraZoom = resource.settings.cameraDistance * 4.0f;
             }
+
             camera.position = camera.target + GLOBAL_FORWARD * cameraZoom;
+
             glm::vec3 horizontalAxis = MathUtils::RotatePointAroundPoint(camera.position, camera.target, cameraRotationInputValue.y, -GLOBAL_LEFT);
             camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
         }
@@ -749,7 +775,7 @@ void Aircraft::Update() {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
                 }
 
                 if(lockedAircraft != nullptr) {
@@ -762,7 +788,7 @@ void Aircraft::Update() {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
+                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
                 }
 
                 if(lockedAircraft != nullptr) {

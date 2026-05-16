@@ -169,6 +169,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<TextRectWidget> stats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;
+    std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
 
     glm::vec2 UIAlignmentWithWorldPosition(glm::vec3 worldPosition);
     glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
@@ -186,6 +187,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     std::shared_ptr<RectWidget> aimWidget = nullptr;
     std::shared_ptr<CircleWidget> mouseWidget = nullptr;
+    std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
 
     float targetBrakeAngle = 0.0f;
 

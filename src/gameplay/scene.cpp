@@ -144,11 +144,10 @@ void Scene::Update()  {
         entity->Update();
 
         std::shared_ptr<Aircraft> aircraft = std::dynamic_pointer_cast<Aircraft>(entity);
-        if(aircraft != nullptr && aircraft->lockedAircraftNetworkId == app->networkManager.localClientId) {
+        if(aircraft != nullptr && aircraft->lockedAircraftNetworkId != 0 && aircraft->lockedAircraftNetworkId == app->networkManager.localClientId) {
             lockedFlag = true;
         }
     }
-
 
     if(!app->audioBackend.globalSounds.lockAlert.started && lockedFlag) {
         std::cout << "start" << std::endl;

@@ -69,6 +69,9 @@ void main()
     float t = (uTime - pSpawnTime) / TRACER_LIFETIME_SECONDS;
     float normalizedZPosition = (-pPosition.z + 1.0) / 2.0;
     float vertexDistance = abs(normalizedZPosition - t);
-    float colorFactor = pow(1.0 - vertexDistance, 100.0);
-    FragColor = vec4(vec3(uAlbedo), colorFactor);
+    float tempZ = pPosition.z;
+    float ip = 15.0f;
+    float zModulo = modf(tempZ * 100.0f, ip);
+    float travelFactor = pow(1.0 - vertexDistance, 15.0);
+    FragColor = vec4(vec3(uAlbedo), travelFactor * zModulo);
 }
