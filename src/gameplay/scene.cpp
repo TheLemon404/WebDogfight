@@ -150,11 +150,9 @@ void Scene::Update()  {
     }
 
     if(!app->audioBackend.globalSounds.lockAlert.started && lockedFlag) {
-        std::cout << "start" << std::endl;
         app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.lockAlert, true, 1.0f);
     }
     else if (app->audioBackend.globalSounds.lockAlert.started && !lockedFlag) {
-        std::cout << "end" << std::endl;
         app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
     }
 
@@ -170,7 +168,7 @@ void Scene::Update()  {
     }
 }
 
-void Scene::Draw() {
+void Scene::DrawScene() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     if(environment.skybox) {
@@ -186,7 +184,9 @@ void Scene::Draw() {
         FOX2_PROFILE_SCOPE(entity->name.c_str())
         entity->Draw();
     }
+}
 
+void Scene::DrawUI() {
     for(std::shared_ptr<WidgetLayer>& widgetLayer : widgetLayers) {
         FOX2_PROFILE_SCOPE("widget layer")
         widgetLayer->Draw();

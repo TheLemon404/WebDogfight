@@ -155,6 +155,13 @@ class Bone {
     }
 };
 
+class FrameBuffer {
+    public:
+        Texture texture;
+        unsigned int id;
+        unsigned int depthRbo;
+};
+
 class Skeleton {
     public:
     std::vector<Bone> bones;

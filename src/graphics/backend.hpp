@@ -42,6 +42,7 @@ struct GlobalShaders {
     Shader aircraft;
     Shader explosion;
     Shader tracer;
+    Shader post;
 };
 
 struct GlobalMeshes {
@@ -79,12 +80,15 @@ class GraphicsBackend {
     GlobalMeshes globalMeshes;
     GlobalFonts globalFonts;
     GlobalTextures globalTextures;
+    FrameBuffer screenFrameBuffer;
 
     glm::vec3 clearColor = glm::vec3(1.0f);
 
     Mesh CreateCube();
     Mesh CreateQuad();
     Mesh CreateSphere(float radius = 1.0f);
+
+    FrameBuffer CreateFrameBuffer();
 
     void LoadResources();
 
@@ -251,6 +255,11 @@ class GraphicsBackend {
         glDeleteProgram(shader.programID);
     }
 
+    void DeleteFrameBuffer(FrameBuffer& frameBuffer) {
+        DeleteTexture(frameBuffer.texture);
+        glDeleteFramebuffers(1, &frameBuffer.id);
+    }
+
     void DeleteTexture(Texture& texture) {
         glDeleteTextures(1, &texture.id);
         stbi_image_free(texture.data);
@@ -274,8 +283,12 @@ class GraphicsBackend {
     void BeginDrawMeshInstanced(Mesh& mesh, Shader& shader, Camera& camera, bool enableExtraAttributes = false);
     void EndDrawMeshInstanced(Mesh& mesh, size_t numInstances, bool enableExtraAttributes = false);
 
-    void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2& screenPosition, glm::vec2& scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
+    void BeginDrawMesh2D(Mesh& mesh, Shader& shader, glm::vec2 screenPosition, glm::vec2 scale, float rotation, float z_distance = -1.0f, bool stretchWithAspectRatio = false, bool moveWithAspectRatio = false);
     void EndDrawMesh2D(Mesh& mesh);
+
+    void BindScreenFrameBuffer();
+    void UnBindScreenFrameBuffer();
+    void DrawScreenFrameBufferToScreen();
 
     void CollectErrors();
 
@@ -283,6 +296,7 @@ class GraphicsBackend {
        	glViewport(0, 0, viewportWidth, viewportHeight);
         glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
     }
 
     void DrawSkybox(Skybox& skybox, Camera& camera);

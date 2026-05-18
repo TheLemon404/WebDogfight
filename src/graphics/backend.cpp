@@ -6,7 +6,6 @@
 #include "../gameplay/scene_manager.hpp"
 #include "../utils/math.hpp"
 #include "../utils/instrumentor.hpp"
-
 #include "../application.hpp"
 
 void GraphicsBackend::LoadResources() {
@@ -28,6 +27,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.aircraft = Loader::LoadShaderFromGLSL("resources/shaders/aircraft.glsl");
     globalShaders.explosion = Loader::LoadShaderFromGLSL("resources/shaders/explosion.glsl");
     globalShaders.tracer = Loader::LoadShaderFromGLSL("resources/shaders/tracer.glsl");
+    globalShaders.post = Loader::LoadShaderFromGLSL("resources/shaders/post.glsl");
 
     globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
     globalMeshes.quad = CreateQuad();
@@ -37,6 +37,8 @@ void GraphicsBackend::LoadResources() {
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
     globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 64, 64, 64);
+
+    screenFrameBuffer = CreateFrameBuffer();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -58,6 +60,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.aircraft);
     DeleteShader(globalShaders.explosion);
     DeleteShader(globalShaders.tracer);
+    DeleteShader(globalShaders.post);
 
     DeleteMesh(globalMeshes.FA_XX);
     DeleteMesh(globalMeshes.quad);
@@ -67,6 +70,8 @@ void GraphicsBackend::UnloadResources() {
     DeleteFont(globalFonts.defaultFont);
 
     DeleteTexture3D(globalTextures.noiseTexture3D);
+
+    DeleteFrameBuffer(screenFrameBuffer);
 
     DeleteMesh(debugCube);
     DeleteShader(debugShader);
@@ -286,6 +291,33 @@ Mesh GraphicsBackend::CreateSphere(float radius) {
     return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
+FrameBuffer GraphicsBackend::CreateFrameBuffer() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    FrameBuffer fb = {};
+    glGenFramebuffers(1, &fb.id);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.id);
+
+    fb.texture = {};
+
+    glGenTextures(1, &fb.texture.id);
+    glBindTexture(GL_TEXTURE_2D, fb.texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture.id, 0);
+
+    glGenRenderbuffers(1, &fb.depthRbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb.depthRbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb.depthRbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return fb;
+}
+
 void GraphicsBackend::UpdateMeshVertices(Mesh& mesh, Vertex* vertices, int numVertices, unsigned int* indices, int numIndices) {
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, vertices, GL_STATIC_DRAW);
@@ -469,7 +501,7 @@ void GraphicsBackend::EndDrawMeshInstanced(Mesh &mesh, size_t numInstances, bool
     glUseProgram(0);
 }
 
-void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 &screenPosition, glm::vec2 &scale, float rotation, float z_distance, bool stretchWithAspectRatio, bool moveWithAspectRatio) {
+void GraphicsBackend::BeginDrawMesh2D(Mesh &mesh, Shader &shader, glm::vec2 screenPosition, glm::vec2 scale, float rotation, float z_distance, bool stretchWithAspectRatio, bool moveWithAspectRatio) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     FOX2_PROFILE_FUNCTION()
@@ -504,6 +536,28 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void GraphicsBackend::BindScreenFrameBuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer.id);
+    glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void GraphicsBackend::UnBindScreenFrameBuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GraphicsBackend::DrawScreenFrameBufferToScreen() {
+    glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+    BeginDrawMesh2D(globalMeshes.quad, globalShaders.post, glm::vec2(0.0f), glm::vec2(1.0f), 0.0f, 0.001f, true, false);
+    UploadShaderUniformInt(globalShaders.post, 1, "uFrameBufferTexture");
+    UseTextureSlot(screenFrameBuffer.texture, 1);
+    EndDrawMesh2D(globalMeshes.quad);
+    ResetTextureSlots();
 }
 
 void GraphicsBackend::CollectErrors() {

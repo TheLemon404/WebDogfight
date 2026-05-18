@@ -946,6 +946,9 @@ void Aircraft::ShootDown() {
         return;
     }
 
+    lockedAircraft = nullptr;
+    lockedAircraftNetworkId = 0;
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);

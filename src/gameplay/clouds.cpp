@@ -6,6 +6,7 @@
 #include "../application.hpp"
 
 void CloudsVolume::LoadResources() {
+
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     transform.position = {

@@ -109,6 +109,7 @@ class Scene {
     void LoadResources();
     void Initialize();
     void Update();
-    void Draw();
+    void DrawScene();
+    void DrawUI();
     void UnloadResources();
 };

@@ -39,7 +39,6 @@ void main_loop() {
     {
         FOX2_PROFILE_SCOPE("Graphics State Reset")
         app->graphicsBackend.ResetState(app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
-        app->graphicsBackend.SetDepthTest(true);
     }
     {
         FOX2_PROFILE_SCOPE("Scene Update")
@@ -47,7 +46,11 @@ void main_loop() {
     }
     {
         FOX2_PROFILE_SCOPE("Scene Draw")
-        app->sceneManager.currentScene->Draw();
+        app->graphicsBackend.BindScreenFrameBuffer();
+        app->sceneManager.currentScene->DrawScene();
+        app->graphicsBackend.UnBindScreenFrameBuffer();
+        app->graphicsBackend.DrawScreenFrameBufferToScreen();
+        app->sceneManager.currentScene->DrawUI();
         app->graphicsBackend.CollectErrors();
     }
     {
