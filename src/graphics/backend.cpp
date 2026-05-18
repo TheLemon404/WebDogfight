@@ -38,6 +38,7 @@ void GraphicsBackend::LoadResources() {
 
     globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 64, 64, 64);
 
+    LUT = Loader::LoadTexture3DFromFile("resources/textures/LUT.png", 16, 16, 16, 3);
     screenFrameBuffer = CreateFrameBuffer();
 
     glEnable(GL_BLEND);
@@ -71,6 +72,7 @@ void GraphicsBackend::UnloadResources() {
 
     DeleteTexture3D(globalTextures.noiseTexture3D);
 
+    DeleteTexture3D(LUT);
     DeleteFrameBuffer(screenFrameBuffer);
 
     DeleteMesh(debugCube);
@@ -582,8 +584,11 @@ void GraphicsBackend::DrawScreenFrameBufferToScreen() {
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    UploadShaderUniformFloat(globalShaders.post, postProcessingParameters.gForceSum, "uGForceSum");
     UploadShaderUniformInt(globalShaders.post, 0, "uFrameBufferTexture");
     UseTextureSlot(screenFrameBuffer.texture, 0);
+    UploadShaderUniformInt(globalShaders.post, 1, "uLUT");
+    UseTexture3DSlot(LUT, 1);
     EndDrawMesh2D(globalMeshes.quad);
     ResetTextureSlots();
 }

@@ -900,6 +900,10 @@ void Aircraft::Update() {
         rightTrails.Update();
     }
 
+    app->graphicsBackend.postProcessingParameters.gForceSum += gForce;
+    app->graphicsBackend.postProcessingParameters.gForceSum -= 9.0f;
+    app->graphicsBackend.postProcessingParameters.gForceSum = MathUtils::Min<float>(app->graphicsBackend.postProcessingParameters.gForceSum, 0.0f);
+
     if(aircraftWidgetLayer) {
         aircraftWidgetLayer->aircraftProps.transform = transform;
         aircraftWidgetLayer->aircraftProps.unrolledRotation = unrolledRotation;

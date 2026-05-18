@@ -16,15 +16,33 @@ void main()
 
 #fragment
 #version 300 es
+
+#define G_FORCE_PASS_OUT 500.0f
+
 precision mediump float;
 
 in vec2 pUV;
 
 uniform sampler2D uFrameBufferTexture;
+uniform sampler3D uLUT;
+uniform float uGForceSum;
 
 out vec4 FragColor;
 
+vec3 applyLUT(vec3 color) {
+    // Scale input color to LUT size to avoid sampling outside valid range
+    // For a 64x64x64 LUT: scale = 63.0/64.0, offset = 0.5/64.0
+    float scale = float(63) / float(64);
+    float offset = 0.5 / float(64);
+    vec3 uvw = color * scale + offset;
+    return texture(uLUT, uvw).rgb;
+}
+
 void main()
 {
-    FragColor = texture(uFrameBufferTexture, pUV);
+    float gForceVignette = (max(uGForceSum - G_FORCE_PASS_OUT, 0.0) * distance(pUV, vec2(0.5f))) / 120.0f;
+    vec4 inputColor = max(texture(uFrameBufferTexture, pUV) - vec4(gForceVignette, gForceVignette, gForceVignette, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
+    vec3 mappedColor = applyLUT(inputColor.rgb);
+
+    FragColor = vec4(mappedColor, inputColor.a);
 }

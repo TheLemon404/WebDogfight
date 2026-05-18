@@ -51,7 +51,6 @@ void main_loop() {
         app->graphicsBackend.UnBindScreenFrameBuffer();
         app->graphicsBackend.DrawScreenFrameBufferToScreen();
         app->sceneManager.currentScene->DrawUI();
-        app->graphicsBackend.CollectErrors();
     }
     {
         FOX2_PROFILE_SCOPE("Swap buffers and Tick")

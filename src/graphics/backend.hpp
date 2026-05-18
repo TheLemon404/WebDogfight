@@ -60,6 +60,10 @@ struct GlobalTextures {
     Texture3D noiseTexture3D;
 };
 
+struct PostProcessingParameters {
+    float gForceSum = 0.0f;
+};
+
 class GraphicsBackend {
     Mesh debugCube;
     Shader debugShader;
@@ -74,12 +78,15 @@ class GraphicsBackend {
     }
 
     public:
+    PostProcessingParameters postProcessingParameters;
+
     bool debugMode = false;
 
     GlobalShaders globalShaders;
     GlobalMeshes globalMeshes;
     GlobalFonts globalFonts;
     GlobalTextures globalTextures;
+    Texture3D LUT;
     FrameBuffer screenFrameBuffer;
 
     glm::vec3 clearColor = glm::vec3(1.0f);

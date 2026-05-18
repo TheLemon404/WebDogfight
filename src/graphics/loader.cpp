@@ -305,21 +305,21 @@ Texture Loader::LoadTextureFromFile(const char* resourcePath) {
     return texture;
 }
 
-Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth) {
+Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth, int numChannels) {
     Texture3D texture = Texture3D();
 
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_3D, texture.id);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int tempWidth = 0;
     int tempHeight = 0;
-    unsigned char *data = stbi_load(resourcePath, &tempWidth, &tempHeight, &texture.channels, 1);
+    unsigned char *data = stbi_load(resourcePath, &tempWidth, &tempHeight, &texture.channels, numChannels);
 
     texture.width = width;
     texture.height = height;
@@ -327,33 +327,36 @@ Texture3D Loader::LoadTexture3DFromFile(const char* resourcePath, int width, int
 
     if(data) {
         int sliceColumns = tempWidth / width;
-        std::vector<unsigned char> vol(width * height * depth);
+        std::vector<unsigned char> vol(width * height * depth * numChannels);
         for(int z = 0; z < depth; z++) {
             int atlasColumn = (z % sliceColumns) * width;
             int atlasRow = (z / sliceColumns) * height;
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
-                    int src = (atlasRow + y) * tempWidth + (atlasColumn + x);
-                    int dst = z * width * height + y * width + x;
-                    vol[dst] = data[src];
+                    int src = ((atlasRow + y) * tempWidth + (atlasColumn + x)) * numChannels;
+                    int dst = (z * width * height + y * width + x) * numChannels;
+
+                    for(int k = 0; k < numChannels; k++) {
+                        vol[dst + k] = data[src + k];
+                    }
                 }
             }
         }
 
-        if(texture.channels == 1) {
+        if(numChannels == 1) {
             glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
             glGenerateMipmap(GL_TEXTURE_3D);
         }
-        else if(texture.channels == 2) {
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+        else if(numChannels == 2) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RG8, texture.width, texture.height, texture.depth, 0, GL_RG, GL_UNSIGNED_BYTE, vol.data());
             glGenerateMipmap(GL_TEXTURE_3D);
         }
-        else if(texture.channels == 3) {
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+        else if(numChannels == 3) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, texture.width, texture.height, texture.depth, 0, GL_RGB, GL_UNSIGNED_BYTE, vol.data());
             glGenerateMipmap(GL_TEXTURE_3D);
         }
-        else if(texture.channels == 4) {
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, texture.width, texture.height, texture.depth, 0, GL_RED, GL_UNSIGNED_BYTE, vol.data());
+        else if(numChannels == 4) {
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, texture.width, texture.height, texture.depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, vol.data());
             glGenerateMipmap(GL_TEXTURE_3D);
         }
 
