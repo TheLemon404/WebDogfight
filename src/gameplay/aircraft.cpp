@@ -602,7 +602,7 @@ void Aircraft::Update() {
             //Claude may not be the best programmer, but he understands quaternion algebra better than I do... so I guess im stuck using him for this
 
             //compute the maxmimum angle we can change in this tick
-            float maxTurnDelta = resource.settings.maxTurnRate * (float)app->clock.deltaTime;
+            float maxTurnDelta = resource.settings.maxTurnRate * (float)app->clock.deltaTime * pow(terminalLiftFactor, 2.0);
             //safely get the difference in our direction and our desired direction
             glm::quat angleDiff = unrolledRotation * glm::inverse(targetRotation);
             if (angleDiff.w < 0.0f) {
