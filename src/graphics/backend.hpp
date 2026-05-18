@@ -288,6 +288,7 @@ class GraphicsBackend {
 
     void BindScreenFrameBuffer();
     void UnBindScreenFrameBuffer();
+    void ResizeFrameBufferToWindow();
     void DrawScreenFrameBufferToScreen();
 
     void CollectErrors();

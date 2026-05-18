@@ -134,9 +134,6 @@ void Scene::Update()  {
             return a->drawPriority < b->drawPriority;
         });
 
-        for(std::shared_ptr<Entity>& entity : entities) {
-            std::cout << entity->name << " -> ";
-        }
     }
 
     bool lockedFlag = false;

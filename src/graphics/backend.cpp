@@ -302,16 +302,23 @@ FrameBuffer GraphicsBackend::CreateFrameBuffer() {
 
     glGenTextures(1, &fb.texture.id);
     glBindTexture(GL_TEXTURE_2D, fb.texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture.id, 0);
 
     glGenRenderbuffers(1, &fb.depthRbo);
     glBindRenderbuffer(GL_RENDERBUFFER, fb.depthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb.depthRbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb.depthRbo);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer creation failed: " << status << std::endl;
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -539,7 +546,10 @@ void GraphicsBackend::EndDrawMesh2D(Mesh &mesh) {
 }
 
 void GraphicsBackend::BindScreenFrameBuffer() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer.id);
+   	glViewport(0, 0, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
     glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -549,13 +559,31 @@ void GraphicsBackend::UnBindScreenFrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void GraphicsBackend::ResizeFrameBufferToWindow() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    glBindTexture(GL_TEXTURE_2D, screenFrameBuffer.texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, screenFrameBuffer.depthRbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, app->windowManager.primaryWindow->width, app->windowManager.primaryWindow->height);
+}
+
 void GraphicsBackend::DrawScreenFrameBufferToScreen() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
     glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
     glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
-    BeginDrawMesh2D(globalMeshes.quad, globalShaders.post, glm::vec2(0.0f), glm::vec2(1.0f), 0.0f, 0.001f, true, false);
-    UploadShaderUniformInt(globalShaders.post, 1, "uFrameBufferTexture");
-    UseTextureSlot(screenFrameBuffer.texture, 1);
+
+    //unabstracted drawing logic here
+    glUseProgram(globalShaders.post.programID);
+    glBindVertexArray(globalMeshes.quad.vao);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    UploadShaderUniformInt(globalShaders.post, 0, "uFrameBufferTexture");
+    UseTextureSlot(screenFrameBuffer.texture, 0);
     EndDrawMesh2D(globalMeshes.quad);
     ResetTextureSlots();
 }

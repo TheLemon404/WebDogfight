@@ -1,4 +1,5 @@
 #include "window.hpp"
+#include "../application.hpp"
 
 #ifdef __EMSCRIPTEN__
 EM_JS(int, html_get_width, (), {
@@ -19,6 +20,7 @@ EM_BOOL Window::EmscriptenResizeCallback(int event_type, const EmscriptenUiEvent
         float aspect = (float)userWindow->width / userWindow->height;
         userWindow->aspect = std::isnan(aspect) ? 1.0f : aspect;
         glfwSetWindowSize(userWindow->window, userWindow->width, userWindow->height);
+        Application::GetInstance()->graphicsBackend.ResizeFrameBufferToWindow();
         return 1;
     }
     return 0;
@@ -31,6 +33,7 @@ void Window::GLFWResizeCallback(GLFWwindow* window, int width, int height) {
         userWindow->height = height;
         float aspect = (float)userWindow->width / userWindow->height;
         userWindow->aspect = std::isnan(aspect) ? 1.0f : aspect;
+        Application::GetInstance()->graphicsBackend.ResizeFrameBufferToWindow();
     }
     else {
         throw std::runtime_error("Failed to get user pointer from window");
