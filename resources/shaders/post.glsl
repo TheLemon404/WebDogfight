@@ -24,7 +24,7 @@ precision mediump float;
 in vec2 pUV;
 
 uniform sampler2D uFrameBufferTexture;
-uniform sampler3D uLUT;
+uniform mediump sampler3D uLUT;
 uniform float uGForceSum;
 
 out vec4 FragColor;
