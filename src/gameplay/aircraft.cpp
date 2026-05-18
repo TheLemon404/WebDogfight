@@ -38,6 +38,8 @@
 #include "../application.hpp"
 #include "tracer.hpp"
 
+#define MAX_RADAR_RANGE 14000.0f
+#define TERRAIN_RAY_CHECK_RESOLUTION_PER_5K 16
 #define MAX_GUNS_RANGE 3000.0f
 #define SHOT_DOWN_EXPLOSION_SIZE 75.0f
 #define EXPLODE_EXPLOSION_SIZE 120.0f
@@ -563,6 +565,9 @@ void Aircraft::Update() {
         glm::vec3 unrotatedForward;
         float rollAngle;
 
+        //keeping this temporary variable out of scope blocks for re-use
+        float distanceToLockedTarget = 0.0f;
+
         float terminalLiftFactor = MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
         {
             FOX2_PROFILE_SCOPE("Aircraft Orientation")
@@ -742,7 +747,17 @@ void Aircraft::Update() {
                 }
             }
             else {
+                distanceToLockedTarget = glm::distance(transform.position, lockedAircraft->transform.position);
+                std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
                 if(lockedAircraft->shotDown) {
+                    lockedAircraft = nullptr;
+                    lockedAircraftNetworkId = 0;
+                }
+                else if(distanceToLockedTarget > MAX_RADAR_RANGE) {
+                    lockedAircraft = nullptr;
+                    lockedAircraftNetworkId = 0;
+                }
+                else if(terrain != nullptr && terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
                 }
@@ -778,7 +793,8 @@ void Aircraft::Update() {
                     tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
                 }
 
-                if(lockedAircraft != nullptr) {
+                std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
+                if(lockedAircraft != nullptr && terrain != nullptr && !terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }
 
@@ -791,7 +807,8 @@ void Aircraft::Update() {
                     tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
                 }
 
-                if(lockedAircraft != nullptr) {
+                std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
+                if(lockedAircraft != nullptr && terrain != nullptr && !terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                 }
 

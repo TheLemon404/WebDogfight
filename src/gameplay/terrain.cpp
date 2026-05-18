@@ -15,6 +15,28 @@
 #define TERRAIN_RESOLUTION 100
 #define GLOBAL_UP_VECTOR {0.0f, 1.0f, 0.0f}
 
+float Terrain::SampleHeightMap(glm::vec2 worldCoords) {
+    glm::vec2 uv = worldCoords + glm::vec2(TERRAIN_SIZE / 2.0);
+    uv /= glm::vec2(TERRAIN_SIZE);
+
+    glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
+    int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
+    unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
+    return (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.settings.heightFactor;
+}
+
+bool Terrain::RayCollidingWithTerrain(glm::vec3 origin, glm::vec3 magnitude, uint8_t segments) {
+    glm::vec3 currentStep = origin;
+    glm::vec3 stepVector = magnitude / (float)segments;
+    for(size_t i = 0; i < segments; i++) {
+        if(SampleHeightMap(glm::vec2(currentStep.x, currentStep.z)) >= currentStep.y) {
+            return true;
+        }
+        currentStep += stepVector;
+    }
+    return false;
+}
+
 void Terrain::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 

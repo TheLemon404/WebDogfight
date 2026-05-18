@@ -37,8 +37,12 @@ class Terrain : public Entity {
 
     const json resourceProperties;
 
+    float SampleHeightMap(glm::vec2 worldCoords);
+
     public:
     Texture& GetHeightMap() { return heightMap; }
+
+    bool RayCollidingWithTerrain(glm::vec3 origin, glm::vec3 magnitude, uint8_t segments);
 
     Terrain(const std::string& name, const json& resourceProperties) : Entity(name), resourceProperties(resourceProperties) {};
 
