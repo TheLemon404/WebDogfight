@@ -42,7 +42,7 @@ void main()
 {
     float gForceVignette = (max(uGForceSum - G_FORCE_PASS_OUT, 0.0) * distance(pUV, vec2(0.5f))) / 120.0f;
     vec4 inputColor = max(texture(uFrameBufferTexture, pUV) - vec4(gForceVignette, gForceVignette, gForceVignette, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
-    vec3 mappedColor = applyLUT(inputColor.rgb);
+    vec3 mappedColor = texture(uLUT, inputColor.rgb).rgb;
 
     FragColor = vec4(mappedColor, inputColor.a);
 }
