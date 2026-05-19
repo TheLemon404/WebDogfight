@@ -38,7 +38,7 @@ void GraphicsBackend::LoadResources() {
 
     globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 64, 64, 64);
 
-    LUT = Loader::LoadTexture3DFromFile("resources/textures/LUT.png", 16, 16, 16, 3);
+    LUT = Loader::LoadTexture3DFromFile("resources/textures/LUT.png", 64, 64, 64, 3);
     screenFrameBuffer = CreateFrameBuffer();
 
     glEnable(GL_BLEND);
