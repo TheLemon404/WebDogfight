@@ -36,7 +36,7 @@ class Loader{
     public:
     static void LoadSoundFromFile(const std::string& resourcePath, Sound& sound);
     static Texture LoadTextureFromFile(const char* resourcePath);
-    static Texture3D LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth, int numChannels = 1);
+    static Texture3D LoadTexture3DFromFile(const char* resourcePath, int width, int height, int depth, int numChannels = 1, bool filterNearest = false);
     static Shader LoadShaderFromGLSL(const std::string& resourcePath);
     static Mesh LoadMeshFromGLTF(const char* resourcePath);
     static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath);
