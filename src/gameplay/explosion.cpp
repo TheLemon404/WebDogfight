@@ -31,6 +31,9 @@ void Explosion::Draw() {
 void ExplosionSystemEntity::SpawnExplosion(glm::vec3 position, float scale, float duration) {
     std::unique_ptr<Application>& app = Application::GetInstance();
     Explosion* explosion = new Explosion(position, scale, duration);
+    float distanceFromCamera = glm::distance(app->sceneManager.activeCamera.position, position);
+    float distanceSoundFalloff = distanceFromCamera / 100.0f;
+    app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.explosion, false, 1.0f / distanceSoundFalloff);
     activeExplosions.push_back(explosion);
 
     Timer lifetime = Timer();

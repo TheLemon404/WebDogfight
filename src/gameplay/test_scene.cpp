@@ -72,15 +72,13 @@ void MenuWidgetLayer::CreateWidgets() {
 
     std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
     rect->SetText("Welcome to the Fox2.io\n"
-                "flight controls test!\n\n"
-                "This is in the very early\n"
-                "stages of development.\n\n"
+                "multiplayer test!\n\n"
                 "Follow development at:\n"
                 "- YouTube: @thelemon9300\n"
                 "- X: @MichaelTeschner7");
     rect->position = glm::vec2(-0.7, 0.2);
     rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.3);
+    rect->scale = glm::vec2(0.4, 0.2);
     rect->color.value = glm::vec4(0.2);
     rect->borderColor.value = glm::vec4(0.4);
     rect->cornerColor.value = glm::vec4(0.7);
@@ -210,17 +208,16 @@ void SettingsWidgetLayer::CreateWidgets() {
                 "Controls:\n"
                 "- Shift: Thottle Up\n"
                 "- Ctrl: Thottle Down\n"
+                "- T: Toggle Radar Lock\n"
                 "- Q: Roll Left\n"
                 "- E: Roll Right\n"
                 "- B: Air Brake\n"
                 "- Alt: Free Mouse\n"
-                "- Tab: Free Look\n\n"
-                "Notes:\n"
-                "- Respawn on terrain\n"
-                "  or boundary collision.");
+                "- Tab: Free Look\n"
+    );
     rect->position = glm::vec2(0.0, 0.0);
     rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.4);
+    rect->scale = glm::vec2(0.4, 0.35);
     rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     rect->z_distance = -0.5f;

@@ -865,6 +865,15 @@ void Aircraft::Update() {
                 }
             }
 
+            if(shooting && !app->networkManager.lastNetworkGameState.clientStates[networkId].shooting) {
+                float distanceFromCamera = glm::distance(app->sceneManager.activeCamera.position, transform.position);
+                float distanceSoundFalloff = distanceFromCamera / 100.0f;
+                app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shot, true, 0.5f / distanceSoundFalloff);
+            }
+            else if(!shooting && app->networkManager.lastNetworkGameState.clientStates[networkId].shooting) {
+                app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
+            }
+
             if(shotDown && !app->networkManager.lastNetworkGameState.clientStates[networkId].shotDown) {
                 smokeParticles.emitting = true;
                 exhaustParticles.emitting = false;
@@ -925,7 +934,6 @@ void Aircraft::Explode() {
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
 
     if(networkId == app->networkManager.localClientId) {
-        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.explosion, false, 1.0f);
         exploded = true;
         app->sceneManager.currentScene->RuntimeDespawn(shared_from_this());
         app->networkManager.networkGameState.clientStates[networkId].inGame = false;
@@ -958,7 +966,6 @@ void Aircraft::ShootDown() {
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
 
     if(networkId == app->networkManager.localClientId) {
-        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shotDown, false, 1.0f);
         smokeParticles.emitting = true;
         exhaustParticles.emitting = false;
         aircraftWidgetLayer->aim->radius = 0.0f;
