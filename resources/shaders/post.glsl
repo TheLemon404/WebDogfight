@@ -29,15 +29,6 @@ uniform float uGForceSum;
 
 out vec4 FragColor;
 
-vec3 applyLUT(vec3 color) {
-    // Scale input color to LUT size to avoid sampling outside valid range
-    // For a 64x64x64 LUT: scale = 63.0/64.0, offset = 0.5/64.0
-    float scale = float(63) / float(64);
-    float offset = 0.5 / float(64);
-    vec3 uvw = color * scale + offset;
-    return texture(uLUT, uvw).rgb;
-}
-
 void main()
 {
     float gForceVignette = (max(uGForceSum - G_FORCE_PASS_OUT, 0.0) * distance(pUV, vec2(0.5f))) / 120.0f;

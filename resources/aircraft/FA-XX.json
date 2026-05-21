@@ -25,7 +25,7 @@
     "rudder-max-angle": 20,
     "throttle-increase-rate": 0.6,
     "throttle-cruise": 0.5,
-    "max-thrust": 700.0,
+    "max-thrust": 300.0,
     "brake-force": 0.01,
     "forward-drag": 0.2,
     "lateral-drag": 25.0,

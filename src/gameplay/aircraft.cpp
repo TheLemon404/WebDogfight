@@ -54,7 +54,7 @@
 #define GFORCE_COEFFICIENT 0.01f
 #define DRAG_COEFFICIENT 0.000001f
 #define GFORCE_BODY_THRESHOLD 7
-#define GFORCE_TRAIL_THRESHOLD 9
+#define GFORCE_TRAIL_THRESHOLD 8
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
 
@@ -922,7 +922,7 @@ void Aircraft::Update() {
     }
 
     app->graphicsBackend.postProcessingParameters.gForceSum += gForce;
-    app->graphicsBackend.postProcessingParameters.gForceSum -= 9.0f;
+    app->graphicsBackend.postProcessingParameters.gForceSum -= 8.0f;
     app->graphicsBackend.postProcessingParameters.gForceSum = MathUtils::Min<float>(app->graphicsBackend.postProcessingParameters.gForceSum, 0.0f);
 
     if(aircraftWidgetLayer) {
