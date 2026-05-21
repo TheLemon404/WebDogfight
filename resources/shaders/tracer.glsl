@@ -72,6 +72,6 @@ void main()
     float tempZ = pPosition.z;
     float ip = 15.0f;
     float zModulo = modf(tempZ * 100.0f, ip);
-    float travelFactor = pow(1.0 - vertexDistance, 15.0);
+    float travelFactor = pow(1.0 - vertexDistance, 30.0);
     FragColor = vec4(vec3(uAlbedo), travelFactor * zModulo);
 }

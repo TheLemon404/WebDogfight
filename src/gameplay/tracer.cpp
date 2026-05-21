@@ -8,7 +8,7 @@
 #include <cstddef>
 
 #define MAX_TRACERS 100
-#define TRACER_LIFETIME_SECONDS 1.0f
+#define TRACER_LIFETIME_SECONDS 0.5f
 
 void TracerSystemEntity::UpdateInstanceMeshTransforms() {
     std::unique_ptr<Application>& app = Application::GetInstance();

@@ -36,7 +36,6 @@ struct AircraftResourceDescription {
 };
 
 struct AircraftResourceSettings {
-    float fireRate;
     float flapsMaxAngle;
     float brakeMaxAngle;
     float tailMaxAngle;
@@ -59,6 +58,7 @@ struct AircraftResourceSettings {
     float yawRate;
     glm::vec3 wingTipL;
     glm::vec3 wingTipR;
+    glm::vec3 gunPosition;
 };
 
 struct AircraftResource {
@@ -226,7 +226,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     //audio
     Sound engineSound = Sound();
-    float shotCountDown = 0.0f;
+    float shotNetworkCountDown = 0.0f;
+    float shotTracerCountDown = 0.0f;
 
     glm::vec3 ComputeTargetLeadPoint();
 

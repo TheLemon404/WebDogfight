@@ -47,6 +47,9 @@
 
 #define BRAKE_ANGLE_LERP_TIME 1.0
 
+#define TRACER_FIRE_RATE 0.1f
+#define NETWORK_FIRE_RATE 0.2f
+
 #define YAW_ROTATION 15
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
@@ -372,7 +375,6 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.pressureVorticesL = JSON["description"]["bone-mappings"]["pressureVortices.l"];
     resource.description.boneMappings.pressureVorticesR = JSON["description"]["bone-mappings"]["pressureVortices.r"];
 
-    resource.settings.fireRate = JSON["settings"]["fire-rate"];
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
@@ -395,6 +397,7 @@ void Aircraft::LoadResources() {
     resource.settings.yawRate = JSON["settings"]["yaw-rate"];
     resource.settings.wingTipL = { JSON["settings"]["wing-tip-l"][0], JSON["settings"]["wing-tip-l"][1], JSON["settings"]["wing-tip-l"][2] };
     resource.settings.wingTipR = { JSON["settings"]["wing-tip-r"][0], JSON["settings"]["wing-tip-r"][1], JSON["settings"]["wing-tip-r"][2] };
+    resource.settings.gunPosition = { JSON["settings"]["gun-position"][0], JSON["settings"]["gun-position"][1], JSON["settings"]["gun-position"][2] };
 
     {
         FOX2_PROFILE_SCOPE("Aircraft Shader Load")
@@ -789,16 +792,18 @@ void Aircraft::Update() {
         }
         {
             FOX2_PROFILE_SCOPE("Shooting Gun")
-            shotCountDown -= app->clock.deltaTime;
+            shotNetworkCountDown -= app->clock.deltaTime;
+            shotTracerCountDown -= app->clock.deltaTime;
 
             if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
-                shotCountDown = resource.settings.fireRate;
+                shotNetworkCountDown = NETWORK_FIRE_RATE;
+                shotTracerCountDown = TRACER_FIRE_RATE;
                 app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shot, true, 0.5f);
 
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
+                    tracerSystem->SpawnTracer(transform.position + (transform.rotation * resource.settings.gunPosition), transform.position + aircraftForward * MAX_GUNS_RANGE);
                 }
 
                 std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
@@ -808,19 +813,20 @@ void Aircraft::Update() {
 
                 shooting = true;
             }
-            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && shotCountDown <= 0.0f) {
+            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
-                if(tracerSystem != nullptr) {
-                    tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * MAX_GUNS_RANGE);
+                if(tracerSystem != nullptr && shotTracerCountDown <= 0.0f) {
+                    tracerSystem->SpawnTracer(transform.position + (transform.rotation * resource.settings.gunPosition), transform.position + aircraftForward * MAX_GUNS_RANGE);
+                    shotTracerCountDown = TRACER_FIRE_RATE;
                 }
 
                 std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
-                if(lockedAircraft != nullptr && terrain != nullptr && !terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
+                if(lockedAircraft != nullptr && terrain != nullptr && shotNetworkCountDown <= 0.0f && !terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
+                    shotNetworkCountDown = NETWORK_FIRE_RATE;
                 }
 
-                shotCountDown = resource.settings.fireRate;
             }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
@@ -859,17 +865,17 @@ void Aircraft::Update() {
             lockedAircraftNetworkId = clientState.lockedTargetNetworkID;
 
             if(shooting) {
-                shotCountDown -= app->clock.deltaTime;
+                shotTracerCountDown -= app->clock.deltaTime;
 
-                if(shotCountDown <= 0.0f) {
+                if(shotTracerCountDown <= 0.0f) {
                     glm::vec3 aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
 
                     std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                     if(tracerSystem != nullptr) {
-                        tracerSystem->SpawnTracer(transform.position, transform.position + aircraftForward * 6000.0f);
+                        tracerSystem->SpawnTracer(transform.position + (transform.rotation * resource.settings.gunPosition), transform.position + aircraftForward * 6000.0f);
                     }
 
-                    shotCountDown = resource.settings.fireRate;
+                    shotTracerCountDown = TRACER_FIRE_RATE;
                 }
             }
 

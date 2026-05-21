@@ -18,7 +18,6 @@
     }
   },
   "settings": {
-    "fire-rate": 0.2,
     "flaps-max-angle": 45,
     "brake-max-angle": 60,
     "tail-max-angle": 30,
@@ -40,6 +39,7 @@
     "pitch-rate": 1.0,
     "yaw-rate": 0.6,
     "wing-tip-l": [6.5, 0.0, -3.0],
-    "wing-tip-r": [-6.5, 0.0, -3.0]
+    "wing-tip-r": [-6.5, 0.0, -3.0],
+    "gun-position": [-1.0, 0.0, -1.0]
   }
 }
