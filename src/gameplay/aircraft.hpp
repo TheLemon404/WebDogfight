@@ -44,6 +44,9 @@ struct AircraftResourceSettings {
     float throttleIncreaseRate;
     float throttleCruise;
     float maxThrust;
+    float brakeForce;
+    float forwardDrag;
+    float lateralDrag;
     float maxTurnRate;
     float terminalLiftSpeed;
     float cameraRideHeight;
@@ -135,6 +138,7 @@ struct AircraftWidgetLayerNeededProps {
     Transform transform = Transform();
     glm::quat unrolledRotation = glm::identity<glm::quat>();
     glm::vec3 velocity = glm::vec3(0.0f);
+    float forwardSpeed = 0.0f;
     float throttle = 0.0f;
     float gForce = 0.0f;
 };
@@ -243,6 +247,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     glm::vec3 velocity = glm::vec3(0.0);
     float speed = 0.0f;
+    float forwardSpeed = 0.0f;
     float gForce = 0.0f;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();

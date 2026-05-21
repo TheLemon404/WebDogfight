@@ -50,9 +50,9 @@
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
 
-#define GRAVITY 17000.0f
-#define DRAG_COEFFICIENT 50.0f
-#define GFORCE_COEFFICIENT 0.015f
+#define GRAVITY 200.0f
+#define GFORCE_COEFFICIENT 0.01f
+#define DRAG_COEFFICIENT 0.000001f
 #define GFORCE_BODY_THRESHOLD 7
 #define GFORCE_TRAIL_THRESHOLD 9
 
@@ -331,7 +331,7 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/app->clock.deltaTime), 4) + "\n"
         "Throttle: " + MiscUtils::Truncate(std::to_string(aircraftProps.throttle), 4) + "\n"
-        "Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.velocity)), 4) + "m/s\n"
+        "Air-Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.forwardSpeed)), 4) + "m/s\n"
         "Altitude: " + MiscUtils::Truncate(std::to_string(aircraftProps.transform.position.y), 4) + "m\n"
         "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.gForce)), 4) + "gs\n");
 }
@@ -379,6 +379,9 @@ void Aircraft::LoadResources() {
     resource.settings.throttleIncreaseRate = JSON["settings"]["throttle-increase-rate"];
     resource.settings.throttleCruise = JSON["settings"]["throttle-increase-rate"];
     resource.settings.maxThrust = JSON["settings"]["max-thrust"];
+    resource.settings.brakeForce = JSON["settings"]["brake-force"];
+    resource.settings.forwardDrag = JSON["settings"]["forward-drag"];
+    resource.settings.lateralDrag = JSON["settings"]["lateral-drag"];
     resource.settings.maxTurnRate = JSON["settings"]["max-turn-rate"];
     resource.settings.terminalLiftSpeed = JSON["settings"]["terminal-lift-speed"];
     resource.settings.cameraRideHeight = JSON["settings"]["camera-ride-height"];
@@ -568,7 +571,7 @@ void Aircraft::Update() {
         //keeping this temporary variable out of scope blocks for re-use
         float distanceToLockedTarget = 0.0f;
 
-        float terminalLiftFactor = MathUtils::Clamp<float>(!std::isnan(speed) ? (speed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
+        float terminalLiftFactor = MathUtils::Clamp<float>(!std::isnan(forwardSpeed) ? (forwardSpeed / resource.settings.terminalLiftSpeed) : 0.0f, 0.0f, 1.0f);
         {
             FOX2_PROFILE_SCOPE("Aircraft Orientation")
             aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
@@ -658,13 +661,22 @@ void Aircraft::Update() {
                 thrust = MathUtils::Lerp<glm::vec3>(thrust, glm::vec3(0.0f, -GRAVITY, 0.0f), app->clock.deltaTime * 0.1f);
             }
 
-            glm::vec3 brake = (-thrust / 2.0f) * (targetBrakeAngle / resource.settings.brakeMaxAngle);
             glm::vec3 gravity = -GLOBAL_UP * GRAVITY;
-            glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - glm::abs(glm::dot(aircraftForward, GLOBAL_UP)));
+            glm::vec3 lift = -gravity * terminalLiftFactor * (1.0f - (glm::abs(glm::dot(aircraftForward, GLOBAL_UP)) / 4.0f));
 
-            glm::vec3 acceleration = thrust + gravity + lift + brake;
+            glm::vec3 acceleration = thrust + gravity + lift;
             velocity += acceleration * (float)app->clock.deltaTime;
-            velocity *= expf(-DRAG_COEFFICIENT * (float)app->clock.deltaTime);
+
+            float forwardDot = glm::dot(velocity, aircraftForward);
+            glm::vec3 forwardVelocity = aircraftForward * forwardDot;
+            forwardSpeed = glm::length(forwardVelocity);
+            glm::vec3 lateralVelocity = velocity - forwardVelocity;
+
+            float dragSpeedFactor = DRAG_COEFFICIENT * powf(forwardSpeed, 2.0f);
+            float forwardDragFactor = expf(-resource.settings.forwardDrag * (float)app->clock.deltaTime * dragSpeedFactor - (resource.settings.brakeForce * (targetBrakeAngle / resource.settings.brakeMaxAngle)));
+            float lateralDragFactor = expf(-resource.settings.lateralDrag * (float)app->clock.deltaTime * dragSpeedFactor);
+
+            velocity = (forwardVelocity * forwardDragFactor) + (lateralVelocity * lateralDragFactor);
 
             speed = glm::length(velocity);
 
@@ -917,6 +929,7 @@ void Aircraft::Update() {
         aircraftWidgetLayer->aircraftProps.transform = transform;
         aircraftWidgetLayer->aircraftProps.unrolledRotation = unrolledRotation;
         aircraftWidgetLayer->aircraftProps.velocity = velocity;
+        aircraftWidgetLayer->aircraftProps.forwardSpeed = forwardSpeed;
         aircraftWidgetLayer->aircraftProps.throttle = controls.throttle;
         aircraftWidgetLayer->aircraftProps.gForce = gForce;
         aircraftWidgetLayer->Update();
