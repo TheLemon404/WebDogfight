@@ -34,6 +34,8 @@ class InputManager {
     static bool IsKeyPressed(unsigned int key);
     static bool IsKeyJustReleased(unsigned int key);
 
+    static glm::vec2 GetAxis(unsigned int xpKey, unsigned int xmKey, unsigned int ypKey, unsigned int ymKey);
+
     static bool IsMouseButtonJustPressed(unsigned int button);
     static bool IsMouseButtonPressed(unsigned int button);
     static bool IsMouseButtonJustReleased(unsigned int button);

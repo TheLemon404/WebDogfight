@@ -13,6 +13,7 @@
 #include "glm/ext/quaternion_common.hpp"
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
+#include "glm/ext/quaternion_transform.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
@@ -390,6 +391,8 @@ void Aircraft::LoadResources() {
     resource.settings.controlSurfaceTweenStep = JSON["settings"]["control-surface-tween-step"];
     resource.settings.rollMagnifier = JSON["settings"]["roll-magnifier"];
     resource.settings.rollRate = JSON["settings"]["roll-rate"];
+    resource.settings.pitchRate = JSON["settings"]["pitch-rate"];
+    resource.settings.yawRate = JSON["settings"]["yaw-rate"];
     resource.settings.wingTipL = { JSON["settings"]["wing-tip-l"][0], JSON["settings"]["wing-tip-l"][1], JSON["settings"]["wing-tip-l"][2] };
     resource.settings.wingTipR = { JSON["settings"]["wing-tip-r"][0], JSON["settings"]["wing-tip-r"][1], JSON["settings"]["wing-tip-r"][2] };
 
@@ -492,7 +495,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
 
     //testing for flaps
-    if(!InputManager::IsKeyPressed(GLFW_KEY_TAB)) {
+    if(!InputManager::IsKeyPressed(GLFW_KEY_C)) {
         skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
         skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
     }
@@ -564,7 +567,7 @@ void Aircraft::Update() {
 
         glm::vec3 aircraftForward;
         glm::vec3 aircraftUp;
-        glm::quat extraRotation;
+        glm::vec3 aircraftLeft;
         glm::vec3 unrotatedForward;
         float rollAngle;
 
@@ -576,8 +579,13 @@ void Aircraft::Update() {
             FOX2_PROFILE_SCOPE("Aircraft Orientation")
             aircraftForward = glm::normalize(glm::rotate(transform.rotation, GLOBAL_FORWARD));
             aircraftUp = glm::normalize(glm::rotate(transform.rotation, GLOBAL_UP));
-            extraRotation = glm::identity<glm::quat>();
-            if(!InputManager::IsKeyPressed(GLFW_KEY_TAB) && InputManager::mouseHidden && !shotDown){
+            aircraftLeft = glm::normalize(glm::rotate(transform.rotation, GLOBAL_LEFT));
+
+            //because chris insisted
+            glm::vec2 inputAxis = InputManager::GetAxis(GLFW_KEY_Q, GLFW_KEY_E, GLFW_KEY_W, GLFW_KEY_S);
+            float rollInput = InputManager::IsKeyPressed(GLFW_KEY_D) - InputManager::IsKeyPressed(GLFW_KEY_A);
+
+            if(!InputManager::IsKeyPressed(GLFW_KEY_C) && InputManager::mouseHidden && !shotDown){
                 uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, app->clock.deltaTime * 10.0f);
                 targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
             }
@@ -585,21 +593,8 @@ void Aircraft::Update() {
                 targetRotation = glm::quatLookAt(glm::normalize(lastPosition - transform.position), GLOBAL_UP);
             }
 
-            if(InputManager::IsKeyPressed(GLFW_KEY_Q)) {
-                rollInput -= resource.settings.rollRate * app->clock.deltaTime;
-                restingRollRotation = 0.0f;
-            }
-            else if(InputManager::IsKeyPressed(GLFW_KEY_E)) {
-                rollInput += resource.settings.rollRate * app->clock.deltaTime;
-                restingRollRotation = 2.0f * PI;
-            }
-            else {
-                rollInput = fmodf(rollInput, 2.0 * PI);
-                rollInput = MathUtils::Lerp<float>(rollInput, restingRollRotation, app->clock.deltaTime * 2.0f);
-            }
-
             rollAngle = MathUtils::Clamp<float>(-uiDiff * resource.settings.rollMagnifier, glm::radians(-90.0f), glm::radians(90.0f));
-            extraRotation = glm::angleAxis(rollAngle + rollInput, GLOBAL_FORWARD);
+            glm::quat extraRollRotation = glm::angleAxis(rollAngle, GLOBAL_FORWARD);
 
             //Disclaimer, this code is sloppy and was partially implimented with the help of my good friend Claude.
             //Claude may not be the best programmer, but he understands quaternion algebra better than I do... so I guess im stuck using him for this
@@ -626,6 +621,9 @@ void Aircraft::Update() {
 
             lastVelocity = velocity;
             lastRotation = unrolledRotation;
+
+            glm::quat combinedRotation = glm::normalize(unrolledRotation * extraRollRotation);
+            transform.rotation = combinedRotation;
         }
         {
             FOX2_PROFILE_SCOPE("Throttle Controls and Audio")
@@ -652,8 +650,6 @@ void Aircraft::Update() {
         }
         {
             FOX2_PROFILE_SCOPE("Stalling and Thrust Logic")
-            transform.rotation = glm::normalize(unrolledRotation * extraRotation);
-
             if(!shotDown) {
                 thrust = unrotatedForward * controls.throttle * resource.settings.maxThrust;
             }

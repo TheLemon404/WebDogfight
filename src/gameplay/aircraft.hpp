@@ -55,6 +55,8 @@ struct AircraftResourceSettings {
     float controlSurfaceTweenStep;
     float rollMagnifier;
     float rollRate;
+    float pitchRate;
+    float yawRate;
     glm::vec3 wingTipL;
     glm::vec3 wingTipR;
 };
@@ -201,6 +203,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
 
     glm::quat targetRotation;
     float restingRollRotation = 0.0f;
+
     glm::vec3 lastPosition = glm::vec3(0.0f);
     glm::vec3 lastVelocity = glm::vec3(0.0f);
     glm::quat lastRotation = glm::identity<glm::quat>();

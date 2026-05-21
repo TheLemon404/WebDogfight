@@ -64,6 +64,12 @@ bool InputManager::IsKeyJustReleased(unsigned int key) {
     return false;
 }
 
+glm::vec2 InputManager::GetAxis(unsigned int xpKey, unsigned int xmKey, unsigned int ypKey, unsigned int ymKey) {
+    float x = IsKeyPressed(xpKey) - IsKeyPressed(xmKey);
+    float y =IsKeyPressed(ypKey) - IsKeyPressed(ymKey);
+    return glm::vec2(x, y);
+}
+
 bool InputManager::IsMouseButtonJustPressed(unsigned int button) {
     if(mouseButtonStates[button] == GLFW_PRESS && lastMouseButtonStates[button] == GLFW_RELEASE) return true;
     return false;

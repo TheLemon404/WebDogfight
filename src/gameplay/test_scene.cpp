@@ -46,11 +46,21 @@ void MenuWidgetLayer::CreateWidgets() {
     playButton->borderColor.value = glm::vec4(0.4);
     playButton->cornerColor.value = glm::vec4(0.7);
     playButton->onPressed = [this, &app]{
+        #ifdef __EMSCRIPTEN__
+        if(app->networkManager.IsConnected()) {
+            InputManager::mouseHidden = true;
+            glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", app->networkManager.localClientId);
+            app->sceneManager.currentScene->RuntimeSpawn(aircraft);
+            this->invisible = true;
+        }
+        #else
         InputManager::mouseHidden = true;
         glfwSetInputMode(app->windowManager.primaryWindow->window, GLFW_CURSOR, InputManager::mouseHidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
         std::shared_ptr<Aircraft> aircraft = std::make_shared<Aircraft>("FA-XX", "resources/aircraft/FA-XX.json", app->networkManager.localClientId);
         app->sceneManager.currentScene->RuntimeSpawn(aircraft);
         this->invisible = true;
+        #endif
     };
 
     std::shared_ptr<TextButtonWidget> lobbyButton = CreateWidget<TextButtonWidget>("lobbyButton", app->graphicsBackend.globalFonts.defaultFont);
@@ -65,9 +75,17 @@ void MenuWidgetLayer::CreateWidgets() {
     lobbyButton->borderColor.value = glm::vec4(0.4);
     lobbyButton->cornerColor.value = glm::vec4(0.7);
     lobbyButton->onPressed = [this, &app]{
+        #ifdef __EMSCRIPTEN__
+        if(app->networkManager.IsConnected()) {
+            std::shared_ptr<LobbyWidgetLayer> lobbyLayer = app->sceneManager.currentScene->GetWidgetLayerByType<LobbyWidgetLayer>();
+            lobbyLayer->invisible = !lobbyLayer->invisible;
+            disabled = true;
+        }
+        #else
         std::shared_ptr<LobbyWidgetLayer> lobbyLayer = app->sceneManager.currentScene->GetWidgetLayerByType<LobbyWidgetLayer>();
         lobbyLayer->invisible = !lobbyLayer->invisible;
         disabled = true;
+        #endif
     };
 
     std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
@@ -213,7 +231,7 @@ void SettingsWidgetLayer::CreateWidgets() {
                 "- E: Roll Right\n"
                 "- B: Air Brake\n"
                 "- Alt: Free Mouse\n"
-                "- Tab: Free Look\n"
+                "- C: Free Look\n"
     );
     rect->position = glm::vec2(0.0, 0.0);
     rect->moveWithAspectRatio = true;
