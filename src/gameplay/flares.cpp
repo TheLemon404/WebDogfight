@@ -47,13 +47,13 @@ void FlareParticleSystem::Update() {
 
     for(size_t i = 0; i < MAX_FLARE_PARTICLES; i++) {
 
-        if(particleLifetimes[i] <= 0.0) {
+        if(particleLifetimes[i] <= 0.0 && spawnTime + FLARE_LIFETIME_SECONDS > particleStartLifetime + app->clock.currentTime) {
             transforms[i].position = leadPosition;
             particleLifetimes[i] = particleStartLifetime;
             particleRotations[i] = (float)rand() / 10.0f;
         }
         else {
-            particleLifetimes[i] -= app->clock.deltaTime;
+            particleLifetimes[i] = MathUtils::Min(particleLifetimes[i] - (float)app->clock.deltaTime, 0.0f);
         }
 
         transforms[i].rotation = glm::quatLookAt(toCameraDir, GLOBAL_UP) * glm::angleAxis(particleRotations[i], GLOBAL_FORWARD);
