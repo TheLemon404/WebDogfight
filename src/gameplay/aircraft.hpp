@@ -255,6 +255,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     float gForce = 0.0f;
 
     glm::quat unrolledRotation = glm::identity<glm::quat>();
+
     uint32_t networkId = -1;
 
     Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId = -1);

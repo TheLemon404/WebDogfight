@@ -25,7 +25,7 @@
     "throttle-increase-rate": 0.6,
     "throttle-cruise": 0.5,
     "max-thrust": 300.0,
-    "brake-force": 0.01,
+    "brake-force": 0.002,
     "forward-drag": 0.2,
     "lateral-drag": 25.0,
     "max-turn-rate": 0.7,
