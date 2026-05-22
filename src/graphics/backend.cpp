@@ -28,6 +28,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.explosion = Loader::LoadShaderFromGLSL("resources/shaders/explosion.glsl");
     globalShaders.tracer = Loader::LoadShaderFromGLSL("resources/shaders/tracer.glsl");
     globalShaders.post = Loader::LoadShaderFromGLSL("resources/shaders/post.glsl");
+    globalShaders.flares = Loader::LoadShaderFromGLSL("resources/shaders/flares.glsl");
 
     globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
     globalMeshes.quad = CreateQuad();
@@ -62,6 +63,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.explosion);
     DeleteShader(globalShaders.tracer);
     DeleteShader(globalShaders.post);
+    DeleteShader(globalShaders.flares);
 
     DeleteMesh(globalMeshes.FA_XX);
     DeleteMesh(globalMeshes.quad);

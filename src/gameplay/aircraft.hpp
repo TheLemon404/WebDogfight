@@ -238,6 +238,9 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     bool exploded = false;
     bool shooting = false;
 
+    float flareCooldown = 0.0f;
+    bool deployingFlares = false;
+
     AircraftControls controls;
 
     Shader* shader;

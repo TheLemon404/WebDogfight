@@ -27,7 +27,6 @@ void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, floa
 
 void AudioBackend::StartSoundAsset(Sound& sound, bool looping, float volume) {
     ma_sound_start(&sound.value);
-
     ma_sound_set_looping(&sound.value, looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(&sound.value, volume);
 

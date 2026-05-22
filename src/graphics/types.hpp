@@ -210,14 +210,25 @@ class ParticleSystem {
     protected:
     Mesh mesh;
     Shader* shader;
-    Transform transforms[MAX_PARTICLE_TRANSFORMS];
+    std::vector<Transform> transforms;
 
     public:
+    int numParticles = MAX_PARTICLE_TRANSFORMS;
+
     virtual void LoadResources() = 0;
     virtual void Initialize() = 0;
     virtual void Update() = 0;
     virtual void Draw() = 0;
     virtual void UnloadResources() = 0;
+
+    ParticleSystem() {
+        transforms.resize(MAX_PARTICLE_TRANSFORMS);
+    }
+
+    ParticleSystem(int numParticles) {
+        this->numParticles = numParticles;
+        transforms.resize(numParticles);
+    }
 };
 
 struct Character {

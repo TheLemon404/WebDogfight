@@ -43,6 +43,7 @@ struct GlobalShaders {
     Shader explosion;
     Shader tracer;
     Shader post;
+    Shader flares;
 };
 
 struct GlobalMeshes {

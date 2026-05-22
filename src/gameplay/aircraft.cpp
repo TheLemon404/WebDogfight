@@ -7,6 +7,7 @@
 #include "../io/time.hpp"
 #include "GLFW/glfw3.h"
 #include "explosion.hpp"
+#include "flares.hpp"
 #include "glm/common.hpp"
 #include "glm/detail/qualifier.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -53,6 +54,8 @@
 #define YAW_ROTATION 15
 #define ROLL_ROTATION 25
 #define PITCH_ROTATION 25
+
+#define FLARE_COOLDOWN_TIME 0.3f
 
 #define GRAVITY 200.0f
 #define GFORCE_COEFFICIENT 0.01f
@@ -795,6 +798,14 @@ void Aircraft::Update() {
             shotNetworkCountDown -= app->clock.deltaTime;
             shotTracerCountDown -= app->clock.deltaTime;
 
+            if(deployingFlares && flareCooldown <= 0.0f) {
+                app->sceneManager.currentScene->GetEntityByName<FlareSystemEntity>("flareSystem")->SpawnFlare(transform.position, transform.rotation, velocity);
+                flareCooldown = FLARE_COOLDOWN_TIME;
+            }
+            else {
+                flareCooldown = MathUtils::Min(flareCooldown - (float)app->clock.deltaTime, 0.0f);
+            }
+
             if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
                 shotNetworkCountDown = NETWORK_FIRE_RATE;
                 shotTracerCountDown = TRACER_FIRE_RATE;
@@ -826,12 +837,20 @@ void Aircraft::Update() {
                     app->networkManager.RequestFireGun(lockedAircraft->networkId);
                     shotNetworkCountDown = NETWORK_FIRE_RATE;
                 }
-
             }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
 
                 shooting = false;
+            }
+        }
+        {
+            FOX2_PROFILE_SCOPE("Deploying Flares")
+            if(InputManager::IsKeyPressed(GLFW_KEY_SPACE)) {
+                deployingFlares = true;
+            }
+            else {
+                deployingFlares = false;
             }
         }
         {
@@ -848,6 +867,7 @@ void Aircraft::Update() {
         clientState.shotDown = shotDown;
         clientState.exploded = exploded;
         clientState.shooting = shooting;
+        clientState.deployingFlares = deployingFlares;
         clientState.lockedTargetNetworkID = lockedAircraftNetworkId;
     }
     else {
@@ -862,6 +882,7 @@ void Aircraft::Update() {
             shotDown = clientState.shotDown;
             exploded = clientState.exploded;
             shooting = clientState.shooting;
+            deployingFlares = clientState.deployingFlares;
             lockedAircraftNetworkId = clientState.lockedTargetNetworkID;
 
             if(shooting) {
@@ -895,6 +916,14 @@ void Aircraft::Update() {
             }
             else if(exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded) {
                 app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
+            }
+
+            if(deployingFlares && flareCooldown <= 0.0f) {
+                app->sceneManager.currentScene->GetEntityByName<FlareSystemEntity>("flareSystem")->SpawnFlare(transform.position, transform.rotation, velocity);
+                flareCooldown = FLARE_COOLDOWN_TIME;
+            }
+            else {
+                flareCooldown = MathUtils::Min(flareCooldown - (float)app->clock.deltaTime, 0.0f);
             }
 
             transform.position = MathUtils::Lerp<glm::vec3>(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);

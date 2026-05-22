@@ -6,6 +6,7 @@
 #include "tracer.hpp"
 #include "water.hpp"
 #include "clouds.hpp"
+#include "flares.hpp"
 #include "explosion.hpp"
 #include "widget.hpp"
 #include "../graphics/window.hpp"
@@ -46,6 +47,7 @@ class TestScene {
         testScene.entities.push_back(std::make_shared<CloudsVolume>("clouds", JSON["clouds"]));
         testScene.entities.push_back(std::make_shared<ExplosionSystemEntity>("explosionSystem"));
         testScene.entities.push_back(std::make_shared<TracerSystemEntity>("tracerSystem"));
+        testScene.entities.push_back(std::make_shared<FlareSystemEntity>("flareSystem"));
 
         std::shared_ptr<MenuWidgetLayer> menuLayer = std::make_shared<MenuWidgetLayer>();
         testScene.widgetLayers.push_back(menuLayer);
