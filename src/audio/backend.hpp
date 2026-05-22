@@ -29,12 +29,13 @@ class AudioBackend{
     void Initialize();
 
     void PlayAudio(const std::string& resourcePath, float volume = 1.0f, float pitchFactor = 1.0f);
-
     void StartSoundAsset(Sound& sound, bool looping = false, float volume = 1.0f);
+
     void SoundAssetSetVolume(Sound& sound, float volume);
     void SoundAssetSetPitch(Sound& sound, float pitch);
-    void EndSoundAsset(Sound& sound);
-    void UnloadSoundAsset(Sound& sound);
 
+    void EndSoundAsset(Sound& sound);
+
+    void UnloadSoundAsset(Sound& sound);
     void Shutdown();
 };
