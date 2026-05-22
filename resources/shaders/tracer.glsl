@@ -1,7 +1,11 @@
 
 #vertex
 #version 300 es
+
 precision highp float;
+
+#define TRACER_LIFETIME_SECONDS 1.0f
+
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
@@ -10,6 +14,7 @@ layout(location = 8) in float aSpawnTime;
 
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform float uTime;
 
 out vec3 pPosition;
 out vec3 pNormal;
@@ -36,7 +41,12 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uView * aTransform * vec4(aPos, 1.0f);
+    float t = (uTime - aSpawnTime) / TRACER_LIFETIME_SECONDS;
+    vec3 startAPos = clamp(aPos + vec3(0.0, 0.0, 1.97), vec3(-1.0), vec3(1.0));
+    vec3 endAPos = clamp(aPos - vec3(0.0, 0.0, 1.97), vec3(-1.0), vec3(1.0));
+    vec3 modifiedPos = mix(startAPos, endAPos, t);
+
+    vec4 worldPosition = uView * aTransform * vec4(modifiedPos, 1.0f);
     gl_Position = uProjection * worldPosition;
 
     mat3 rotationMatrix = extractRotation(aTransform);
@@ -50,8 +60,6 @@ void main()
 #version 300 es
 precision highp float;
 
-#define TRACER_LIFETIME_SECONDS 1.0f
-
 in vec3 pPosition;
 in vec3 pNormal;
 in float pSpawnTime;
@@ -59,19 +67,11 @@ in float pSpawnTime;
 uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
-uniform float uTime;
 
 out vec4 FragColor;
 
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    float t = (uTime - pSpawnTime) / TRACER_LIFETIME_SECONDS;
-    float normalizedZPosition = (-pPosition.z + 1.0) / 2.0;
-    float vertexDistance = abs(normalizedZPosition - t);
-    float tempZ = pPosition.z;
-    float ip = 15.0f;
-    float zModulo = modf(tempZ * 100.0f, ip);
-    float travelFactor = pow(1.0 - vertexDistance, 30.0);
-    FragColor = vec4(vec3(uAlbedo), travelFactor * zModulo);
+    FragColor = vec4(uAlbedo, 1.0f);
 }
