@@ -62,8 +62,6 @@ void main_loop() {
 }
 
 int main() {
-    FOX2_PROFILE_BEGIN_SESSION("Session", "session.json")
-
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->windowManager.primaryWindow = std::make_shared<Window>();
@@ -97,8 +95,6 @@ int main() {
     app->networkManager.Shutdown();
     app->graphicsBackend.UnloadResources();
     app->windowManager.primaryWindow->Close();
-
-    FOX2_PROFILE_END_SESSION()
 
     return 0;
 }
