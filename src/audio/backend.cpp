@@ -18,6 +18,7 @@ void AudioBackend::Initialize() {
     Loader::LoadSoundFromFile("resources/audio/shot.wav", globalSounds.shot);
     Loader::LoadSoundFromFile("resources/audio/engine.wav", globalSounds.engineSound);
     Loader::LoadSoundFromFile("resources/audio/lock_alert.wav", globalSounds.lockAlert);
+    Loader::LoadSoundFromFile("resources/audio/flare.wav", globalSounds.flare);
 }
 
 void AudioBackend::PlayAudio(const std::string& resourcePath, float volume, float pitchFactor) {
@@ -59,6 +60,7 @@ void AudioBackend::Shutdown() {\
     UnloadSoundAsset(globalSounds.shot);
     UnloadSoundAsset(globalSounds.engineSound);
     UnloadSoundAsset(globalSounds.lockAlert);
+    UnloadSoundAsset(globalSounds.flare);
 
     ma_engine_uninit(&audioEngine);
 }

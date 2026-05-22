@@ -94,11 +94,14 @@ void FlareParticleSystem::UnloadResources() {
 void FlareSystemEntity::SpawnFlare(glm::vec3 emitterPosition, glm::quat emitterRotation, glm::vec3 emitterVelocity) {
     FOX2_PROFILE_FUNCTION()
 
+    std::unique_ptr<Application>& app = Application::GetInstance();
+    float distanceFromCamera = glm::distance(app->sceneManager.activeCamera.position, emitterPosition);
+    float distanceSoundFalloff = distanceFromCamera / 100.0f;
+    app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.flare, false, 0.3f / distanceSoundFalloff);
+
     if(flareParticleInstances.size() > MAX_FLARES) {
         return;
     }
-
-    std::unique_ptr<Application>& app = Application::GetInstance();
 
     FlareParticleSystem leftParticleSystem = FlareParticleSystem();
     leftParticleSystem.leadPosition = emitterPosition;

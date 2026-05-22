@@ -17,6 +17,7 @@ struct GlobalSounds {
     Sound explosion;
     Sound engineSound;
     Sound lockAlert;
+    Sound flare;
 };
 
 class AudioBackend{
