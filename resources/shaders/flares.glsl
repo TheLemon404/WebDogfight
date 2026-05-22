@@ -12,8 +12,8 @@ layout(location = 4) in mat4 aTransform;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out vec3 pPosition;
 out vec3 pNormal;
-out vec3 pAlbedo;
 
 mat3 extractRotation(mat4 transformation) {
     mat3 rotationScaleMatrix = mat3(
@@ -36,8 +36,9 @@ mat3 extractRotation(mat4 transformation) {
 
 void main()
 {
-    vec4 worldPosition = uView * aTransform * vec4(aPos, 1.0f);
-    gl_Position = uProjection * worldPosition;
+    vec4 worldPosition = aTransform * vec4(aPos, 1.0f);
+    gl_Position = uProjection * uView * worldPosition;
+    pPosition = worldPosition.xyz;
 
     mat3 rotationMatrix = extractRotation(aTransform);
     pNormal = rotationMatrix * aNormal;
@@ -47,16 +48,19 @@ void main()
 #version 300 es
 precision highp float;
 
+in vec3 pPosition;
 in vec3 pNormal;
 
 uniform vec3 uSunDirection;
 uniform float uAlpha;
 uniform vec3 uAlbedo;
+uniform vec3 uLeadPosition;
 
 out vec4 FragColor;
 
 void main()
 {
     float dot = clamp(dot(pNormal, -uSunDirection), 0.0, 1.0);
-    FragColor = vec4(uAlbedo, uAlpha);
+    float distanceFalloff = distance(pPosition, uLeadPosition) / 10.0f;
+    FragColor = vec4(mix(uAlbedo, vec3(1.0f), distanceFalloff / 2.0f), uAlpha / distanceFalloff);
 }

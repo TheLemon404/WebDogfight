@@ -13,9 +13,6 @@ class FlareParticleSystem : public ParticleSystem {
     public:
     float spawnTime = 0.0f;
 
-    glm::vec3 startAlbedo = glm::vec3(1.0f, 0.0, 0.0f);
-    glm::vec3 endAlbedo = glm::vec3(0.7f);
-    float alpha = 1.0f;
     float scale = 4.0f;
     glm::vec3 leadVelocity = glm::vec3(0.0f);
     glm::vec3 leadPosition = glm::vec3(0.0f);

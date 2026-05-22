@@ -15,8 +15,8 @@ void FlareParticleSystem::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     mesh = app->graphicsBackend.CreateQuad();
-    mesh.material.albedo = startAlbedo;
-    mesh.material.alpha = alpha;
+    mesh.material.albedo = glm::vec3(1, 0.851, 0.384);
+    mesh.material.alpha = 1.0f;
     shader = &app->graphicsBackend.globalShaders.flares;
 }
 
@@ -79,6 +79,7 @@ void FlareParticleSystem::Draw() {
         app->graphicsBackend.SetBackfaceCulling(false);
     }
     app->graphicsBackend.BeginDrawMeshInstanced(mesh, *shader, app->sceneManager.activeCamera);
+    app->graphicsBackend.UploadShaderUniformVec3(*shader, leadPosition, "uLeadPosition");
     app->graphicsBackend.EndDrawMeshInstanced(mesh, MAX_FLARE_PARTICLES);
     if(disableBackfaceCulling) {
         app->graphicsBackend.SetBackfaceCulling(true);
