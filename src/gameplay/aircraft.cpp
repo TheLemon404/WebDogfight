@@ -280,6 +280,13 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
     stats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
+    ammoStats = CreateWidget<TextRectWidget>("ammoStats",app->graphicsBackend.globalFonts.defaultFont);
+    ammoStats->moveWithAspectRatio = true;
+    ammoStats->scale = glm::vec2(0.2, 0.16);
+    ammoStats->position = glm::vec2(-0.4, -0.75);
+    ammoStats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
+    ammoStats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+
     radar = CreateWidget<RadarWidget>("radar");
     radar->moveWithAspectRatio = true;
     radar->stretchWithAspectRatio = false;
@@ -341,6 +348,8 @@ void AircraftWidgetLayer::UpdateLayer() {
         "Air-Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.forwardSpeed)), 4) + "m/s\n"
         "Altitude: " + MiscUtils::Truncate(std::to_string(aircraftProps.transform.position.y), 4) + "m\n"
         "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.gForce)), 4) + "gs\n");
+
+    ammoStats->SetText("Flares: " + std::to_string(aircraftProps.numFlares) + "\n");
 }
 
 Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
@@ -378,6 +387,7 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.pressureVorticesL = JSON["description"]["bone-mappings"]["pressureVortices.l"];
     resource.description.boneMappings.pressureVorticesR = JSON["description"]["bone-mappings"]["pressureVortices.r"];
 
+    resource.settings.numFlares = JSON["settings"]["num-flares"];
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
@@ -401,6 +411,8 @@ void Aircraft::LoadResources() {
     resource.settings.wingTipL = { JSON["settings"]["wing-tip-l"][0], JSON["settings"]["wing-tip-l"][1], JSON["settings"]["wing-tip-l"][2] };
     resource.settings.wingTipR = { JSON["settings"]["wing-tip-r"][0], JSON["settings"]["wing-tip-r"][1], JSON["settings"]["wing-tip-r"][2] };
     resource.settings.gunPosition = { JSON["settings"]["gun-position"][0], JSON["settings"]["gun-position"][1], JSON["settings"]["gun-position"][2] };
+
+    numFlares = resource.settings.numFlares;
 
     {
         FOX2_PROFILE_SCOPE("Aircraft Shader Load")
@@ -714,7 +726,7 @@ void Aircraft::Update() {
                 }
 
                 for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
-                    if(prospectiveTarget->id == id) {
+                    if(prospectiveTarget->id == id || prospectiveTarget->deployingFlares) {
                         continue;
                     }
 
@@ -767,6 +779,10 @@ void Aircraft::Update() {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
                 }
+                else if(lockedAircraft->deployingFlares) {
+                    lockedAircraft = nullptr;
+                    lockedAircraftNetworkId = 0;
+                }
                 else if(distanceToLockedTarget > MAX_RADAR_RANGE) {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
@@ -798,8 +814,9 @@ void Aircraft::Update() {
             shotNetworkCountDown -= app->clock.deltaTime;
             shotTracerCountDown -= app->clock.deltaTime;
 
-            if(deployingFlares && flareCooldown <= 0.0f) {
+            if(deployingFlares && flareCooldown <= 0.0f && numFlares > 0) {
                 app->sceneManager.currentScene->GetEntityByName<FlareSystemEntity>("flareSystem")->SpawnFlare(transform.position, transform.rotation, velocity);
+                numFlares--;
                 flareCooldown = FLARE_COOLDOWN_TIME;
             }
             else {
@@ -963,6 +980,7 @@ void Aircraft::Update() {
         aircraftWidgetLayer->aircraftProps.forwardSpeed = forwardSpeed;
         aircraftWidgetLayer->aircraftProps.throttle = controls.throttle;
         aircraftWidgetLayer->aircraftProps.gForce = gForce;
+        aircraftWidgetLayer->aircraftProps.numFlares = numFlares;
         aircraftWidgetLayer->Update();
         aircraftWidgetLayer->UpdateLayer();
     }

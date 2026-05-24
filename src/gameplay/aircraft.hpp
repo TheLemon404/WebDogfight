@@ -36,6 +36,7 @@ struct AircraftResourceDescription {
 };
 
 struct AircraftResourceSettings {
+    int numFlares;
     float flapsMaxAngle;
     float brakeMaxAngle;
     float tailMaxAngle;
@@ -143,6 +144,7 @@ struct AircraftWidgetLayerNeededProps {
     float forwardSpeed = 0.0f;
     float throttle = 0.0f;
     float gForce = 0.0f;
+    int numFlares = 0;
 };
 
 class CompassWidget : public TextRectWidget {
@@ -173,6 +175,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<RectWidget> leadAimWidget = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
+    std::shared_ptr<TextRectWidget> ammoStats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;
     std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
@@ -238,6 +241,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     bool exploded = false;
     bool shooting = false;
 
+    int numFlares = 0;
     float flareCooldown = 0.0f;
     bool deployingFlares = false;
 
