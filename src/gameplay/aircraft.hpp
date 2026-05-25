@@ -152,7 +152,7 @@ struct AircraftWidgetLayerNeededProps {
     float throttle = 0.0f;
     float gForce = 0.0f;
     AircraftWeaponMode weaponMode = GUNS;
-    int heatSeekerLockStatus = 0;
+    int missileSeekerLockStatus = 0;
     int numFlares = 0;
 };
 
@@ -179,7 +179,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<CircleWidget> missileLook = nullptr;
-    std::shared_ptr<CircleWidget> heatSeekerAim = nullptr;
+    std::shared_ptr<CircleWidget> missileSeeker = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockDistanceWidget = nullptr;
@@ -253,7 +253,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     bool exploded = false;
     bool shooting = false;
 
-    int heatSeekerLockStatus = 0;
+    int missileSeekerLockStatus = 0;
 
     int numFlares = 0;
     float flareCooldown = 0.0f;

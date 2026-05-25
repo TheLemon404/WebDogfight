@@ -104,7 +104,7 @@ void main()
 
             float playerDist = distance(radarUV, terrainUVPlayerPosition);
             if (playerDist <= 0.01) {
-                FragColor = uBorderColor;
+                FragColor = mix(vec4(1.0, 0.4, 0.4, 1.0), vec4(0.5, 0.7, 1.0, 1.0), terrainUVPlayerPosition == vec2(0.5f));
             }
         }
     }

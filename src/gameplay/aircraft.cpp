@@ -207,10 +207,10 @@ void AircraftWidgetLayer::CreateWidgets() {
     missileLook->moveWithAspectRatio = true;
     missileLook->radius = 100;
 
-    heatSeekerAim = CreateWidget<CircleWidget>("heatSeekerAimWidget");
-    heatSeekerAim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
-    heatSeekerAim->moveWithAspectRatio = true;
-    heatSeekerAim->radius = 25;
+    missileSeeker = CreateWidget<CircleWidget>("missileSeekerWidget");
+    missileSeeker->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    missileSeeker->moveWithAspectRatio = true;
+    missileSeeker->radius = 25;
 
     mouse = CreateWidget<RectWidget>("mouseWidget");
     mouse->rotation = 45.0;
@@ -253,6 +253,7 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockDistanceWidget->cornerLength = 7;
     lockDistanceWidget->z_distance = -0.95f;
     lockDistanceWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+
 
     leadAimWidget = CreateWidget<RectWidget>("leadAimWidget");
     leadAimWidget->moveWithAspectRatio = true;
@@ -352,11 +353,11 @@ void AircraftWidgetLayer::UpdateLayer() {
     missileLook->position = UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation);
     missileLook->position.x /= app->windowManager.primaryWindow->aspect;
 
-    float randXOffset = (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX);
-    float randYOffset = (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX);
-    heatSeekerAim->position = (aircraftProps.heatSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) : UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition);
-    heatSeekerAim->position += glm::vec2(randXOffset, randYOffset);
-    heatSeekerAim->position.x /= app->windowManager.primaryWindow->aspect;
+    float randXOffset = aircraftProps.weaponMode == HEAT_SEEKER ? (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX) : 0.0f;
+    float randYOffset = aircraftProps.weaponMode == HEAT_SEEKER ? (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX) : 0.0f;
+    missileSeeker->position = (aircraftProps.missileSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) : UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition);
+    missileSeeker->position += glm::vec2(randXOffset, randYOffset);
+    missileSeeker->position.x /= app->windowManager.primaryWindow->aspect;
 
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
@@ -366,10 +367,10 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     leadAimWidget->cornerColor.value.a = (float)(aircraftProps.weaponMode == GUNS);
 
-    glm::vec4 heatLockColor= glm::mix(glm::vec4(0.3, 1.0, 0.4, 1.0), glm::vec4(1.0, 0.4, 0.4, 1.0), (float)aircraftProps.heatSeekerLockStatus);
+    glm::vec4 heatLockColor= glm::mix(glm::vec4(0.3, 1.0, 0.4, 1.0), glm::vec4(1.0, 0.4, 0.4, 1.0), (float)aircraftProps.missileSeekerLockStatus);
 
-    heatSeekerAim->color.value = heatLockColor;
-    heatSeekerAim->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER);
+    missileSeeker->color.value = heatLockColor;
+    missileSeeker->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
     missileLook->color.value = heatLockColor;
     missileLook->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
 
@@ -766,7 +767,7 @@ void Aircraft::Update() {
 
             if(weaponMode == HEAT_SEEKER) {
                 app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.tone, true, 1.0f);
-                if(heatSeekerLockStatus == 1) {
+                if(missileSeekerLockStatus == 1) {
                     app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.tone, 2.4f);
                 }
                 else {
@@ -865,16 +866,18 @@ void Aircraft::Update() {
 
                         if(distanceToLockedTarget < HEAT_SEEKER_RANGE && weaponMode == HEAT_SEEKER) {
                             float angleToTarget = glm::angle(aircraftForward, toTargetVector);
-                            std::cout << angleToTarget << std::endl;
-                            if(heatSeekerLockStatus == 1 && angleToTarget > PI/33.0f) {
-                                heatSeekerLockStatus = 0;
+                            if(missileSeekerLockStatus == 1 && angleToTarget > PI/33.0f) {
+                                missileSeekerLockStatus = 0;
                             }
-                            else if(heatSeekerLockStatus == 0 && angleToTarget < PI/175.0f) {
-                                heatSeekerLockStatus = 1;
+                            else if(missileSeekerLockStatus == 0 && angleToTarget < PI/175.0f) {
+                                missileSeekerLockStatus = 1;
                             }
                         }
+                        else if(distanceToLockedTarget < MAX_RADAR_RANGE && weaponMode == RADAR_GUIDED) {
+                            missileSeekerLockStatus = lockedAircraft != nullptr;
+                        }
                         else {
-                            heatSeekerLockStatus = 0;
+                            missileSeekerLockStatus = 0;
                         }
 
                         glm::vec3 leadPoint = ComputeTargetLeadPoint();
@@ -1062,7 +1065,7 @@ void Aircraft::Update() {
         aircraftWidgetLayer->aircraftProps.throttle = controls.throttle;
         aircraftWidgetLayer->aircraftProps.gForce = gForce;
         aircraftWidgetLayer->aircraftProps.weaponMode = weaponMode;
-        aircraftWidgetLayer->aircraftProps.heatSeekerLockStatus = heatSeekerLockStatus;
+        aircraftWidgetLayer->aircraftProps.missileSeekerLockStatus = missileSeekerLockStatus;
         aircraftWidgetLayer->aircraftProps.numFlares = numFlares;
         aircraftWidgetLayer->Update();
         aircraftWidgetLayer->UpdateLayer();
