@@ -879,7 +879,7 @@ void Aircraft::Update() {
                 flareCooldown = MathUtils::Min(flareCooldown - (float)app->clock.deltaTime, 0.0f);
             }
 
-            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
+            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS) {
                 shotNetworkCountDown = NETWORK_FIRE_RATE;
                 shotTracerCountDown = TRACER_FIRE_RATE;
                 app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shot, true, 0.5f);
@@ -897,7 +897,7 @@ void Aircraft::Update() {
 
                 shooting = true;
             }
-            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown) {
+            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr && shotTracerCountDown <= 0.0f) {
