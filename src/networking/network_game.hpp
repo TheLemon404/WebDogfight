@@ -66,7 +66,7 @@ class ClientState {
         name = packet.ReadBuffer(nameSize);
     }
 
-    inline bool operator==(const ClientState& rhs) {
+    inline bool operator==(const ClientState rhs) {
         return (
             inGame == rhs.inGame
             && shotDown == rhs.shotDown
