@@ -178,6 +178,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     public:
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
+    std::shared_ptr<CircleWidget> missileLook = nullptr;
     std::shared_ptr<CircleWidget> heatSeekerAim = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
@@ -191,7 +192,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
 
     glm::vec2 UIAlignmentWithWorldPosition(glm::vec3 worldPosition);
-    glm::vec2 UIAlignmentWithRotation(glm::quat rotation);
+    glm::vec2 UIAlignmentWithRotation(glm::vec3 origin, glm::quat rotation);
 
     void CreateWidgets() override;
     void UpdateLayer() override;
