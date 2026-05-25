@@ -65,6 +65,21 @@ class ClientState {
         size_t nameSize = packet.ReadU8();
         name = packet.ReadBuffer(nameSize);
     }
+
+    inline bool operator==(const ClientState& rhs) {
+        return (
+            inGame == rhs.inGame
+            && shotDown == rhs.shotDown
+            && exploded == rhs.exploded
+            && shooting == rhs.shooting
+            && deployingFlares == rhs.deployingFlares
+            && lockedTargetNetworkID == rhs.lockedTargetNetworkID
+            && position == rhs.position
+            && rotation == rhs.rotation
+            && velocity == rhs.velocity
+            && name == rhs.name
+        );
+    }
 };
 
 struct GameState {
