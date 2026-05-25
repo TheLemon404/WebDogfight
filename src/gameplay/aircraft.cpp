@@ -22,6 +22,7 @@
 #include "widget.hpp"
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -200,6 +201,12 @@ void AircraftWidgetLayer::CreateWidgets() {
     aim = CreateWidget<CircleWidget>("aimWidget");
     aim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
     aim->moveWithAspectRatio = true;
+    aim->radius = 9;
+
+    heatSeekerAim = CreateWidget<CircleWidget>("heatSeekerAimWidget");
+    heatSeekerAim->color.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+    heatSeekerAim->moveWithAspectRatio = true;
+    heatSeekerAim->radius = 40;
 
     mouse = CreateWidget<RectWidget>("mouseWidget");
     mouse->rotation = 45.0;
@@ -280,12 +287,12 @@ void AircraftWidgetLayer::CreateWidgets() {
     stats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
     stats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
-    ammoStats = CreateWidget<TextRectWidget>("ammoStats",app->graphicsBackend.globalFonts.defaultFont);
-    ammoStats->moveWithAspectRatio = true;
-    ammoStats->scale = glm::vec2(0.2, 0.16);
-    ammoStats->position = glm::vec2(-0.4, -0.75);
-    ammoStats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
-    ammoStats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    weaponStats = CreateWidget<TextRectWidget>("weaponStats",app->graphicsBackend.globalFonts.defaultFont);
+    weaponStats->moveWithAspectRatio = true;
+    weaponStats->scale = glm::vec2(0.375, 0.16);
+    weaponStats->position = glm::vec2(-0.35, -0.75);
+    weaponStats->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
+    weaponStats->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
 
     radar = CreateWidget<RadarWidget>("radar");
     radar->moveWithAspectRatio = true;
@@ -337,19 +344,46 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     aim->position = UIAlignmentWithRotation(aircraftProps.unrolledRotation);
     aim->position.x /= app->windowManager.primaryWindow->aspect;
+
+    float randXOffset = (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX);
+    float randYOffset = (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX);
+    heatSeekerAim->position = (aircraftProps.heatSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.unrolledRotation) : UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition);
+    heatSeekerAim->position += glm::vec2(randXOffset, randYOffset);
+    heatSeekerAim->position.x /= app->windowManager.primaryWindow->aspect;
+
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);
     float dot = glm::dot(cameraForward, aircraftForwardVector);
 
-    aim->color.value.a = dot;
+    aim->color.value.a = dot * (float)(aircraftProps.weaponMode == GUNS);
 
-    stats->SetText("FPS: " + MiscUtils::Truncate(std::to_string(1/app->clock.deltaTime), 4) + "\n"
+    heatSeekerAim->color.value = glm::mix(glm::vec4(0.3, 1.0, 0.4, 1.0), glm::vec4(1.0, 0.4, 0.4, 1.0), (float)aircraftProps.heatSeekerLockStatus);
+    heatSeekerAim->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER);
+
+    stats->SetText(
+        "FPS: " + MiscUtils::Truncate(std::to_string(1/app->clock.deltaTime), 4) + "\n"
         "Throttle: " + MiscUtils::Truncate(std::to_string(aircraftProps.throttle), 4) + "\n"
         "Air-Speed: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.forwardSpeed)), 4) + "m/s\n"
         "Altitude: " + MiscUtils::Truncate(std::to_string(aircraftProps.transform.position.y), 4) + "m\n"
         "G-Force: " + MiscUtils::Truncate(std::to_string(glm::length(aircraftProps.gForce)), 4) + "gs\n");
 
-    ammoStats->SetText("Flares: " + std::to_string(aircraftProps.numFlares) + "\n");
+    std::string weaponModeText = "";
+    switch (aircraftProps.weaponMode) {
+        case GUNS:
+            weaponModeText = "Guns";
+            break;
+        case HEAT_SEEKER:
+            weaponModeText = "Heat Seeker";
+            break;
+        case RADAR_GUIDED:
+            weaponModeText = "Radar Guided";
+            break;
+    }
+
+    weaponStats->SetText(
+        "Weapon Mode: " + weaponModeText + "\n"
+        "Flares: " + std::to_string(aircraftProps.numFlares) + "\n"
+    );
 }
 
 Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
@@ -712,7 +746,26 @@ void Aircraft::Update() {
             camera.position = MathUtils::RotatePointAroundPoint(horizontalAxis, camera.target, -cameraRotationInputValue.x, GLOBAL_UP);
         }
         {
-            FOX2_PROFILE_SCOPE("Aircraft Target Locking")
+            FOX2_PROFILE_SCOPE("Aircraft Target Locking and Audio")
+            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_3)) {
+                weaponMode = (AircraftWeaponMode)((((int)weaponMode) + 1) % 3);
+            }
+
+            if(weaponMode == HEAT_SEEKER) {
+                app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.tone, true, 1.0f);
+                if(heatSeekerLockStatus == 1) {
+                    app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.tone, 2.4f);
+                }
+                else {
+                    app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.tone, 1.0f);
+                }
+            }
+            else if(app->audioBackend.globalSounds.tone.started) {
+                app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.tone);
+            }
+
+            heatSeekerLockStatus = 0;
+
             if(lockedAircraft == nullptr) {
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
@@ -797,6 +850,9 @@ void Aircraft::Update() {
                     std::shared_ptr<RectWidget> leadAimWidget = aircraftWidgetLayer->leadAimWidget;
                     std::shared_ptr<TextRectWidget> lockDistanceWidget = aircraftWidgetLayer->lockDistanceWidget;
                     if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
+                        glm::vec3 toTargetVector = glm::normalize(lockedAircraft->transform.position - transform.position);
+                        heatSeekerLockStatus = (MathUtils::Min<float>(glm::dot(aircraftForward, toTargetVector), 0.0f) > 0.8f) && (distanceToLockedTarget < 6000.0f);
+
                         glm::vec3 leadPoint = ComputeTargetLeadPoint();
                         leadAimWidget->position = aircraftWidgetLayer->UIAlignmentWithWorldPosition(leadPoint);
 
@@ -975,11 +1031,14 @@ void Aircraft::Update() {
 
     if(aircraftWidgetLayer) {
         aircraftWidgetLayer->aircraftProps.transform = transform;
+        aircraftWidgetLayer->aircraftProps.lockedTargetPosition = lockedAircraft == nullptr ? glm::vec3(0.0f) : lockedAircraft->transform.position;
         aircraftWidgetLayer->aircraftProps.unrolledRotation = unrolledRotation;
         aircraftWidgetLayer->aircraftProps.velocity = velocity;
         aircraftWidgetLayer->aircraftProps.forwardSpeed = forwardSpeed;
         aircraftWidgetLayer->aircraftProps.throttle = controls.throttle;
         aircraftWidgetLayer->aircraftProps.gForce = gForce;
+        aircraftWidgetLayer->aircraftProps.weaponMode = weaponMode;
+        aircraftWidgetLayer->aircraftProps.heatSeekerLockStatus = heatSeekerLockStatus;
         aircraftWidgetLayer->aircraftProps.numFlares = numFlares;
         aircraftWidgetLayer->Update();
         aircraftWidgetLayer->UpdateLayer();

@@ -137,13 +137,22 @@ class AircraftTrails {
     void UnloadResources();
 };
 
+enum AircraftWeaponMode {
+    GUNS,
+    HEAT_SEEKER,
+    RADAR_GUIDED
+};
+
 struct AircraftWidgetLayerNeededProps {
     Transform transform = Transform();
+    glm::vec3 lockedTargetPosition = glm::vec3(0.0f);
     glm::quat unrolledRotation = glm::identity<glm::quat>();
     glm::vec3 velocity = glm::vec3(0.0f);
     float forwardSpeed = 0.0f;
     float throttle = 0.0f;
     float gForce = 0.0f;
+    AircraftWeaponMode weaponMode = GUNS;
+    int heatSeekerLockStatus = 0;
     int numFlares = 0;
 };
 
@@ -169,13 +178,14 @@ class AircraftWidgetLayer : public WidgetLayer {
     public:
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
+    std::shared_ptr<CircleWidget> heatSeekerAim = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockDistanceWidget = nullptr;
     std::shared_ptr<RectWidget> leadAimWidget = nullptr;
     std::shared_ptr<RectWidget> mouse = nullptr;
     std::shared_ptr<TextRectWidget> stats = nullptr;
-    std::shared_ptr<TextRectWidget> ammoStats = nullptr;
+    std::shared_ptr<TextRectWidget> weaponStats = nullptr;
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;
     std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
@@ -186,7 +196,6 @@ class AircraftWidgetLayer : public WidgetLayer {
     void CreateWidgets() override;
     void UpdateLayer() override;
 };
-
 
 class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     std::unique_ptr<AircraftWidgetLayer> aircraftWidgetLayer = nullptr;
@@ -235,11 +244,15 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     glm::vec3 ComputeTargetLeadPoint();
 
     public:
+    AircraftWeaponMode weaponMode = GUNS;
+
     uint32_t lockedAircraftNetworkId = 0;
 
     bool shotDown = false;
     bool exploded = false;
     bool shooting = false;
+
+    int heatSeekerLockStatus = 0;
 
     int numFlares = 0;
     float flareCooldown = 0.0f;
