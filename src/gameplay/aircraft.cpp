@@ -44,6 +44,7 @@
 #define MAX_RADAR_RANGE 14000.0f
 #define TERRAIN_RAY_CHECK_RESOLUTION_PER_5K 16
 #define MAX_GUNS_RANGE 3000.0f
+#define HEAT_SEEKER_RANGE 3000.0f
 #define SHOT_DOWN_EXPLOSION_SIZE 75.0f
 #define EXPLODE_EXPLOSION_SIZE 120.0f
 
@@ -851,7 +852,7 @@ void Aircraft::Update() {
                     std::shared_ptr<TextRectWidget> lockDistanceWidget = aircraftWidgetLayer->lockDistanceWidget;
                     if(lockWidget != nullptr && lockNameWidget != nullptr && leadAimWidget != nullptr) {
                         glm::vec3 toTargetVector = glm::normalize(lockedAircraft->transform.position - transform.position);
-                        heatSeekerLockStatus = (MathUtils::Min<float>(glm::dot(aircraftForward, toTargetVector), 0.0f) > 0.8f) && (distanceToLockedTarget < 6000.0f);
+                        heatSeekerLockStatus = (MathUtils::Min<float>(glm::dot(aircraftForward, toTargetVector), 0.0f) > 0.8f) && (distanceToLockedTarget < HEAT_SEEKER_RANGE);
 
                         glm::vec3 leadPoint = ComputeTargetLeadPoint();
                         leadAimWidget->position = aircraftWidgetLayer->UIAlignmentWithWorldPosition(leadPoint);
