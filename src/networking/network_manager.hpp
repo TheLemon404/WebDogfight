@@ -74,6 +74,8 @@ class NetworkManager {
     std::function<void()> onExplodeDemand = nullptr;
 
     void RequestFireGun(uint32_t targetNetworkID);
+    void RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID);
+    void RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID);
 
     void Initialize();
     void Tick();

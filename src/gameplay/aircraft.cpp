@@ -937,6 +937,12 @@ void Aircraft::Update() {
                     shotNetworkCountDown = NETWORK_FIRE_RATE;
                 }
             }
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER) {
+                app->networkManager.RequestLaunchHeatSeekingMissile(lockedAircraft->networkId);
+            }
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER) {
+                app->networkManager.RequestLaunchRadarGuidedMissile(lockedAircraft->networkId);
+            }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
 

@@ -152,6 +152,24 @@ void NetworkManager::RequestFireGun(uint32_t targetNetworkID) {
     );
 }
 
+void NetworkManager::RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID) {
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::REQUEST_LAUNCH_HEAT_SEEKER)
+        .WriteU32(targetNetworkID)
+        .Build()
+    );
+}
+
+void NetworkManager::RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID) {
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::REQUEST_LAUNCH_RADAR_GUIDED)
+        .WriteU32(targetNetworkID)
+        .Build()
+    );
+}
+
 void NetworkManager::Initialize() {
 #ifdef __EMSCRIPTEN__
     std::cout << "Initializing emscripten networking backend..." << std::endl;

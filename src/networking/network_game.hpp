@@ -82,7 +82,52 @@ class ClientState {
     }
 };
 
+struct NetworkMissile {
+    protected:
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::quat rotation = glm::identity<glm::quat>();
+    glm::vec3 velocity = glm::vec3(0.0f);
+
+    public:
+    std::string Serialize() {
+        return Packet()
+        .WriteF32(position.x)
+        .WriteF32(position.y)
+        .WriteF32(position.z)
+        .WriteF32(rotation.x)
+        .WriteF32(rotation.y)
+        .WriteF32(rotation.z)
+        .WriteF32(rotation.w)
+        .WriteF32(velocity.x)
+        .WriteF32(velocity.y)
+        .WriteF32(velocity.z)
+        .Build();
+    }
+
+    void Deserialize(Packet& packet) {
+        position.x = packet.ReadF32();
+        position.y = packet.ReadF32();
+        position.z = packet.ReadF32();
+        rotation.x = packet.ReadF32();
+        rotation.y = packet.ReadF32();
+        rotation.z = packet.ReadF32();
+        rotation.w = packet.ReadF32();
+        velocity.x = packet.ReadF32();
+        velocity.y = packet.ReadF32();
+        velocity.z = packet.ReadF32();
+    }
+};
+
+struct NetworkHeatSeekingMissile : public NetworkMissile {
+
+};
+
+struct NetworkRadarGuidedMissile : public NetworkMissile {
+
+};
+
 struct GameState {
+    std::unordered_map<uint8_t, NetworkMissile> missileMap;
     std::unordered_map<uint32_t, ClientState> clientStates;
     float lastUpdateTimeStamp = 0.0f;
 
@@ -92,16 +137,24 @@ struct GameState {
         for(auto& clientState : clientStates) {
             packet.WriteU32(clientState.first).WriteBuffer(clientState.second.Serialize());
         }
+        packet.WriteU8(missileMap.size());
+        for(auto& missile : missileMap) {
+            packet.WriteU8(missile.first).WriteBuffer(missile.second.Serialize());
+        }
         return packet.Build();
     }
 
     void Deserialize(Packet& packet) {
-        clientStates.clear();
         //the u8 at the beginning of the packet is the number of clients
         uint8_t numClients = packet.ReadU8();
         for(int i = 0; i < numClients; i++) {
             uint32_t clientId = packet.ReadU32();
             clientStates[clientId].Deserialize(packet);
+        }
+        uint8_t numMissiles = packet.ReadU8();
+        for(int i = 0; i < numMissiles; i++) {
+            uint8_t missileId = packet.ReadU8();
+            missileMap[missileId].Deserialize(packet);
         }
     }
 };
