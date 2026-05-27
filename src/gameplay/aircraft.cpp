@@ -357,7 +357,6 @@ void AircraftWidgetLayer::UpdateLayer() {
     float randYOffset = aircraftProps.weaponMode == HEAT_SEEKER ? (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX) : 0.0f;
     missileSeeker->position = (aircraftProps.missileSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) : UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition);
     missileSeeker->position += glm::vec2(randXOffset, randYOffset);
-    missileSeeker->position.x /= app->windowManager.primaryWindow->aspect;
 
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
     glm::vec3 cameraForward = glm::normalize(app->sceneManager.activeCamera.target - app->sceneManager.activeCamera.position);

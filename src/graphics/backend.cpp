@@ -29,11 +29,12 @@ void GraphicsBackend::LoadResources() {
     globalShaders.tracer = Loader::LoadShaderFromGLSL("resources/shaders/tracer.glsl");
     globalShaders.post = Loader::LoadShaderFromGLSL("resources/shaders/post.glsl");
     globalShaders.flares = Loader::LoadShaderFromGLSL("resources/shaders/flares.glsl");
+    globalShaders.missile = Loader::LoadShaderFromGLSL("resources/shaders/missile.glsl");
 
-    globalMeshes.FA_XX = Loader::LoadMeshFromGLTF("resources/meshes/demo_jet.gltf");
     globalMeshes.quad = CreateQuad();
     globalMeshes.cube = CreateCube();
     globalMeshes.sphere = CreateSphere();
+    globalMeshes.heatSeekingMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim9.gltf");
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
@@ -64,11 +65,12 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.tracer);
     DeleteShader(globalShaders.post);
     DeleteShader(globalShaders.flares);
+    DeleteShader(globalShaders.missile);
 
-    DeleteMesh(globalMeshes.FA_XX);
     DeleteMesh(globalMeshes.quad);
     DeleteMesh(globalMeshes.cube);
     DeleteMesh(globalMeshes.sphere);
+    DeleteMesh(globalMeshes.heatSeekingMissile);
 
     DeleteFont(globalFonts.defaultFont);
 

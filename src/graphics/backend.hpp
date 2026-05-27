@@ -44,13 +44,14 @@ struct GlobalShaders {
     Shader tracer;
     Shader post;
     Shader flares;
+    Shader missile;
 };
 
 struct GlobalMeshes {
-    Mesh FA_XX;
     Mesh quad;
     Mesh cube;
     Mesh sphere;
+    Mesh heatSeekingMissile;
 };
 
 struct GlobalFonts {
