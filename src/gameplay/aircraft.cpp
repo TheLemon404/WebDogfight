@@ -254,7 +254,6 @@ void AircraftWidgetLayer::CreateWidgets() {
     lockDistanceWidget->z_distance = -0.95f;
     lockDistanceWidget->cornerColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
 
-
     leadAimWidget = CreateWidget<RectWidget>("leadAimWidget");
     leadAimWidget->moveWithAspectRatio = true;
     leadAimWidget->rotation = 45.0;
@@ -348,14 +347,15 @@ void AircraftWidgetLayer::UpdateLayer() {
     mouse->position = glm::clamp(mouse->position, glm::vec2(-4.0f), glm::vec2(4.0f));
 
     aim->position = UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation);
-    aim->position.x /= app->windowManager.primaryWindow->aspect;
 
     missileLook->position = UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation);
-    missileLook->position.x /= app->windowManager.primaryWindow->aspect;
 
     float randXOffset = aircraftProps.weaponMode == HEAT_SEEKER ? (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX) : 0.0f;
     float randYOffset = aircraftProps.weaponMode == HEAT_SEEKER ? (rand() - (RAND_MAX / 2)) / (150.0f * (float)RAND_MAX) : 0.0f;
-    missileSeeker->position = (aircraftProps.missileSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) : UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition);
+    glm::vec2 uiAlignmentWorldPosition = UIAlignmentWithWorldPosition(aircraftProps.lockedTargetPosition) * glm::vec2(app->windowManager.primaryWindow->aspect, 1.0f);
+    float uiAlignmentWorldPositionLength = glm::min(glm::length(uiAlignmentWorldPosition), 0.115f);
+    glm::vec2 uiAlignmentWorldVector = glm::normalize(uiAlignmentWorldPosition) / glm::vec2(app->windowManager.primaryWindow->aspect, 1.0f);
+    missileSeeker->position = (aircraftProps.missileSeekerLockStatus == 0) ? UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) : UIAlignmentWithRotation(aircraftProps.transform.position, aircraftProps.unrolledRotation) + uiAlignmentWorldVector * uiAlignmentWorldPositionLength;
     missileSeeker->position += glm::vec2(randXOffset, randYOffset);
 
     glm::vec3 aircraftForwardVector = glm::normalize(glm::rotate(aircraftProps.transform.rotation, GLOBAL_FORWARD));
