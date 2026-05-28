@@ -48,7 +48,6 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
             for(int i = 0; i < entities.size(); i++) {
                 std::shared_ptr<Missile> missile = std::dynamic_pointer_cast<Missile>(entities[i]);
                 if(missile && missile->networkId == entry.first && !missile->pendingDespawn) {
-                    std::cout << "despawning missile" << std::endl;
                     RuntimeDespawn(missile);
                 }
             }

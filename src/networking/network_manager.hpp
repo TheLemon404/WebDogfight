@@ -75,8 +75,8 @@ class NetworkManager {
 
     void RequestFireGun(uint32_t targetNetworkID);
     void RequestDeployFlares();
-    void RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID);
-    void RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID);
+    void RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation);
+    void RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation);
 
     void Initialize();
     void Tick();
