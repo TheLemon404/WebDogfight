@@ -57,7 +57,7 @@ class NetworkManager {
     public:
     int GetLobbyId() const { return (int)state->lobbyId; }
 
-    float interpolationFactor = 5.0f;
+    float interpolationFactor = 10.0f;
 
     std::mutex pendingStateChangeMutex;
     bool hasPendingStateChange = false;
@@ -75,8 +75,8 @@ class NetworkManager {
 
     void RequestFireGun(uint32_t targetNetworkID);
     void RequestDeployFlares();
-    void RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation);
-    void RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation);
+    void RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID);
+    void RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID);
 
     void Initialize();
     void Tick();

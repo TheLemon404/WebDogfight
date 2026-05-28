@@ -89,6 +89,7 @@ enum NetworkMissileType : uint8_t {
 
 struct NetworkMissile {
     public:
+    uint32_t launcherNetworkId = 0;
     uint32_t targetNetworkId = 0;
     NetworkMissileType missileType = HEAT;
     glm::vec3 position = glm::vec3(0.0f);
@@ -99,6 +100,7 @@ struct NetworkMissile {
 
     std::string Serialize() {
         return Packet()
+        .WriteU32(launcherNetworkId)
         .WriteU32(targetNetworkId)
         .WriteU8((uint8_t)missileType)
         .WriteF32(position.x)
@@ -116,6 +118,7 @@ struct NetworkMissile {
     }
 
     void Deserialize(Packet& packet) {
+        launcherNetworkId = packet.ReadU32();
         targetNetworkId = packet.ReadU32();
         missileType = (NetworkMissileType)packet.ReadU8();
         position.x = packet.ReadF32();

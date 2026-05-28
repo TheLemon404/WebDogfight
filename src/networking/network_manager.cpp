@@ -158,26 +158,20 @@ void NetworkManager::RequestDeployFlares() {
     );
 }
 
-void NetworkManager::RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation) {
+void NetworkManager::RequestLaunchHeatSeekingMissile(uint32_t targetNetworkID) {
     state->SocketSendBinary(
         Packet()
         .WritePacketType(PacketType::REQUEST_LAUNCH_HEAT_SEEKER)
         .WriteU32(targetNetworkID)
-        .WriteF32(spawnLocation.x)
-        .WriteF32(spawnLocation.y)
-        .WriteF32(spawnLocation.z)
         .Build()
     );
 }
 
-void NetworkManager::RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID, glm::vec3 spawnLocation) {
+void NetworkManager::RequestLaunchRadarGuidedMissile(uint32_t targetNetworkID) {
     state->SocketSendBinary(
         Packet()
         .WritePacketType(PacketType::REQUEST_LAUNCH_RADAR_GUIDED)
         .WriteU32(targetNetworkID)
-        .WriteF32(spawnLocation.x)
-        .WriteF32(spawnLocation.y)
-        .WriteF32(spawnLocation.z)
         .Build()
     );
 }

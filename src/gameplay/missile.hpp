@@ -40,6 +40,8 @@ class Missile : public Entity{
     Shader* shader = nullptr;
     Mesh* mesh = nullptr;
 
+    bool firstUpdate = true;
+
     public:
     Transform transform = Transform();
     glm::vec3 velocity = glm::vec3(0.0f);
@@ -47,6 +49,7 @@ class Missile : public Entity{
     bool shouldDetonate = false;
     bool detonated = false;
 
+    uint32_t launcherNetworkId = 0;
     uint32_t targetNetworkId = 0;
     uint8_t networkId = 0;
 

@@ -2,6 +2,7 @@
 
 #include "../application.hpp"
 #include "../utils/math.hpp"
+#include "aircraft.hpp"
 
 #define MISSILE_EXPLOSION_SIZE 200.0f
 
@@ -118,19 +119,30 @@ void Missile::LoadResources() {
 
 void Missile::Update() {
     std::unique_ptr<Application>& app = Application::GetInstance();
+    launcherNetworkId = app->networkManager.networkGameState.missileMap[networkId].launcherNetworkId;
     targetNetworkId = app->networkManager.networkGameState.missileMap[networkId].targetNetworkId;
+
+    if(firstUpdate) {
+        firstUpdate = false;
+
+        const std::vector<std::shared_ptr<Aircraft>> aircrafts = app->sceneManager.currentScene->GetEntitiesByType<Aircraft>();
+        for(std::shared_ptr<Aircraft> aircraft : aircrafts) {
+            if(aircraft->networkId == launcherNetworkId) {
+                transform.position = aircraft->transform.position;
+                break;
+            }
+        }
+    }
 
     float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
 
     NetworkMissile& missileState = app->networkManager.networkGameState.missileMap[networkId];
     glm::vec3 predictedPosition = missileState.position + missileState.velocity * dt;
 
-    transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
+    transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime);
     transform.rotation = glm::slerp(transform.rotation, missileState.rotation, (float)app->clock.deltaTime * 2.0f);
     velocity = missileState.velocity;
     shouldDetonate = missileState.shouldDetonate;
-
-    std::cout << glm::length(missileState.velocity) << std::endl;
 
     if(shouldDetonate && !detonated) {
         app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(predictedPosition, MISSILE_EXPLOSION_SIZE, 0.5f);
