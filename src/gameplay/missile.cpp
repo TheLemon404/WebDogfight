@@ -117,27 +117,34 @@ void Missile::LoadResources() {
     trail.LoadResources();
 }
 
+void Missile::Initialize() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    trail.Initialize();
+
+    const std::vector<std::shared_ptr<Aircraft>> aircrafts = app->sceneManager.currentScene->GetEntitiesByType<Aircraft>();
+    for(std::shared_ptr<Aircraft> aircraft : aircrafts) {
+        if(aircraft->networkId == launcherNetworkId) {
+            transform.position = aircraft->transform.position;
+            velocity = aircraft->velocity * 3.0f;
+            break;
+        }
+    }
+
+    float distanceFromCamera = glm::distance(app->sceneManager.activeCamera.position, transform.position);
+    float distanceSoundFalloff = distanceFromCamera / 100.0f;
+    app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.launch, false, 3.0f / distanceSoundFalloff);
+}
+
 void Missile::Update() {
     std::unique_ptr<Application>& app = Application::GetInstance();
     launcherNetworkId = app->networkManager.networkGameState.missileMap[networkId].launcherNetworkId;
     targetNetworkId = app->networkManager.networkGameState.missileMap[networkId].targetNetworkId;
 
-    if(firstUpdate) {
-        firstUpdate = false;
-
-        const std::vector<std::shared_ptr<Aircraft>> aircrafts = app->sceneManager.currentScene->GetEntitiesByType<Aircraft>();
-        for(std::shared_ptr<Aircraft> aircraft : aircrafts) {
-            if(aircraft->networkId == launcherNetworkId) {
-                transform.position = aircraft->transform.position;
-                break;
-            }
-        }
-    }
-
     float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
 
     NetworkMissile& missileState = app->networkManager.networkGameState.missileMap[networkId];
-    glm::vec3 predictedPosition = missileState.position + missileState.velocity * dt;
+    glm::vec3 predictedPosition = missileState.position + velocity * dt;
 
     transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime);
     transform.rotation = glm::slerp(transform.rotation, missileState.rotation, (float)app->clock.deltaTime * 2.0f);

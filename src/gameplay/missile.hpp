@@ -40,8 +40,6 @@ class Missile : public Entity{
     Shader* shader = nullptr;
     Mesh* mesh = nullptr;
 
-    bool firstUpdate = true;
-
     public:
     Transform transform = Transform();
     glm::vec3 velocity = glm::vec3(0.0f);
@@ -55,9 +53,7 @@ class Missile : public Entity{
 
     void LoadResources() override;
 
-    void Initialize() override {
-        trail.Initialize();
-    };
+    void Initialize() override;
 
     void Update() override;
     void Draw() override;
