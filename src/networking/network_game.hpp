@@ -82,15 +82,25 @@ class ClientState {
     }
 };
 
+enum NetworkMissileType : uint8_t {
+    HEAT,
+    RADAR
+};
+
 struct NetworkMissile {
-    protected:
+    public:
+    uint32_t targetNetworkId = 0;
+    NetworkMissileType missileType = HEAT;
     glm::vec3 position = glm::vec3(0.0f);
     glm::quat rotation = glm::identity<glm::quat>();
     glm::vec3 velocity = glm::vec3(0.0f);
 
-    public:
+    bool shouldDetonate = false;
+
     std::string Serialize() {
         return Packet()
+        .WriteU32(targetNetworkId)
+        .WriteU8((uint8_t)missileType)
         .WriteF32(position.x)
         .WriteF32(position.y)
         .WriteF32(position.z)
@@ -101,10 +111,13 @@ struct NetworkMissile {
         .WriteF32(velocity.x)
         .WriteF32(velocity.y)
         .WriteF32(velocity.z)
+        .WriteU8(shouldDetonate)
         .Build();
     }
 
     void Deserialize(Packet& packet) {
+        targetNetworkId = packet.ReadU32();
+        missileType = (NetworkMissileType)packet.ReadU8();
         position.x = packet.ReadF32();
         position.y = packet.ReadF32();
         position.z = packet.ReadF32();
@@ -115,15 +128,11 @@ struct NetworkMissile {
         velocity.x = packet.ReadF32();
         velocity.y = packet.ReadF32();
         velocity.z = packet.ReadF32();
+        shouldDetonate = packet.ReadU8();
     }
-};
 
-struct NetworkHeatSeekingMissile : public NetworkMissile {
-
-};
-
-struct NetworkRadarGuidedMissile : public NetworkMissile {
-
+    NetworkMissile() {};
+    NetworkMissile(NetworkMissileType missileType) : missileType(missileType) {};
 };
 
 struct GameState {
@@ -145,6 +154,8 @@ struct GameState {
     }
 
     void Deserialize(Packet& packet) {
+        clientStates.clear();
+        missileMap.clear();
         //the u8 at the beginning of the packet is the number of clients
         uint8_t numClients = packet.ReadU8();
         for(int i = 0; i < numClients; i++) {

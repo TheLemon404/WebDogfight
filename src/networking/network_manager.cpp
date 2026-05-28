@@ -63,8 +63,6 @@ void NetworkManager::OnConnectedToServer() {
 
 void NetworkManager::OnDisconnectedFromServer() {
     std::cout << "disconnected from server" << std::endl;
-
-    //TODO: figure out why this keeps being called!!!
 }
 
 void NetworkManager::OnMessageRecieved(const std::string& msg) {
@@ -148,6 +146,14 @@ void NetworkManager::RequestFireGun(uint32_t targetNetworkID) {
         Packet()
         .WritePacketType(PacketType::REQUEST_FIRE_GUN)
         .WriteU32(targetNetworkID)
+        .Build()
+    );
+}
+
+void NetworkManager::RequestDeployFlares() {
+    state->SocketSendBinary(
+        Packet()
+        .WritePacketType(PacketType::REQUEST_DEPLOY_FLARES)
         .Build()
     );
 }

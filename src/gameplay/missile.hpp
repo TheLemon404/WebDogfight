@@ -2,26 +2,28 @@
 
 #include "entity.hpp"
 #include "../graphics/types.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 class Missile : public Entity{
     protected:
-    Shader* shader;
-    Mesh* mesh;
+    Shader* shader = nullptr;
+    Mesh* mesh = nullptr;
 
     public:
-    Missile(const std::string& name) : Entity(name) {};
-};
+    Transform transform = Transform();
+    glm::vec3 velocity = glm::vec3(0.0f);
 
-class HeatSeekingMissile : public Missile {
-    public:
+    bool shouldDetonate = false;
+    bool detonated = false;
+
+    uint32_t targetNetworkId = 0;
+    uint8_t networkId = 0;
+
     void LoadResources() override;
+    void Initialize() override {};
+    void Update() override;
+    void Draw() override;
+    void UnloadResources() override {};
 
-    HeatSeekingMissile(const std::string& name) : Missile(name) {};
-};
-
-class RadarGuidedMissile : public Missile {
-    public:
-    void LoadResources() override;
-
-    RadarGuidedMissile(const std::string& name) : Missile(name) {};
+    Missile(const std::string& name, uint8_t networkId) : Entity(name), networkId(networkId) {};
 };

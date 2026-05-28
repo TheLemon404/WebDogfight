@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include "aircraft.hpp"
+#include "missile.hpp"
 #include "entity.hpp"
 #include "scene_manager.hpp"
 #include "../utils/instrumentor.hpp"
@@ -37,6 +38,31 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
             newAircraft->transform.position = entry.second.position;
             newAircraft->transform.rotation = entry.second.rotation;
             RuntimeSpawn(newAircraft);
+        }
+    }
+
+    for(auto& entry : lastNetworkGameState.missileMap) {
+        bool isInGame = currentNetworkGameState.missileMap.contains(entry.first);
+        std::cout << currentNetworkGameState.missileMap.size() << std::endl;
+        if(!isInGame) {
+            for(int i = 0; i < entities.size(); i++) {
+                std::shared_ptr<Missile> missile = std::dynamic_pointer_cast<Missile>(entities[i]);
+                if(missile && missile->networkId == entry.first && !missile->pendingDespawn) {
+                    std::cout << "despawning missile" << std::endl;
+                    RuntimeDespawn(missile);
+                }
+            }
+        }
+    }
+
+    for(auto& entry : currentNetworkGameState.missileMap) {
+        bool wasInGame = lastNetworkGameState.missileMap.contains(entry.first);
+        if(!wasInGame) {
+            std::shared_ptr<Missile> newMissile = std::make_shared<Missile>("FA-XX", entry.first);
+            newMissile->transform.position = entry.second.position;
+            newMissile->transform.rotation = entry.second.rotation;
+            newMissile->velocity = entry.second.velocity;
+            RuntimeSpawn(newMissile);
         }
     }
 }
