@@ -43,7 +43,6 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
 
     for(auto& entry : lastNetworkGameState.missileMap) {
         bool isInGame = currentNetworkGameState.missileMap.contains(entry.first);
-        std::cout << currentNetworkGameState.missileMap.size() << std::endl;
         if(!isInGame) {
             for(int i = 0; i < entities.size(); i++) {
                 std::shared_ptr<Missile> missile = std::dynamic_pointer_cast<Missile>(entities[i]);
@@ -58,6 +57,8 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
         bool wasInGame = lastNetworkGameState.missileMap.contains(entry.first);
         if(!wasInGame) {
             std::shared_ptr<Missile> newMissile = std::make_shared<Missile>("FA-XX", entry.first);
+            newMissile->launcherNetworkId = entry.second.launcherNetworkId;
+            newMissile->targetNetworkId = entry.second.targetNetworkId;
             newMissile->transform.position = entry.second.position;
             newMissile->transform.rotation = entry.second.rotation;
             newMissile->velocity = entry.second.velocity;
@@ -162,6 +163,7 @@ void Scene::Update()  {
     }
 
     bool lockedFlag = false;
+    bool targetedFlag = false;
     for(std::shared_ptr<Entity> entity : entities) {
         entity->Update();
 
@@ -169,12 +171,22 @@ void Scene::Update()  {
         if(aircraft != nullptr && aircraft->lockedAircraftNetworkId != 0 && aircraft->lockedAircraftNetworkId == app->networkManager.localClientId) {
             lockedFlag = true;
         }
+
+        std::shared_ptr<Missile> missile = std::dynamic_pointer_cast<Missile>(entity);
+        if(missile != nullptr && missile->targetNetworkId != 0 && missile->targetNetworkId == app->networkManager.localClientId) {
+            targetedFlag = true;
+        }
     }
 
-    if(!app->audioBackend.globalSounds.lockAlert.started && lockedFlag) {
-        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.lockAlert, true, 1.0f);
+    if(targetedFlag) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.lockAlert, true, 2.0f);
+        app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.lockAlert, 1.5f);
     }
-    else if (app->audioBackend.globalSounds.lockAlert.started && !lockedFlag) {
+    else if(lockedFlag) {
+        app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.lockAlert, true, 1.0f);
+        app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.lockAlert, 1.0f);
+    }
+    else if (app->audioBackend.globalSounds.lockAlert.started && !lockedFlag && !targetedFlag) {
         app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
     }
 
