@@ -384,7 +384,7 @@ void AircraftWidgetLayer::UpdateLayer() {
     missileLook->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
 
     std::shared_ptr<Missile> activeTargetMissile = app->sceneManager.currentScene->activeTargetMissile;
-    missileWarningPosition->rotation += app->clock.deltaTime * 20.0f;
+    missileWarningPosition->rotation += app->clock.deltaTime * 50.0f;
     if(activeTargetMissile == nullptr) {
         missileWarningPosition->position = glm::vec2(2.0f);
     }
