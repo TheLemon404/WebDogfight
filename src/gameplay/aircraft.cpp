@@ -18,6 +18,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
+#include "missile.hpp"
 #include "test_scene.hpp"
 #include "widget.hpp"
 #include <cmath>
@@ -212,6 +213,15 @@ void AircraftWidgetLayer::CreateWidgets() {
     missileSeeker->moveWithAspectRatio = true;
     missileSeeker->radius = 25;
 
+    missileWarningPosition = CreateWidget<RectWidget>("missileWarningPositionWidget");
+    missileWarningPosition->moveWithAspectRatio = true;
+    missileWarningPosition->rotation = 45.0;
+    missileWarningPosition->scale = glm::vec2(0.015);
+    missileWarningPosition->color.value.a = 0.0f;
+    missileWarningPosition->borderColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
+    missileWarningPosition->cornerLength = 10;
+    missileWarningPosition->cornerColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
+
     mouse = CreateWidget<RectWidget>("mouseWidget");
     mouse->rotation = 45.0;
     mouse->scale = glm::vec2(0.02);
@@ -372,6 +382,15 @@ void AircraftWidgetLayer::UpdateLayer() {
     missileSeeker->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
     missileLook->color.value = heatLockColor;
     missileLook->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
+
+    std::shared_ptr<Missile> activeTargetMissile = app->sceneManager.currentScene->activeTargetMissile;
+    missileWarningPosition->rotation += app->clock.deltaTime * 2.0f;
+    if(activeTargetMissile == nullptr) {
+        missileWarningPosition->position = glm::vec2(2.0f);
+    }
+    else {
+        missileWarningPosition->position = UIAlignmentWithWorldPosition(activeTargetMissile->transform.position);
+    }
 
     stats->SetText(
         "FPS: " + MiscUtils::Truncate(std::to_string(1/app->clock.deltaTime), 4) + "\n"

@@ -164,6 +164,7 @@ void Scene::Update()  {
 
     bool lockedFlag = false;
     bool targetedFlag = false;
+    activeTargetMissile = nullptr;
     for(std::shared_ptr<Entity> entity : entities) {
         entity->Update();
 
@@ -174,6 +175,7 @@ void Scene::Update()  {
 
         std::shared_ptr<Missile> missile = std::dynamic_pointer_cast<Missile>(entity);
         if(missile != nullptr && missile->targetNetworkId != 0 && missile->targetNetworkId == app->networkManager.localClientId) {
+            activeTargetMissile = missile;
             targetedFlag = true;
         }
     }

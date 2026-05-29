@@ -3,6 +3,7 @@
 #include "../networking/network_game.hpp"
 #include "entity.hpp"
 #include "environment.hpp"
+#include "missile.hpp"
 #include "widget.hpp"
 #include <string>
 #include <vector>
@@ -26,6 +27,8 @@ class Scene {
     std::vector<std::shared_ptr<WidgetLayer>> widgetLayers;
     Environment environment;
     SceneResourceLoadingState resourceLoadingState = SceneResourceLoadingState::BEGIN;
+
+    std::shared_ptr<Missile> activeTargetMissile = nullptr;
 
     bool isLoadingResources = false;
     std::function<void()> onResourcesLoadedCallback;

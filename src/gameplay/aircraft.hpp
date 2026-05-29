@@ -180,6 +180,7 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<CircleWidget> aim = nullptr;
     std::shared_ptr<CircleWidget> missileLook = nullptr;
     std::shared_ptr<CircleWidget> missileSeeker = nullptr;
+    std::shared_ptr<RectWidget> missileWarningPosition = nullptr;
     std::shared_ptr<RectWidget> lockWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockNameWidget = nullptr;
     std::shared_ptr<TextRectWidget> lockDistanceWidget = nullptr;
