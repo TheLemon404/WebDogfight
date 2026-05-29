@@ -792,7 +792,7 @@ void Aircraft::Update() {
                 weaponMode = (AircraftWeaponMode)((((int)weaponMode) + 1) % 3);
             }
 
-            if(weaponMode == HEAT_SEEKER) {
+            if(weaponMode == HEAT_SEEKER && numHeatSeekers > 0 && !shotDown) {
                 app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.tone, true, 1.0f);
                 if(missileSeekerLockStatus == 1) {
                     app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.tone, 2.4f);
@@ -902,11 +902,11 @@ void Aircraft::Update() {
                             if(missileSeekerLockStatus == 1 && angleToTarget > PI/33.0f) {
                                 missileSeekerLockStatus = 0;
                             }
-                            else if(missileSeekerLockStatus == 0 && angleToTarget < PI/175.0f) {
+                            else if(missileSeekerLockStatus == 0 && angleToTarget < PI/175.0f && numHeatSeekers > 0) {
                                 missileSeekerLockStatus = 1;
                             }
                         }
-                        else if(distanceToLockedTarget < MAX_RADAR_RANGE && weaponMode == RADAR_GUIDED) {
+                        else if(distanceToLockedTarget < MAX_RADAR_RANGE && weaponMode == RADAR_GUIDED && numRadarGuided > 0) {
                             missileSeekerLockStatus = lockedAircraft != nullptr;
                         }
                         else {
@@ -1172,6 +1172,10 @@ void Aircraft::ShootDown() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
+
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.tone);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.launch);
 
     if(networkId == app->networkManager.localClientId) {
         smokeParticles.emitting = true;
