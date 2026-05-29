@@ -995,7 +995,7 @@ void Aircraft::Update() {
                 }
                 numRadarGuided--;
             }
-            else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
+            else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1) || numRounds <= 0) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
 
                 shooting = false;
