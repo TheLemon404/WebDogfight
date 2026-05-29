@@ -433,6 +433,62 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
     std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
 
+    //get accessors
+    unsigned int posAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["POSITION"];
+    unsigned int normalAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["NORMAL"];
+    unsigned int texAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["TEXCOORD_0"];
+    unsigned int jointsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["JOINTS_0"];
+    unsigned int weightsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["WEIGHTS_0"];
+    unsigned int indAccInd = JSON["meshes"][0]["primitives"][0]["indices"];
+
+    std::vector<float> posVector = GetFloatsFromJSON(JSON["accessors"][posAccInd], JSON, data);
+    std::vector<float> normVector = GetFloatsFromJSON(JSON["accessors"][normalAccInd], JSON, data);
+    std::vector<float> texVector = GetFloatsFromJSON(JSON["accessors"][texAccInd], JSON, data);
+    std::vector<unsigned int> jointsVector = GetIntsFromJSON(JSON["accessors"][jointsAccInd], JSON, data);
+    std::vector<float> weightsVector = GetFloatsFromJSON(JSON["accessors"][weightsAccInd], JSON, data);
+    std::vector<unsigned int> indices = GetIntsFromJSON(JSON["accessors"][indAccInd], JSON, data);
+
+    std::vector<glm::vec3> positions = AssembleFloatsToVec3(posVector);
+    std::vector<glm::vec3> normals = AssembleFloatsToVec3(normVector);
+    std::vector<glm::vec2> uvs = AssembleFloatsToVec2(texVector);
+    std::vector<glm::ivec4> joints = AssembleIntsToIVec4(jointsVector);
+    std::vector<glm::vec4> weights = AssembleFloatsToVec4(weightsVector);
+
+    std::vector<Vertex> vertices;
+    int last = 0;
+    for(size_t i = 0; i < positions.size(); i++) {
+        vertices.push_back({
+            positions[i],
+            normals[i],
+            uvs[i],
+            //we only need the first index, since each vertex is only effected by one bone
+            (unsigned int)JSON["skins"][0]["joints"][joints[i].x]
+        });
+    }
+
+    SkeletalMesh mesh = SkeletalMesh(0, 0, 0, vertices.size(), indices.size());
+    for(size_t i = 0; i < JSON["images"].size(); i++) {
+        std::string path = "resources/meshes/" + splitPath[splitPath.size() - 2] + "/" + std::string(JSON["images"][i]["uri"]);
+        mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
+    }
+    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
+    std::cout << "successfully loaded skeletal mesh resource: " << resourcePath << std::endl;
+    return mesh;
+}
+
+Skeleton Loader::LoadSkeletonFromGLTF(const char* resourcePath) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    std::string text = Files::ReadResourceString(resourcePath);
+    std::vector<std::string> splitPath = MiscUtils::Split(resourcePath, '/');
+    json JSON = json::parse(text);
+
+    //load the gltf file binary
+    std::string uri = JSON["buffers"][0]["uri"];
+    std::string fileStr = std::string(resourcePath);
+    std::string binaryFileDirectory = fileStr.substr(0, fileStr.find_last_of("/") + 1);
+    std::vector<unsigned char> data = Files::ReadResourceBytes(binaryFileDirectory + uri);
+
     //construct skeleton
     Skeleton skeleton;
 
@@ -481,54 +537,17 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     }
 
     //get accessors
-    unsigned int posAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["POSITION"];
-    unsigned int normalAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["NORMAL"];
-    unsigned int texAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["TEXCOORD_0"];
     unsigned int invViewMatInd = JSON["skins"][0]["inverseBindMatrices"];
-    unsigned int jointsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["JOINTS_0"];
-    unsigned int weightsAccInd = JSON["meshes"][0]["primitives"][0]["attributes"]["WEIGHTS_0"];
-    unsigned int indAccInd = JSON["meshes"][0]["primitives"][0]["indices"];
 
-    std::vector<float> posVector = GetFloatsFromJSON(JSON["accessors"][posAccInd], JSON, data);
-    std::vector<float> normVector = GetFloatsFromJSON(JSON["accessors"][normalAccInd], JSON, data);
-    std::vector<float> texVector = GetFloatsFromJSON(JSON["accessors"][texAccInd], JSON, data);
     std::vector<float> invBindMatVector = GetFloatsFromJSON(JSON["accessors"][invViewMatInd], JSON, data);
-    std::vector<unsigned int> jointsVector = GetIntsFromJSON(JSON["accessors"][jointsAccInd], JSON, data);
-    std::vector<float> weightsVector = GetFloatsFromJSON(JSON["accessors"][weightsAccInd], JSON, data);
-    std::vector<unsigned int> indices = GetIntsFromJSON(JSON["accessors"][indAccInd], JSON, data);
 
-    std::vector<glm::vec3> positions = AssembleFloatsToVec3(posVector);
-    std::vector<glm::vec3> normals = AssembleFloatsToVec3(normVector);
-    std::vector<glm::vec2> uvs = AssembleFloatsToVec2(texVector);
     std::vector<glm::mat4> invBindMatrices = AssembleFloatsToMat4(invBindMatVector);
-    std::vector<glm::ivec4> joints = AssembleIntsToIVec4(jointsVector);
-    std::vector<glm::vec4> weights = AssembleFloatsToVec4(weightsVector);
 
     for(size_t i = 0; i < numJoints; i++) {
         skeleton.bones[JSON["skins"][0]["joints"][i]].inverseBindMatrix = invBindMatrices[i];
     }
 
-    std::vector<Vertex> vertices;
-    int last = 0;
-    for(size_t i = 0; i < positions.size(); i++) {
-        vertices.push_back({
-            positions[i],
-            normals[i],
-            uvs[i],
-            //we only need the first index, since each vertex is only effected by one bone
-            (unsigned int)JSON["skins"][0]["joints"][joints[i].x]
-        });
-    }
-
-    SkeletalMesh mesh = SkeletalMesh(0, 0, 0, vertices.size(), indices.size());
-    mesh.skeleton = skeleton;
-    for(size_t i = 0; i < JSON["images"].size(); i++) {
-        std::string path = "resources/meshes/" + splitPath[splitPath.size() - 2] + "/" + std::string(JSON["images"][i]["uri"]);
-        mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
-    }
-    app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
-    std::cout << "successfully loaded skeletal mesh resource: " << resourcePath << std::endl;
-    return mesh;
+    return skeleton;
 }
 
 void Loader::LoadFontFromTTF(const char *resourcePath, Font& font) {

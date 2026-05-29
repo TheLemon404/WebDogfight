@@ -495,7 +495,8 @@ void Aircraft::LoadResources() {
     }
     {
         FOX2_PROFILE_SCOPE("Aircraft Mesh Load")
-        skeletalMesh = Loader::LoadSkeletalMeshFromGLTF(resource.description.meshResourcePath.c_str());
+        skeletalMesh = &app->graphicsBackend.globalMeshes.FAXXSkeletalMesh;
+        skeleton = app->graphicsBackend.globalSkeletons.FAXXSkeleton;
     }
 
     transform.position.y = 12000.0f;
@@ -531,7 +532,7 @@ void Aircraft::Initialize() {
     app->sceneManager.activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     app->sceneManager.activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    skeletalMesh.material.shadowColor = glm::vec3(0.8f);
+    skeletalMesh->material.shadowColor = glm::vec3(0.8f);
 
     exhaustParticles.Initialize();
     smokeParticles.Initialize();
@@ -571,7 +572,7 @@ void Aircraft::Initialize() {
         };
     }
 
-    skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
+    skeleton.UpdateGlobalBoneTransforms();
 }
 
 void Aircraft::ApplyControlSurfaces(float roll) {
@@ -589,13 +590,13 @@ void Aircraft::ApplyControlSurfaces(float roll) {
 
     //testing for flaps
     if(!InputManager::IsKeyPressed(GLFW_KEY_C)) {
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
-        skeletalMesh.skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
+        skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
+        skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
     }
 
     //testing for tail animation
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
+    skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
+    skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
 
     if(InputManager::IsKeyPressed(GLFW_KEY_B)) {
         targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
@@ -604,13 +605,13 @@ void Aircraft::ApplyControlSurfaces(float roll) {
         targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, 0, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
 
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
+    skeleton.bones[resource.description.boneMappings.brake].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), targetBrakeAngle);
 
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 15);
+    skeleton.bones[resource.description.boneMappings.burner].scale.y = pow(controls.throttle, 15);
 
     float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_BODY_THRESHOLD, 0.0f), 1.0f);
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesL].scale = glm::vec3(pressureScale);
-    skeletalMesh.skeleton.bones[resource.description.boneMappings.pressureVorticesR].scale = glm::vec3(pressureScale);
+    skeleton.bones[resource.description.boneMappings.pressureVorticesL].scale = glm::vec3(pressureScale);
+    skeleton.bones[resource.description.boneMappings.pressureVorticesR].scale = glm::vec3(pressureScale);
 }
 
 glm::vec3 Aircraft::ComputeTargetLeadPoint() {
@@ -1013,7 +1014,7 @@ void Aircraft::Update() {
         {
             FOX2_PROFILE_SCOPE("Animations")
             ApplyControlSurfaces(rollAngle);
-            skeletalMesh.skeleton.UpdateGlobalBoneTransforms();
+            skeleton.UpdateGlobalBoneTransforms();
         }
 
         ClientState& clientState = app->networkManager.networkGameState.clientStates[networkId];
@@ -1202,14 +1203,14 @@ void Aircraft::Draw()  {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     //Note: here we only animate the local client's aircraft. Other clients' aircraft are static.
-    app->graphicsBackend.BeginDrawSkeletalMesh(skeletalMesh, *shader, app->sceneManager.activeCamera, transform);
+    app->graphicsBackend.BeginDrawSkeletalMesh(*skeletalMesh, skeleton, *shader, app->sceneManager.activeCamera, transform);
     app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
     app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.activeCamera.position, "uCameraPosition");
     app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uAlbedoTexture");
-    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["albedo"], 0);
+    app->graphicsBackend.UseTextureSlot(skeletalMesh->textureMap["albedo"], 0);
     app->graphicsBackend.UploadShaderUniformInt(*shader, 1, "uEmmissionTexture");
-    app->graphicsBackend.UseTextureSlot(skeletalMesh.textureMap["emmission"], 1);
-    app->graphicsBackend.EndDrawSkeletalMesh(skeletalMesh);
+    app->graphicsBackend.UseTextureSlot(skeletalMesh->textureMap["emmission"], 1);
+    app->graphicsBackend.EndDrawSkeletalMesh(*skeletalMesh);
     app->graphicsBackend.ResetTextureSlots();
 
     leftTrails.Draw();
@@ -1224,8 +1225,6 @@ void Aircraft::Draw()  {
 
 void Aircraft::UnloadResources()  {
     std::unique_ptr<Application>& app = Application::GetInstance();
-
-    app->graphicsBackend.DeleteSkeletalMesh(skeletalMesh);
 
     exhaustParticles.UnloadResources();
     smokeParticles.UnloadResources();

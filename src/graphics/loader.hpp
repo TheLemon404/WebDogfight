@@ -40,5 +40,6 @@ class Loader{
     static Shader LoadShaderFromGLSL(const std::string& resourcePath);
     static Mesh LoadMeshFromGLTF(const char* resourcePath);
     static SkeletalMesh LoadSkeletalMeshFromGLTF(const char* resourcePath);
+    static Skeleton LoadSkeletonFromGLTF(const char* resourcePath);
     static void LoadFontFromTTF(const char* resourcePath, Font& font);
 };

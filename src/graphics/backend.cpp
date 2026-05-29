@@ -36,6 +36,9 @@ void GraphicsBackend::LoadResources() {
     globalMeshes.sphere = CreateSphere();
     globalMeshes.heatSeekingMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim9/aim9.gltf");
     globalMeshes.radarGuidedMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim7/aim7.gltf");
+    globalMeshes.FAXXSkeletalMesh = Loader::LoadSkeletalMeshFromGLTF("resources/meshes/FA-XX/demo_jet.gltf");
+
+    globalSkeletons.FAXXSkeleton = Loader::LoadSkeletonFromGLTF("resources/meshes/FA-XX/demo_jet.gltf");
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
@@ -74,6 +77,8 @@ void GraphicsBackend::UnloadResources() {
     DeleteMesh(globalMeshes.sphere);
     DeleteMesh(globalMeshes.heatSeekingMissile);
     DeleteMesh(globalMeshes.radarGuidedMissile);
+
+    DeleteSkeletalMesh(globalMeshes.FAXXSkeletalMesh);
 
     DeleteFont(globalFonts.defaultFont);
 
@@ -396,7 +401,7 @@ void GraphicsBackend::UpdateInstancedMeshTransforms(Mesh& mesh, glm::mat4* trans
     glBufferSubData(GL_ARRAY_BUFFER, 0, numTransforms * sizeof(glm::mat4), transforms);
 }
 
-void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform) {
+void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Skeleton& skeleton, Shader& shader, Camera& camera, Transform& transform) {
     glUseProgram(shader.programID);
 
     glBindVertexArray(mesh.vao);
@@ -414,8 +419,8 @@ void GraphicsBackend::BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, 
     UploadShaderUniformMat4(shader, transformMatrix, "uTransform");
 
 
-    for(size_t i = 0; i < mesh.skeleton.bones.size(); i++) {
-        UploadShaderUniformMat4(shader, mesh.skeleton.cachedGlobalBoneTransforms[i] * mesh.skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(mesh.skeleton.bones[i].id) + "]");
+    for(size_t i = 0; i < skeleton.bones.size(); i++) {
+        UploadShaderUniformMat4(shader, skeleton.cachedGlobalBoneTransforms[i] * skeleton.bones[i].inverseBindMatrix, "uJointTransforms[" + std::to_string(skeleton.bones[i].id) + "]");
     }
 
     //fragment uniforms

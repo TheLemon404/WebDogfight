@@ -188,8 +188,6 @@ class Mesh {
 
 class SkeletalMesh : public Mesh {
     public:
-    Skeleton skeleton;
-
     SkeletalMesh() {}
     SkeletalMesh(unsigned int vao, unsigned int vbo, unsigned int ebo, unsigned int vertexCount, unsigned int indexCount) : Mesh(vao, vbo, ebo, vertexCount, indexCount) {}
 };

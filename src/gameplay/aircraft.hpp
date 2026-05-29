@@ -272,7 +272,8 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     AircraftControls controls;
 
     Shader* shader;
-    SkeletalMesh skeletalMesh;
+    SkeletalMesh* skeletalMesh;
+    Skeleton skeleton;
     Transform transform;
 
     float GetYaw() const {

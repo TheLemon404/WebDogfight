@@ -53,6 +53,12 @@ struct GlobalMeshes {
     Mesh sphere;
     Mesh heatSeekingMissile;
     Mesh radarGuidedMissile;
+
+    SkeletalMesh FAXXSkeletalMesh;
+};
+
+struct GlobalSkeletons {
+    Skeleton FAXXSkeleton;
 };
 
 struct GlobalFonts {
@@ -88,6 +94,7 @@ class GraphicsBackend {
 
     GlobalShaders globalShaders;
     GlobalMeshes globalMeshes;
+    GlobalSkeletons globalSkeletons;
     GlobalFonts globalFonts;
     GlobalTextures globalTextures;
     Texture3D LUT;
@@ -287,7 +294,7 @@ class GraphicsBackend {
 
     void UnloadResources();
 
-    void BeginDrawSkeletalMesh(SkeletalMesh& mesh, Shader& shader, Camera& camera, Transform& transform);
+    void BeginDrawSkeletalMesh(SkeletalMesh& mesh, Skeleton& skeleton, Shader& shader, Camera& camera, Transform& transform);
     void EndDrawSkeletalMesh(Mesh& mesh);
     void BeginDrawMesh(Mesh& mesh, Shader& shader, Camera& camera, Transform& transform, bool hasTransform = true, bool ignoreDefaultMaterialProps = false);
     void EndDrawMesh(Mesh& mesh);
