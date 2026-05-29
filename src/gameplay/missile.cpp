@@ -75,7 +75,7 @@ void MissileTrail::RecomputeMesh() {
 void MissileTrail::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    shader = &app->graphicsBackend.globalShaders.trails;
+    shader = &app->graphicsBackend.globalShaders.missileTrail;
     mesh = app->graphicsBackend.CreateQuad();
     mesh.material.albedo = glm::vec3(1.0f);
     mesh.material.shadowColor = glm::vec3(1.0f);

@@ -45,6 +45,7 @@ struct GlobalShaders {
     Shader post;
     Shader flares;
     Shader missile;
+    Shader missileTrail;
 };
 
 struct GlobalMeshes {

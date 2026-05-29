@@ -15,7 +15,7 @@ class MissileTrail {
     std::vector<unsigned int> indices;
 
     float vertexStartLifetime = 0.1f;
-    float trailWidth = 10.0f;
+    float trailWidth = 4.0f;
     float vertexLifetime = vertexStartLifetime;
 
     void GenerateMesh();

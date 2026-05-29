@@ -30,6 +30,7 @@ void GraphicsBackend::LoadResources() {
     globalShaders.post = Loader::LoadShaderFromGLSL("resources/shaders/post.glsl");
     globalShaders.flares = Loader::LoadShaderFromGLSL("resources/shaders/flares.glsl");
     globalShaders.missile = Loader::LoadShaderFromGLSL("resources/shaders/missile.glsl");
+    globalShaders.missileTrail = Loader::LoadShaderFromGLSL("resources/shaders/missileTrail.glsl");
 
     globalMeshes.quad = CreateQuad();
     globalMeshes.cube = CreateCube();
@@ -71,6 +72,7 @@ void GraphicsBackend::UnloadResources() {
     DeleteShader(globalShaders.post);
     DeleteShader(globalShaders.flares);
     DeleteShader(globalShaders.missile);
+    DeleteShader(globalShaders.missileTrail);
 
     DeleteMesh(globalMeshes.quad);
     DeleteMesh(globalMeshes.cube);
