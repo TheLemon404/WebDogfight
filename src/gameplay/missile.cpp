@@ -131,6 +131,15 @@ void Missile::Initialize() {
         }
     }
 
+    if(targetNetworkId != 0) {
+        for(std::shared_ptr<Aircraft> aircraft : aircrafts) {
+            if(aircraft->networkId == targetNetworkId) {
+                targetAircraft = aircraft;
+                break;
+            }
+        }
+    }
+
     float distanceFromCamera = glm::distance(app->sceneManager.activeCamera.position, transform.position);
     float distanceSoundFalloff = distanceFromCamera / 100.0f;
     app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.launch, false, 3.0f / distanceSoundFalloff);
@@ -144,7 +153,13 @@ void Missile::Update() {
     float dt = app->clock.currentTime - app->networkManager.networkGameState.lastUpdateTimeStamp;
 
     NetworkMissile& missileState = app->networkManager.networkGameState.missileMap[networkId];
-    glm::vec3 predictedPosition = missileState.position + velocity * dt;
+    glm::vec3 missilePosition = missileState.position;
+
+    if(missileState.targetNetworkId != 0) {
+        missilePosition = missileState.relativePositionToTarget + targetAircraft->transform.position;
+    }
+
+    glm::vec3 predictedPosition = missilePosition + velocity * dt;
 
     transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime);
     transform.rotation = glm::slerp(transform.rotation, missileState.rotation, (float)app->clock.deltaTime * 2.0f);

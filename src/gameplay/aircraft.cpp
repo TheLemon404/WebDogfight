@@ -384,7 +384,7 @@ void AircraftWidgetLayer::UpdateLayer() {
     missileLook->color.value.a = dot * (float)(aircraftProps.weaponMode == HEAT_SEEKER || aircraftProps.weaponMode == RADAR_GUIDED);
 
     std::shared_ptr<Missile> activeTargetMissile = app->sceneManager.currentScene->activeTargetMissile;
-    missileWarningPosition->rotation += app->clock.deltaTime * 2.0f;
+    missileWarningPosition->rotation += app->clock.deltaTime * 20.0f;
     if(activeTargetMissile == nullptr) {
         missileWarningPosition->position = glm::vec2(2.0f);
     }
@@ -414,6 +414,9 @@ void AircraftWidgetLayer::UpdateLayer() {
 
     weaponStats->SetText(
         "Weapon Mode: " + weaponModeText + "\n"
+        "Cannon Rounds: " + std::to_string(aircraftProps.numRounds) + "\n"
+        "Heat Seeking Missiles: " + std::to_string(aircraftProps.numHeatSeekers) + "\n"
+        "Radar Guided Missiles: " + std::to_string(aircraftProps.numRadarGuided) + "\n"
         "Flares: " + std::to_string(aircraftProps.numFlares) + "\n"
     );
 }
@@ -454,6 +457,9 @@ void Aircraft::LoadResources() {
     resource.description.boneMappings.pressureVorticesR = JSON["description"]["bone-mappings"]["pressureVortices.r"];
 
     resource.settings.numFlares = JSON["settings"]["num-flares"];
+    resource.settings.numHeatSeekers = JSON["settings"]["num-heat-seekers"];
+    resource.settings.numRadarGuided = JSON["settings"]["num-radar-guided"];
+    resource.settings.numRounds = JSON["settings"]["num-rounds"];
     resource.settings.flapsMaxAngle = JSON["settings"]["flaps-max-angle"];
     resource.settings.brakeMaxAngle = JSON["settings"]["brake-max-angle"];
     resource.settings.tailMaxAngle = JSON["settings"]["tail-max-angle"];
@@ -479,6 +485,9 @@ void Aircraft::LoadResources() {
     resource.settings.gunPosition = { JSON["settings"]["gun-position"][0], JSON["settings"]["gun-position"][1], JSON["settings"]["gun-position"][2] };
 
     numFlares = resource.settings.numFlares;
+    numHeatSeekers = resource.settings.numHeatSeekers;
+    numRadarGuided = resource.settings.numRadarGuided;
+    numRounds = resource.settings.numRounds;
 
     {
         FOX2_PROFILE_SCOPE("Aircraft Shader Load")
@@ -925,7 +934,7 @@ void Aircraft::Update() {
                 flareCooldown = MathUtils::Min(flareCooldown - (float)app->clock.deltaTime, 0.0f);
             }
 
-            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS) {
+            if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS && numRounds > 0) {
                 shotNetworkCountDown = NETWORK_FIRE_RATE;
                 shotTracerCountDown = TRACER_FIRE_RATE;
                 app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.shot, true, 0.5f);
@@ -934,6 +943,8 @@ void Aircraft::Update() {
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr) {
                     tracerSystem->SpawnTracer(transform.position + (transform.rotation * resource.settings.gunPosition), transform.position + aircraftForward * MAX_GUNS_RANGE);
+
+                    numRounds -= 10;
                 }
 
                 std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
@@ -943,12 +954,14 @@ void Aircraft::Update() {
 
                 shooting = true;
             }
-            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS) {
+            else if(InputManager::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == GUNS && numRounds > 0) {
                 //We only actually ask the server to check for hits if we have a target locked, otherwise just make it look like were shooting
                 std::shared_ptr<TracerSystemEntity> tracerSystem = app->sceneManager.currentScene->GetEntityByName<TracerSystemEntity>("tracerSystem");
                 if(tracerSystem != nullptr && shotTracerCountDown <= 0.0f) {
                     tracerSystem->SpawnTracer(transform.position + (transform.rotation * resource.settings.gunPosition), transform.position + aircraftForward * MAX_GUNS_RANGE);
                     shotTracerCountDown = TRACER_FIRE_RATE;
+
+                    numRounds -= 10;
                 }
 
                 std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
@@ -957,21 +970,25 @@ void Aircraft::Update() {
                     shotNetworkCountDown = NETWORK_FIRE_RATE;
                 }
             }
-            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER) {
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER && numHeatSeekers > 0) {
                 if(lockedAircraft != nullptr && missileSeekerLockStatus == 1) {
                     app->networkManager.RequestLaunchHeatSeekingMissile(lockedAircraft->networkId);
                 }
                 else {
                     app->networkManager.RequestLaunchHeatSeekingMissile(0);
                 }
+
+                numHeatSeekers--;
             }
-            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == RADAR_GUIDED) {
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == RADAR_GUIDED && numRadarGuided > 0) {
                 if(lockedAircraft != nullptr && missileSeekerLockStatus == 1) {
                     app->networkManager.RequestLaunchHeatSeekingMissile(lockedAircraft->networkId);
                 }
                 else {
                     app->networkManager.RequestLaunchHeatSeekingMissile(0);
-                }            }
+                }
+                numRadarGuided--;
+            }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1)) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
 
@@ -1101,6 +1118,9 @@ void Aircraft::Update() {
         aircraftWidgetLayer->aircraftProps.weaponMode = weaponMode;
         aircraftWidgetLayer->aircraftProps.missileSeekerLockStatus = missileSeekerLockStatus;
         aircraftWidgetLayer->aircraftProps.numFlares = numFlares;
+        aircraftWidgetLayer->aircraftProps.numHeatSeekers = numHeatSeekers;
+        aircraftWidgetLayer->aircraftProps.numRadarGuided = numRadarGuided;
+        aircraftWidgetLayer->aircraftProps.numRounds = numRounds;
         aircraftWidgetLayer->Update();
         aircraftWidgetLayer->UpdateLayer();
     }

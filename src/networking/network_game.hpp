@@ -96,6 +96,8 @@ struct NetworkMissile {
     glm::quat rotation = glm::identity<glm::quat>();
     glm::vec3 velocity = glm::vec3(0.0f);
 
+    glm::vec3 relativePositionToTarget = glm::vec3(0.0f);
+
     bool shouldDetonate = false;
 
     std::string Serialize() {
@@ -113,6 +115,9 @@ struct NetworkMissile {
         .WriteF32(velocity.x)
         .WriteF32(velocity.y)
         .WriteF32(velocity.z)
+        .WriteF32(relativePositionToTarget.x)
+        .WriteF32(relativePositionToTarget.y)
+        .WriteF32(relativePositionToTarget.z)
         .WriteU8(shouldDetonate)
         .Build();
     }
@@ -131,6 +136,9 @@ struct NetworkMissile {
         velocity.x = packet.ReadF32();
         velocity.y = packet.ReadF32();
         velocity.z = packet.ReadF32();
+        relativePositionToTarget.x = packet.ReadF32();
+        relativePositionToTarget.y = packet.ReadF32();
+        relativePositionToTarget.z = packet.ReadF32();
         shouldDetonate = packet.ReadU8();
     }
 

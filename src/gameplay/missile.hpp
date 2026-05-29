@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aircraft.hpp"
 #include "entity.hpp"
 #include "../graphics/types.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -39,6 +40,8 @@ class Missile : public Entity{
 
     Shader* shader = nullptr;
     Mesh* mesh = nullptr;
+
+    std::shared_ptr<Aircraft> targetAircraft = nullptr;
 
     public:
     Transform transform = Transform();

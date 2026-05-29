@@ -37,6 +37,9 @@ struct AircraftResourceDescription {
 
 struct AircraftResourceSettings {
     int numFlares;
+    int numHeatSeekers;
+    int numRadarGuided;
+    int numRounds;
     float flapsMaxAngle;
     float brakeMaxAngle;
     float tailMaxAngle;
@@ -154,6 +157,9 @@ struct AircraftWidgetLayerNeededProps {
     AircraftWeaponMode weaponMode = GUNS;
     int missileSeekerLockStatus = 0;
     int numFlares = 0;
+    int numHeatSeekers = 0;
+    int numRadarGuided = 0;
+    int numRounds = 0;
 };
 
 class CompassWidget : public TextRectWidget {
@@ -257,6 +263,9 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     int missileSeekerLockStatus = 0;
 
     int numFlares = 0;
+    int numHeatSeekers = 0;
+    int numRadarGuided = 0;
+    int numRounds = 0;
     float flareCooldown = 0.0f;
     bool deployingFlares = false;
 
