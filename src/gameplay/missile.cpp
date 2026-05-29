@@ -111,7 +111,12 @@ void MissileTrail::UnloadResources() {
 void Missile::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    mesh = &app->graphicsBackend.globalMeshes.heatSeekingMissile;
+    if(missileType == HEAT) {
+        mesh = &app->graphicsBackend.globalMeshes.heatSeekingMissile;
+    }
+    else {
+        mesh = &app->graphicsBackend.globalMeshes.radarGuidedMissile;
+    }
     shader = &app->graphicsBackend.globalShaders.missile;
 
     trail.LoadResources();
@@ -181,7 +186,10 @@ void Missile::Draw() {
 
     app->graphicsBackend.BeginDrawMesh(*mesh, *shader, app->sceneManager.activeCamera, transform);
     app->graphicsBackend.UploadShaderUniformVec3(*shader, app->sceneManager.currentScene->environment.sunDirection, "uSunDirection");
+    app->graphicsBackend.UploadShaderUniformInt(*shader, 0, "uAlbedoTexture");
+    app->graphicsBackend.UseTextureSlot(app->graphicsBackend.globalTextures.aim9Albedo, 0);
     app->graphicsBackend.EndDrawMesh(*mesh);
+    app->graphicsBackend.ResetTextureSlots();
 
     trail.Draw();
 }

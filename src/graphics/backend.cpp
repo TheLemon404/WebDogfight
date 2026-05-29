@@ -34,11 +34,13 @@ void GraphicsBackend::LoadResources() {
     globalMeshes.quad = CreateQuad();
     globalMeshes.cube = CreateCube();
     globalMeshes.sphere = CreateSphere();
-    globalMeshes.heatSeekingMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim9.gltf");
+    globalMeshes.heatSeekingMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim9/aim9.gltf");
+    globalMeshes.radarGuidedMissile = Loader::LoadMeshFromGLTF("resources/meshes/aim7/aim7.gltf");
 
     Loader::LoadFontFromTTF("resources/fonts/JetBrainsMono-Medium.ttf", globalFonts.defaultFont);
 
     globalTextures.noiseTexture3D = Loader::LoadTexture3DFromFile("resources/textures/3dNoiseTexture.png", 64, 64, 64);
+    globalTextures.aim9Albedo = Loader::LoadTextureFromFile("resources/meshes/aim9/albedo.png");
 
     LUT = Loader::LoadTexture3DFromFile("resources/textures/LUT.png", 64, 64, 64, 3);
     screenFrameBuffer = CreateFrameBuffer();
@@ -71,10 +73,12 @@ void GraphicsBackend::UnloadResources() {
     DeleteMesh(globalMeshes.cube);
     DeleteMesh(globalMeshes.sphere);
     DeleteMesh(globalMeshes.heatSeekingMissile);
+    DeleteMesh(globalMeshes.radarGuidedMissile);
 
     DeleteFont(globalFonts.defaultFont);
 
     DeleteTexture3D(globalTextures.noiseTexture3D);
+    DeleteTexture(globalTextures.aim9Albedo);
 
     DeleteTexture3D(LUT);
     DeleteFrameBuffer(screenFrameBuffer);

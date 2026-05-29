@@ -18,6 +18,19 @@
 			"name":"Circle"
 		}
 	],
+	"materials":[
+		{
+			"doubleSided":true,
+			"name":"Material.001",
+			"pbrMetallicRoughness":{
+				"baseColorTexture":{
+					"index":0
+				},
+				"metallicFactor":0,
+				"roughnessFactor":0.5
+			}
+		}
+	],
 	"meshes":[
 		{
 			"name":"Circle",
@@ -28,77 +41,97 @@
 						"NORMAL":1,
 						"TEXCOORD_0":2
 					},
-					"indices":3
+					"indices":3,
+					"material":0
 				}
 			]
+		}
+	],
+	"textures":[
+		{
+			"sampler":0,
+			"source":0
+		}
+	],
+	"images":[
+		{
+			"mimeType":"image/png",
+			"name":"albedo",
+			"uri":"albedo.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":97,
+			"count":258,
 			"max":[
-				0.5133333802223206,
-				0.513333261013031,
-				3.226533889770508
+				0.6700218319892883,
+				0.6700218319892883,
+				4.467789173126221
 			],
 			"min":[
-				-0.5133333802223206,
-				-0.513333261013031,
-				-0.26019376516342163
+				-0.6700217127799988,
+				-0.6700218319892883,
+				-0.26019370555877686
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":97,
+			"count":258,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":97,
+			"count":258,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":474,
+			"count":570,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1164,
+			"byteLength":3096,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1164,
-			"byteOffset":1164,
+			"byteLength":3096,
+			"byteOffset":3096,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":776,
-			"byteOffset":2328,
+			"byteLength":2064,
+			"byteOffset":6192,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":948,
-			"byteOffset":3104,
+			"byteLength":1140,
+			"byteOffset":8256,
 			"target":34963
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":4052,
-			"uri":"aim9.bin"
+			"byteLength":9396,
+			"uri":"aim7.bin"
 		}
 	]
 }

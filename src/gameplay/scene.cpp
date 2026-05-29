@@ -56,7 +56,7 @@ void Scene::SpawnAndDespawnNetworkEntities(GameState& lastNetworkGameState, Game
     for(auto& entry : currentNetworkGameState.missileMap) {
         bool wasInGame = lastNetworkGameState.missileMap.contains(entry.first);
         if(!wasInGame) {
-            std::shared_ptr<Missile> newMissile = std::make_shared<Missile>("FA-XX", entry.first);
+            std::shared_ptr<Missile> newMissile = std::make_shared<Missile>("FA-XX", entry.second.missileType, entry.first);
             newMissile->launcherNetworkId = entry.second.launcherNetworkId;
             newMissile->targetNetworkId = entry.second.targetNetworkId;
             newMissile->transform.position = entry.second.position;

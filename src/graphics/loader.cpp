@@ -6,6 +6,7 @@
 #include "types.hpp"
 #include <valarray>
 
+#include "../utils/misc.hpp"
 #include "../application.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -375,6 +376,8 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     std::string text = Files::ReadResourceString(resourcePath);
+    std::vector<std::string> splitPath = MiscUtils::Split(resourcePath, '/');
+
     json JSON = json::parse(text);
 
     //load the gltf file binary
@@ -409,7 +412,7 @@ Mesh Loader::LoadMeshFromGLTF(const char* resourcePath) {
 
     Mesh mesh = Mesh(0, 0, 0, vertices.size(), indices.size());
     for(size_t i = 0; i < JSON["images"].size(); i++) {
-        std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
+        std::string path = "resources/meshes/" + splitPath[splitPath.size() - 2] + "/" + std::string(JSON["images"][i]["uri"]);
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
     app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
@@ -421,6 +424,7 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     std::string text = Files::ReadResourceString(resourcePath);
+    std::vector<std::string> splitPath = MiscUtils::Split(resourcePath, '/');
     json JSON = json::parse(text);
 
     //load the gltf file binary
@@ -519,7 +523,7 @@ SkeletalMesh Loader::LoadSkeletalMeshFromGLTF(const char* resourcePath) {
     SkeletalMesh mesh = SkeletalMesh(0, 0, 0, vertices.size(), indices.size());
     mesh.skeleton = skeleton;
     for(size_t i = 0; i < JSON["images"].size(); i++) {
-        std::string path = "resources/meshes/" + std::string(JSON["images"][i]["uri"]);
+        std::string path = "resources/meshes/" + splitPath[splitPath.size() - 2] + "/" + std::string(JSON["images"][i]["uri"]);
         mesh.textureMap[std::string(JSON["images"][i]["name"])] = LoadTextureFromFile(path.c_str());
     }
     app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);

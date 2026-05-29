@@ -52,6 +52,7 @@ struct GlobalMeshes {
     Mesh cube;
     Mesh sphere;
     Mesh heatSeekingMissile;
+    Mesh radarGuidedMissile;
 };
 
 struct GlobalFonts {
@@ -60,6 +61,7 @@ struct GlobalFonts {
 
 struct GlobalTextures {
     Texture3D noiseTexture3D;
+    Texture aim9Albedo;
 };
 
 struct PostProcessingParameters {

@@ -1180,7 +1180,6 @@ void Aircraft::ShootDown() {
         aircraftWidgetLayer->mouse->cornerBorder = 0;
         lockedAircraft = nullptr;
         lockedAircraftNetworkId = 0;
-
         shotDown = true;
 
         Timer timer;
@@ -1377,7 +1376,6 @@ void AircraftTrails::RecomputeMesh() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     float pressureScale = MathUtils::Max<float>(MathUtils::Min<float>(gForce - GFORCE_TRAIL_THRESHOLD, 0.0f), 1.0f);
-
     vertices[0].position = (aircraftRotation * glm::vec3(-trailWidth * pressureScale/ 2.0f, 0.0f, 0.0f)) + aircraftPosition;
     vertices[1].position = (aircraftRotation * glm::vec3(trailWidth * pressureScale / 2.0f, 0.0f, 0.0f)) + aircraftPosition;
 

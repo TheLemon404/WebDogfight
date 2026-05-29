@@ -5,6 +5,8 @@
 #include "../graphics/types.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
+#include "../networking/network_game.hpp"
+
 class MissileTrail {
     Mesh mesh;
     Shader* shader;
@@ -43,6 +45,8 @@ class Missile : public Entity{
 
     std::shared_ptr<Aircraft> targetAircraft = nullptr;
 
+    NetworkMissileType missileType = HEAT;
+
     public:
     Transform transform = Transform();
     glm::vec3 velocity = glm::vec3(0.0f);
@@ -64,5 +68,5 @@ class Missile : public Entity{
         trail.UnloadResources();
     };
 
-    Missile(const std::string& name, uint8_t networkId) : Entity(name), networkId(networkId) {};
+    Missile(const std::string& name, NetworkMissileType missileType, uint8_t networkId) : Entity(name), missileType(missileType), networkId(networkId) {};
 };
