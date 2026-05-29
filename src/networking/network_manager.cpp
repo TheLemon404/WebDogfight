@@ -17,8 +17,8 @@
 #include <iostream>
 #include "../application.hpp"
 
-//#define SERVER_URL "wss://webdogfightserver.onrender.com"
-#define SERVER_URL "ws://127.0.0.1:1234/"
+#define SERVER_URL "wss://webdogfightserver.onrender.com"
+//#define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
 #define STATE_SEND_INTERVAL 0.05
 
