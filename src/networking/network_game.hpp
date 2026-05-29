@@ -83,8 +83,8 @@ class ClientState {
 };
 
 enum NetworkMissileType : uint8_t {
-    HEAT,
-    RADAR
+    HEAT = 0,
+    RADAR = 1
 };
 
 struct NetworkMissile {
@@ -143,7 +143,6 @@ struct NetworkMissile {
     }
 
     NetworkMissile() {};
-    NetworkMissile(NetworkMissileType missileType) : missileType(missileType) {};
 };
 
 struct GameState {

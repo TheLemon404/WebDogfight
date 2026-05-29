@@ -988,10 +988,10 @@ void Aircraft::Update() {
             }
             else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == RADAR_GUIDED && numRadarGuided > 0) {
                 if(lockedAircraft != nullptr && missileSeekerLockStatus == 1) {
-                    app->networkManager.RequestLaunchHeatSeekingMissile(lockedAircraft->networkId);
+                    app->networkManager.RequestLaunchRadarGuidedMissile(lockedAircraft->networkId);
                 }
                 else {
-                    app->networkManager.RequestLaunchHeatSeekingMissile(0);
+                    app->networkManager.RequestLaunchRadarGuidedMissile(0);
                 }
                 numRadarGuided--;
             }
