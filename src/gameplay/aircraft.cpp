@@ -823,7 +823,7 @@ void Aircraft::Update() {
                     }
 
                     glm::vec3 toVector = glm::normalize(prospectiveTarget->transform.position - transform.position);
-                    float angle = glm::acos(glm::dot(aircraftForward, toVector));
+                    float angle = glm::acos(glm::dot(cameraForward, toVector));
                     if(angle <= PI/5 && !prospectiveTarget->shotDown) {
                         lockedAircraft = prospectiveTarget;
                         lockedAircraftNetworkId = lockedAircraft->networkId;
@@ -853,7 +853,7 @@ void Aircraft::Update() {
                     }
 
                     glm::vec3 toVector = glm::normalize(prospectiveTarget->transform.position - transform.position);
-                    float angle = glm::acos(glm::dot(aircraftForward, toVector));
+                    float angle = glm::acos(glm::dot(cameraForward, toVector));
                     if(angle <= PI/5 && !prospectiveTarget->shotDown) {
                         lockedAircraft = prospectiveTarget;
                         lockedAircraftNetworkId = lockedAircraft->networkId;
@@ -867,6 +867,8 @@ void Aircraft::Update() {
             else {
                 distanceToLockedTarget = glm::distance(transform.position, lockedAircraft->transform.position);
                 std::shared_ptr<Terrain> terrain = app->sceneManager.currentScene->GetEntityByName<Terrain>("terrain");
+                glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);
+                float angle = glm::acos(glm::dot(cameraForward, toVector));
                 if(lockedAircraft->shotDown) {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
@@ -880,6 +882,10 @@ void Aircraft::Update() {
                     lockedAircraftNetworkId = 0;
                 }
                 else if(terrain != nullptr && terrain->RayCollidingWithTerrain(transform.position, lockedAircraft->transform.position - transform.position, TERRAIN_RAY_CHECK_RESOLUTION_PER_5K * distanceToLockedTarget / 5000.0f)) {
+                    lockedAircraft = nullptr;
+                    lockedAircraftNetworkId = 0;
+                }
+                else if(angle > PI/2.0f) {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
                 }

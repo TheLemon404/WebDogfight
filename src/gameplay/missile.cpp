@@ -161,7 +161,7 @@ void Missile::Update() {
 
     glm::vec3 predictedPosition = missilePosition + velocity * dt;
 
-    transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime);
+    transform.position = glm::mix(transform.position, predictedPosition, (float)app->clock.deltaTime * app->networkManager.interpolationFactor);
     transform.rotation = glm::slerp(transform.rotation, missileState.rotation, (float)app->clock.deltaTime * 2.0f);
     velocity = missileState.velocity;
     shouldDetonate = missileState.shouldDetonate;
