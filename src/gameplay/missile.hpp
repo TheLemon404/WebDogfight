@@ -68,5 +68,8 @@ class Missile : public Entity{
         trail.UnloadResources();
     };
 
+    //ONLY CALL THIS METHOD IF YOU KNOW THAT THE MISSILE WILL NEVER RE-ENGAGE!!! THE MISSILE STILL EXISTS ON THE SERVER
+    void DemandDetonateOnClientOnly();
+
     Missile(const std::string& name, NetworkMissileType missileType, uint8_t networkId) : Entity(name), missileType(missileType), networkId(networkId) {};
 };

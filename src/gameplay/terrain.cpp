@@ -147,6 +147,20 @@ void Terrain::Update() {
         }
 
     }
+
+    for(std::shared_ptr<Missile> missile : app->sceneManager.currentScene->GetEntitiesByType<Missile>()) {
+        glm::vec2 uv = glm::vec2(missile->transform.position.x, missile->transform.position.z) + glm::vec2(TERRAIN_SIZE / 2.0);
+        uv /= glm::vec2(TERRAIN_SIZE);
+
+        glm::ivec2 texturePixelUV = glm::ivec2(floor(uv.x * heightMap.width), floor(uv.y * heightMap.height));
+        int pixelIndex = (texturePixelUV.y * heightMap.width + texturePixelUV.x) * heightMap.channels;
+        unsigned int pixelValue = (unsigned int)heightMap.data[pixelIndex];
+        float height = (pixelValue / 255.0f) * HEIGHT_CONSTANT * resource.settings.heightFactor;
+
+        if(missile->transform.position.y < height - HEIGHT_FORGIVENESS_FACTOR) {
+            missile->DemandDetonateOnClientOnly();
+        }
+    }
 }
 
 void Terrain::Draw() {

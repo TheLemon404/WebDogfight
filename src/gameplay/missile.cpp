@@ -193,3 +193,12 @@ void Missile::Draw() {
 
     trail.Draw();
 }
+
+void Missile::DemandDetonateOnClientOnly() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    shouldDetonate = true;
+    app->networkManager.networkGameState.missileMap[networkId].shouldDetonate = true;
+    app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, MISSILE_EXPLOSION_SIZE, 0.5f);
+    detonated = true;
+}
