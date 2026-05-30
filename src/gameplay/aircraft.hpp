@@ -28,6 +28,7 @@ struct AircraftResourceDescriptionBoneMappings {
     int pressureVorticesR;
 };
 
+
 struct AircraftResourceDescription {
     std::string name;
     std::string shaderResourcePath;

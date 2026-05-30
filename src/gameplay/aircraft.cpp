@@ -499,7 +499,9 @@ void Aircraft::LoadResources() {
         skeleton = app->graphicsBackend.globalSkeletons.FAXXSkeleton;
     }
 
-    transform.position.y = 12000.0f;
+    transform.position.y = 20000.0f;
+    transform.position.x = rand() / 1000.0f;
+    transform.position.z = rand() / 1000.0f;
 
     {
         FOX2_PROFILE_SCOPE("exhaust and smoke particles")
