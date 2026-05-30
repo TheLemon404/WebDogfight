@@ -910,6 +910,7 @@ void Aircraft::Update() {
                             missileSeekerLockStatus = 0;
                         }
 
+
                         glm::vec3 leadPoint = ComputeTargetLeadPoint();
                         leadAimWidget->position = aircraftWidgetLayer->UIAlignmentWithWorldPosition(leadPoint);
 
@@ -1107,7 +1108,7 @@ void Aircraft::Update() {
     }
 
     app->graphicsBackend.postProcessingParameters.gForceSum += gForce;
-    app->graphicsBackend.postProcessingParameters.gForceSum -= 8.0f;
+    app->graphicsBackend.postProcessingParameters.gForceSum -= 7.0f;
     app->graphicsBackend.postProcessingParameters.gForceSum = MathUtils::Min<float>(app->graphicsBackend.postProcessingParameters.gForceSum, 0.0f);
 
     if(aircraftWidgetLayer) {

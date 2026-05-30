@@ -17,7 +17,7 @@ void main()
 #fragment
 #version 300 es
 
-#define G_FORCE_PASS_OUT 500.0f
+#define G_FORCE_PASS_OUT 100.0f
 
 precision mediump float;
 

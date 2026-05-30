@@ -7,7 +7,7 @@
 #include <vector>
 #include "../application.hpp"
 
-#define MAX_AIRCRAFT_HEIGHT 30000.0f
+#define MAX_AIRCRAFT_HEIGHT 60000.0f
 
 #define HEIGHT_CONSTANT 10000.0f
 #define HEIGHT_FORGIVENESS_FACTOR 1.0f
