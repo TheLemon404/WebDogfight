@@ -598,7 +598,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
     skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
 
-    if(InputManager::IsKeyPressed(GLFW_KEY_B)) {
+    if(InputManager::IsKeyPressed(GLFW_KEY_V)) {
         targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
     else {
@@ -871,10 +871,6 @@ void Aircraft::Update() {
                 glm::vec3 toVector = glm::normalize(lockedAircraft->transform.position - transform.position);
                 float angle = glm::acos(glm::dot(cameraForward, toVector));
                 if(lockedAircraft->shotDown) {
-                    lockedAircraft = nullptr;
-                    lockedAircraftNetworkId = 0;
-                }
-                else if(lockedAircraft->deployingFlares) {
                     lockedAircraft = nullptr;
                     lockedAircraftNetworkId = 0;
                 }
