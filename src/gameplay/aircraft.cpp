@@ -531,8 +531,6 @@ void Aircraft::LoadResources() {
 void Aircraft::Initialize() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    app->sceneManager.activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
-    app->sceneManager.activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
     app->sceneManager.activeCamera.fov = 60.0f;
 
     skeletalMesh->material.shadowColor = glm::vec3(0.8f);

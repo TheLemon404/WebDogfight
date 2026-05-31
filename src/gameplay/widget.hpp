@@ -38,6 +38,8 @@ class WidgetLayer {
     std::vector<std::shared_ptr<Widget>> widgets;
 
     public:
+    bool justEnabled = false;
+
     template<typename T, typename... Args>
     std::shared_ptr<T> CreateWidget(Args&&... args) {
         std::shared_ptr<T> widget = std::make_shared<T>(std::forward<Args>(args)...);

@@ -44,6 +44,8 @@ void WidgetLayer::Update() {
     for(std::shared_ptr<Widget>& widget : widgets) {
         widget->Update(*this);
     }
+
+    justEnabled = false;
 }
 
 void WidgetLayer::Draw() {
@@ -217,7 +219,7 @@ void TextRectWidget::UnloadResources() {
 void TextButtonWidget::Update(WidgetLayer& widgetLayer) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    bool hoveredState = IsHovered() && !widgetLayer.invisible && !widgetLayer.disabled;
+    bool hoveredState = IsHovered() && !widgetLayer.invisible && !widgetLayer.disabled && !widgetLayer.justEnabled;
 
     if(hoveredState && !lastHoveredState) {
         app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);

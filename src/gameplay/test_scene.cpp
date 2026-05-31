@@ -6,7 +6,8 @@
 #include "../graphics/window.hpp"
 #include "../networking/network_manager.hpp"
 #include "../application.hpp"
-#include <glm/gtx/rotate_vector.hpp> // Required extension
+#include <glm/gtx/rotate_vector.hpp>
+#include "../utils/math.hpp"
 
 void MenuWidgetLayer::CreateWidgets() {
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -80,11 +81,13 @@ void MenuWidgetLayer::CreateWidgets() {
         if(app->networkManager.IsConnected()) {
             std::shared_ptr<LobbyWidgetLayer> lobbyLayer = app->sceneManager.currentScene->GetWidgetLayerByType<LobbyWidgetLayer>();
             lobbyLayer->invisible = !lobbyLayer->invisible;
+            lobbyLayer->justEnabled = true;
             disabled = true;
         }
         #else
         std::shared_ptr<LobbyWidgetLayer> lobbyLayer = app->sceneManager.currentScene->GetWidgetLayerByType<LobbyWidgetLayer>();
         lobbyLayer->invisible = !lobbyLayer->invisible;
+        lobbyLayer->justEnabled = true;
         disabled = true;
         #endif
     };
@@ -121,7 +124,7 @@ void MenuWidgetLayer::UpdateLayer() {
     }
 
     if(!invisible) {
-        app->sceneManager.activeCamera.position = glm::rotateY(app->sceneManager.activeCamera.position, 0.1f * (float)app->clock.deltaTime);
+        app->sceneManager.activeCamera.position = MathUtils::RotatePointAroundPoint(app->sceneManager.activeCamera.position, app->sceneManager.activeCamera.target, 0.1f * (float)app->clock.deltaTime, GLOBAL_UP);
     }
 }
 
