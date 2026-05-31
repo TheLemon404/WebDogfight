@@ -42,6 +42,9 @@ class TestScene {
         std::string resourceFileText = Files::ReadResourceString(mapResourcePath);
         json JSON = json::parse(resourceFileText);
 
+
+        testScene.sceneResourceFile = JSON;
+
         testScene.entities.push_back(std::make_shared<Terrain>("terrain", JSON["terrain"]));
         testScene.entities.push_back(std::make_shared<Water>("water", JSON["water"]));
         testScene.entities.push_back(std::make_shared<CloudsVolume>("clouds", JSON["clouds"]));

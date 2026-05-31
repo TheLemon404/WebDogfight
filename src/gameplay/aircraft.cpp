@@ -533,6 +533,7 @@ void Aircraft::Initialize() {
 
     app->sceneManager.activeCamera.position = glm::vec3(10.0f, 10.0f, 10.0f);
     app->sceneManager.activeCamera.target = glm::vec3(0.0f, 0.0f, 0.0f);
+    app->sceneManager.activeCamera.fov = 60.0f;
 
     skeletalMesh->material.shadowColor = glm::vec3(0.8f);
 
@@ -1070,9 +1071,11 @@ void Aircraft::Update() {
                 smokeParticles.emitting = true;
                 exhaustParticles.emitting = false;
                 app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, SHOT_DOWN_EXPLOSION_SIZE, 0.5f);
+                shotDown = true;
             }
             else if(exploded && !app->networkManager.lastNetworkGameState.clientStates[networkId].exploded) {
                 app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
+                exploded = true;
             }
 
             if(deployingFlares && flareCooldown <= 0.0f) {

@@ -72,7 +72,7 @@ void Scene::LoadResourcesAsync() {
     switch(resourceLoadingState) {
         case BEGIN:
             {
-                environment.skybox = std::make_shared<Skybox>();
+                environment.skybox = std::make_shared<Skybox>(sceneResourceFile["skybox"]);
                 resourceLoadingState = LOADING_ENTITIES;
             }
             break;
@@ -116,7 +116,7 @@ void Scene::LoadResourcesAsync() {
 }
 
 void Scene::LoadResources() {
-    environment.skybox = std::make_shared<Skybox>();
+    environment.skybox = std::make_shared<Skybox>(sceneResourceFile["skybox"]);
 
     for(std::shared_ptr<Entity>& entity : entities) {
         entity->LoadResources();

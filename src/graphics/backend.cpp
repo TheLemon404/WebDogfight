@@ -230,7 +230,7 @@ Mesh GraphicsBackend::CreateQuad() {
     return Mesh(vao, vbo, ebo, vertices.size(), indices.size());
 }
 
-Mesh GraphicsBackend::CreateSphere(float radius) {
+Mesh GraphicsBackend::CreateSphere(float radius, bool invertNormals) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -253,7 +253,7 @@ Mesh GraphicsBackend::CreateSphere(float radius) {
             glm::vec3 position(x, y, z);
 
             // Normal (for a sphere centered at origin, normal = normalized position)
-            glm::vec3 normal = glm::normalize(position);
+            glm::vec3 normal = glm::normalize(invertNormals ? -position : position);
 
             // UV coordinates
             float u = (float)seg / segments;

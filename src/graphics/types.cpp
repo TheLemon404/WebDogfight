@@ -23,13 +23,32 @@ void Skeleton::UpdateGlobalBoneTransforms()  {
     }
 }
 
-Skybox::Skybox() {
+Skybox::Skybox(Color skyColor, Color horizonColor) : skyColor(skyColor), horizonColor(horizonColor) {
     std::unique_ptr<Application>& app = Application::GetInstance();
+
+    mesh = app->graphicsBackend.CreateSphere(app->sceneManager.activeCamera.near + 8.0f, true);
+    shader = &app->graphicsBackend.globalShaders.skybox;
+}
+
+Skybox::Skybox(const json& resourceProperties) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    skyColor.value = {
+        resourceProperties["sky-color"][0],
+        resourceProperties["sky-color"][1],
+        resourceProperties["sky-color"][2],
+        resourceProperties["sky-color"][3],
+    };
+
+    horizonColor.value = {
+        resourceProperties["horizon-color"][0],
+        resourceProperties["horizon-color"][1],
+        resourceProperties["horizon-color"][2],
+        resourceProperties["horizon-color"][3],
+    };
 
     mesh = app->graphicsBackend.CreateSphere(app->sceneManager.activeCamera.near + 8.0f);
     shader = &app->graphicsBackend.globalShaders.skybox;
-    skyColor.value = glm::vec4(0.68f, 0.85f, 0.90f, 1.0);
-    horizonColor.value = glm::vec4(0.9f, 1.0f, 1.0f, 1.0f);
 }
 
 Skybox::~Skybox() {

@@ -24,4 +24,10 @@ class SceneManager {
     std::shared_ptr<Scene> currentScene = nullptr;
 
     void CheckSceneChange();
+
+    SceneManager() {
+        activeCamera.target = glm::vec3(0.0f, 20000.0f, 0.0f);
+        activeCamera.position = activeCamera.target + glm::vec3(1000.0f);
+        activeCamera.fov = 100.0f;
+    }
 };

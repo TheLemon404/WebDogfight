@@ -145,10 +145,28 @@ struct NetworkMissile {
     NetworkMissile() {};
 };
 
+enum MAP_TYPE : uint8_t {
+    ISLAND = 0,
+    CANYON = 1
+};
+
 struct GameState {
     std::unordered_map<uint8_t, NetworkMissile> missileMap;
     std::unordered_map<uint32_t, ClientState> clientStates;
     float lastUpdateTimeStamp = 0.0f;
+
+    std::string mapTypeToResourceString() {
+        switch(mapType) {
+            case ISLAND:
+                return "resources/maps/island.json";
+            case CANYON:
+                return "resources/maps/canyon.json";
+        }
+
+        return "resources/maps/island.json";
+    }
+
+    MAP_TYPE mapType = ISLAND;
 
     std::string Serialize() {
         Packet packet = Packet();
@@ -160,6 +178,7 @@ struct GameState {
         for(auto& missile : missileMap) {
             packet.WriteU8(missile.first).WriteBuffer(missile.second.Serialize());
         }
+        packet.WriteU8((uint8_t)mapType);
         return packet.Build();
     }
 
@@ -177,6 +196,7 @@ struct GameState {
             uint8_t missileId = packet.ReadU8();
             missileMap[missileId].Deserialize(packet);
         }
+        mapType = (MAP_TYPE)packet.ReadU8();
     }
 };
 

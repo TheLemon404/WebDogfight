@@ -42,7 +42,7 @@ void WidgetLayer::Update() {
     if(disabled || invisible) return;
 
     for(std::shared_ptr<Widget>& widget : widgets) {
-        widget->Update();
+        widget->Update(*this);
     }
 }
 
@@ -214,10 +214,10 @@ void TextRectWidget::UnloadResources() {
     app->graphicsBackend.DeleteMesh(textMesh);
 }
 
-void TextButtonWidget::Update() {
+void TextButtonWidget::Update(WidgetLayer& widgetLayer) {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
-    bool hoveredState = IsHovered();
+    bool hoveredState = IsHovered() && !widgetLayer.invisible && !widgetLayer.disabled;
 
     if(hoveredState && !lastHoveredState) {
         app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.hover, false, 0.05f);
@@ -259,7 +259,7 @@ void TextButtonWidget::Draw() {
     lastHoveredState = hoveredState;
 }
 
-void InputWidget::Update() {
+void InputWidget::Update(WidgetLayer& widgetLayer) {
     std::unique_ptr<Application>& app = Application::GetInstance();
     bool hoveredState = IsHovered();
 
@@ -338,7 +338,7 @@ void CircleWidget::Draw() {
 void CircleWidget::UnloadResources() {
 }
 
-void ContainerWidget::Update() {
+void ContainerWidget::Update(WidgetLayer& widgetLayer) {
     glm::vec2 center = glm::vec2(0.0);
     int count = 0;
     for(std::shared_ptr<Widget> child : children) {

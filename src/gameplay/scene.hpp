@@ -10,6 +10,9 @@
 #include <queue>
 #include <memory>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 enum SceneResourceLoadingState {
     BEGIN,
     LOADING_ENTITIES,
@@ -23,6 +26,8 @@ class Scene {
     std::queue<std::shared_ptr<Entity>> despawnQueue;
 
     public:
+    json sceneResourceFile;
+
     std::vector<std::shared_ptr<Entity>> entities;
     std::vector<std::shared_ptr<WidgetLayer>> widgetLayers;
     Environment environment;

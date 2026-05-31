@@ -87,14 +87,14 @@ void main()
         vec2 normalizedMax = normalizeLocalClientPosition + vec2(0.5);
         vec2 radarUV = rotateAroundPoint(mix(normalizedMin, normalizedMax, pUV), normalizeLocalClientPosition, uLocalClientRotation + (PI / 2.0));
 
-        vec4 f = floor(texture(uTerrainHeightmap, radarUV) * 10.0);
+        vec4 f = floor(vec4(texture(uTerrainHeightmap, radarUV).r, texture(uTerrainHeightmap, radarUV).r, texture(uTerrainHeightmap, radarUV).r, 1.0f) * 10.0);
         FragColor = f / 12.0;
         if (uvDist >= 0.45 - ringDistPixels) {
             FragColor = uBorderColor;
         }
 
         for (int i = 0; i < uPlayerCount; i++) {
-            vec2 terrainUVPlayerPosition = worldPositionToTerrainUV(uPlayerWorldPositions[i]);
+            vec2 terrainUVPlayerPosition = worldPositionToTerrainUV(uPlayerWorldPositions[i]);n
             if (terrainUVPlayerPosition.x > normalizedMax.x
                     || terrainUVPlayerPosition.x < normalizedMin.x
                     || terrainUVPlayerPosition.y > normalizedMax.y
@@ -107,5 +107,7 @@ void main()
                 FragColor = uBorderColor;
             }
         }
+
+        FragColor.a = 1.0f;
     }
 }

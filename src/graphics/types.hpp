@@ -17,6 +17,9 @@
 #include <glm/gtx/quaternion.hpp>
 #include <unordered_map>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -26,7 +29,6 @@
 #define COLOR_RED { glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) }
 #define COLOR_GREEN { glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) }
 #define COLOR_BLUE { glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
-
 
 class Transform {
     public:
@@ -50,6 +52,9 @@ class Transform {
 class Color {
     public:
     glm::vec4 value = glm::vec4(1.0f);
+
+    Color() : value(glm::vec4(1.0f)) {};
+    Color(glm::vec4 value) : value(value) {};
 };
 
 class Camera {
@@ -200,7 +205,8 @@ struct Skybox {
     Color skyColor;
     Color horizonColor;
 
-    Skybox();
+    Skybox(Color skyColor, Color horizonColor);
+    Skybox(const json& resourceProperties);
     ~Skybox();
 };
 

@@ -105,7 +105,7 @@ class GraphicsBackend {
 
     Mesh CreateCube();
     Mesh CreateQuad();
-    Mesh CreateSphere(float radius = 1.0f);
+    Mesh CreateSphere(float radius = 1.0f, bool invertNormals = false);
 
     FrameBuffer CreateFrameBuffer();
 

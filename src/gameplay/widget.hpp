@@ -3,6 +3,8 @@
 #include "../graphics/loader.hpp"
 #include <memory>
 
+class WidgetLayer;
+
 class Widget {
     protected:
     Mesh* quad;
@@ -26,7 +28,7 @@ class Widget {
 
     virtual void LoadResources() = 0;
     virtual void Initialize() = 0;
-    virtual void Update() = 0;
+    virtual void Update(WidgetLayer& widgetLayer) = 0;
     virtual void Draw() = 0;
     virtual void UnloadResources() = 0;
 };
@@ -74,7 +76,7 @@ class RectWidget : public Widget {
 
     void LoadResources() override;
     void Initialize() override {};
-    void Update() override {};
+    void Update(WidgetLayer& widgetLayer) override {};
     void Draw() override;
     void UnloadResources() override;
 
@@ -138,7 +140,7 @@ class TextButtonWidget : public TextRectWidget {
     bool lastHoveredState = false;
 
     public:
-    void Update() override;
+    void Update(WidgetLayer& widgetLayer) override;
     void Draw() override;
 
     std::function<void()> onPressed;
@@ -158,7 +160,7 @@ class InputWidget : public TextRectWidget {
 
     int maxCharacters = 10;
 
-    void Update() override;
+    void Update(WidgetLayer& widgetLayer) override;
     void Draw() override;
 
     InputWidget(const std::string& name, Font font) : TextRectWidget(name, font) {}
@@ -171,7 +173,7 @@ class CircleWidget : public Widget {
 
     void LoadResources() override;
     void Initialize() override {};
-    void Update() override {};
+    void Update(WidgetLayer& widgetLayer) override {};
     void Draw() override;
     void UnloadResources() override;
 
@@ -182,7 +184,7 @@ class ContainerWidget : public RectWidget {
     public:
     std::vector<std::shared_ptr<Widget>> children;
 
-    void Update() override;
+    void Update(WidgetLayer& widgetLayer) override;
 
     ContainerWidget(const std::string& name) : RectWidget(name) {}
 };

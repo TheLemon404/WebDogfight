@@ -6,12 +6,13 @@
 #include "../graphics/window.hpp"
 #include "../networking/network_manager.hpp"
 #include "../application.hpp"
+#include <glm/gtx/rotate_vector.hpp> // Required extension
 
 void MenuWidgetLayer::CreateWidgets() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     std::shared_ptr<RectWidget> background = CreateWidget<RectWidget>("background");
-    background->color.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
+    background->color.value = glm::vec4(0.1, 0.1, 0.1, 0.0);
     background->stretchWithAspectRatio = true;
     background->borderColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
@@ -117,6 +118,10 @@ void MenuWidgetLayer::UpdateLayer() {
 
     if(connectionStatus) {
         std::static_pointer_cast<TextRectWidget>(connectionStatus)->SetText(app->networkManager.IsConnected() ? "connected\nlobby id: " + std::to_string(app->networkManager.GetLobbyId()) : "no server connection");
+    }
+
+    if(!invisible) {
+        app->sceneManager.activeCamera.position = glm::rotateY(app->sceneManager.activeCamera.position, 0.1f * (float)app->clock.deltaTime);
     }
 }
 
