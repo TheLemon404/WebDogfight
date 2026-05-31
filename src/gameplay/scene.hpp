@@ -47,6 +47,7 @@ class Scene {
         return nullptr;
     }
 
+
     template<typename T>
     std::shared_ptr<T> GetEntityByName(const std::string& name) {
         for(std::shared_ptr<Entity> entity : entities) {

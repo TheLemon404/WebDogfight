@@ -94,7 +94,7 @@ void main()
         }
 
         for (int i = 0; i < uPlayerCount; i++) {
-            vec2 terrainUVPlayerPosition = worldPositionToTerrainUV(uPlayerWorldPositions[i]);n
+            vec2 terrainUVPlayerPosition = worldPositionToTerrainUV(uPlayerWorldPositions[i]);
             if (terrainUVPlayerPosition.x > normalizedMax.x
                     || terrainUVPlayerPosition.x < normalizedMin.x
                     || terrainUVPlayerPosition.y > normalizedMax.y

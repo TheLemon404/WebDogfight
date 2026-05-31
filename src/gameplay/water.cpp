@@ -34,7 +34,12 @@ void Water::Initialize() {
         2, 3, 0,
     };
 
-    mesh.material.albedo = glm::vec3(0.8f, 0.9f, 1.0f);
+    mesh.material.albedo = {
+        resourceProperties["color"][0],
+        resourceProperties["color"][1],
+        resourceProperties["color"][2],
+    };
+
     app->graphicsBackend.UploadMeshData(mesh.vao, mesh.vbo, mesh.ebo, vertices, indices);
 }
 
