@@ -21,6 +21,7 @@ class MissileTrail {
     void GenerateMesh();
     void RecomputeMesh();
 
+
     public:
     glm::vec3 targetPosition = glm::vec3(0.0f);
     glm::quat targetRotation = glm::identity<glm::quat>();
