@@ -808,6 +808,8 @@ void Aircraft::Update() {
             }
 
             if(lockedAircraft == nullptr) {
+                missileSeekerLockStatus = 0;
+
                 std::shared_ptr<RectWidget> lockWidget = aircraftWidgetLayer->lockWidget;
                 std::shared_ptr<TextRectWidget> lockNameWidget = aircraftWidgetLayer->lockNameWidget;
                 std::shared_ptr<TextRectWidget> lockDistanceWidget = aircraftWidgetLayer->lockDistanceWidget;
@@ -820,7 +822,7 @@ void Aircraft::Update() {
                 }
 
                 for(std::shared_ptr<Aircraft> prospectiveTarget : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
-                    if(prospectiveTarget->id == id || prospectiveTarget->deployingFlares) {
+                    if(prospectiveTarget->id == id || prospectiveTarget->deployingFlares || glm::distance(transform.position, prospectiveTarget->transform.position) > MAX_RADAR_RANGE) {
                         continue;
                     }
 
