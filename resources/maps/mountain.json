@@ -2,15 +2,15 @@
   "terrain": {
     "assets": {
       "shader": "resources/shaders/terrain.glsl",
-      "heightmap": "resources/textures/islandHeightmap.png",
+      "heightmap": "resources/textures/mountainHeightmap.png",
       "discolorationmap": "resources/textures/noiseTexture.png"
     },
     "settings": {
-      "heightFactor": 2.0,
-      "top-color": [1.0, 1.0, 1.0],
-      "middle-color": [0.48, 0.63, 0.35],
-      "slope-color": [0.4, 0.3, 0.3],
-      "base-color": [0.5, 0.5, 0.5]
+      "heightFactor": 1.5,
+      "top-color": [0.702, 0.702, 0.702],
+      "middle-color": [1, 1, 1],
+      "slope-color": [0.18, 0.173, 0.173],
+      "base-color": [0.949, 0.949, 0.949]
     }
   },
   "skybox": {
@@ -18,7 +18,7 @@
     "horizon-color": [0.98, 0.827, 0.8, 1.0]
   },
   "water": {
-    "water-level": 5000.0,
+    "water-level": 3000.0,
     "color": [0.3, 0.4, 1.0]
   },
   "clouds": {

@@ -6,7 +6,6 @@
 #include "../application.hpp"
 
 #define WATER_PLANE_SIZE 100000.0f
-#define WATER_LEVEL 3000.0f
 
 void Water::LoadResources() {
     std::unique_ptr<Application>& app = Application::GetInstance();
@@ -21,11 +20,13 @@ void Water::Initialize() {
 
     std::unique_ptr<Application>& app = Application::GetInstance();
 
+    waterLevel = resourceProperties["water-level"];
+
     std::vector<Vertex> vertices = {
-        {{-WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 0
-        {{ WATER_PLANE_SIZE, WATER_LEVEL, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 1
-        {{ WATER_PLANE_SIZE, WATER_LEVEL, WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},  // 2
-        {{-WATER_PLANE_SIZE, WATER_LEVEL, WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},  // 3
+        {{-WATER_PLANE_SIZE, waterLevel, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // 0
+        {{ WATER_PLANE_SIZE, waterLevel, -WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},  // 1
+        {{ WATER_PLANE_SIZE, waterLevel, WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},  // 2
+        {{-WATER_PLANE_SIZE, waterLevel, WATER_PLANE_SIZE}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},  // 3
     };
 
     std::vector<unsigned int> indices = {
@@ -47,7 +48,7 @@ void Water::Update() {
     std::unique_ptr<Application>& app = Application::GetInstance();
 
     for(std::shared_ptr<Aircraft> aircraft : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
-        if(aircraft->transform.position.y < WATER_LEVEL) {
+        if(aircraft->transform.position.y < waterLevel) {
             aircraft->Explode();
         }
     }

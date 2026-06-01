@@ -147,7 +147,8 @@ struct NetworkMissile {
 
 enum MAP_TYPE : uint8_t {
     ISLAND = 0,
-    CANYON = 1
+    CANYON = 1,
+    MOUNTAIN = 2,
 };
 
 struct GameState {
@@ -161,12 +162,14 @@ struct GameState {
                 return "resources/maps/island.json";
             case CANYON:
                 return "resources/maps/canyon.json";
+            case MOUNTAIN:
+                return "resources/maps/mountain.json";
         }
 
-        return "resources/maps/island.json";
+        return "resources/maps/mountain.json";
     }
 
-    MAP_TYPE mapType = ISLAND;
+    MAP_TYPE mapType = MOUNTAIN;
 
     std::string Serialize() {
         Packet packet = Packet();

@@ -15,6 +15,8 @@ class Water : public Entity {
 
     const json resourceProperties;
 
+    float waterLevel = 0.0f;
+
     public:
     Water(const std::string& name, const json& resourceProperties) : Entity(name), resourceProperties(resourceProperties) {};
 

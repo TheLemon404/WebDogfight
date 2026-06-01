@@ -18,6 +18,7 @@
     "horizon-color": [1, 0.969, 0.929, 1.0]
   },
   "water": {
+    "water-level": 1000.0,
     "color": [0.3, 0.4, 1.0]
   },
   "clouds": {

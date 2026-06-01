@@ -67,7 +67,7 @@ int main() {
     app->windowManager.primaryWindow = std::make_shared<Window>();
     app->windowManager.primaryWindow->title = "Fox2";
 
-    app->sceneManager.currentScene = std::make_shared<Scene>(TestScene::Create("resources/maps/canyon.json"));
+    app->sceneManager.currentScene = std::make_shared<Scene>(TestScene::Create("resources/maps/mountain.json"));
     app->windowManager.primaryWindow->Open();
 
     app->audioBackend.Initialize();
