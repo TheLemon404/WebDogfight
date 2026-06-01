@@ -261,6 +261,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     bool exploded = false;
     bool shooting = false;
 
+
     int missileSeekerLockStatus = 0;
 
     int numFlares = 0;

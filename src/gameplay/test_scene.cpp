@@ -235,11 +235,9 @@ void SettingsWidgetLayer::CreateWidgets() {
                 "- Shift: Thottle Up\n"
                 "- Ctrl: Thottle Down\n"
                 "- T: Toggle Radar Lock\n"
-                "- Q: Roll Left\n"
-                "- E: Roll Right\n"
-                "- B: Air Brake\n"
-                "- Alt: Free Mouse\n"
                 "- C: Free Look\n"
+                "- V: Air Brake\n"
+                "- Alt: Free Mouse\n"
     );
     rect->position = glm::vec2(0.0, 0.0);
     rect->moveWithAspectRatio = true;
