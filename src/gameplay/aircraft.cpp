@@ -556,17 +556,39 @@ void Aircraft::Initialize() {
 
         std::shared_ptr<TextRectWidget> tempKillFeedWidget = killFeedWidget;
 
-        app->networkManager.onShotDownDemand = [this, &app, tempKillFeedWidget](uint32_t killerId) {
-            if(tempKillFeedWidget != nullptr) {
-                if(app->networkManager.networkGameState.clientStates.contains(killerId)) {
+        app->networkManager.onKill = [this, &app, tempKillFeedWidget](uint32_t killerId, uint32_t victimId) {
+            if(victimId == networkId && networkId == app->networkManager.localClientId) {
+                if(tempKillFeedWidget != nullptr && app->networkManager.networkGameState.clientStates.contains(killerId)) {
                     std::string killerName = app->networkManager.networkGameState.clientStates[killerId].name;
+                    tempKillFeedWidget->fontColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
                     tempKillFeedWidget->SetText("You were killed by " + killerName + "\n");
                 }
-                else {
+                else if(tempKillFeedWidget != nullptr) {
+                    tempKillFeedWidget->fontColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
                     tempKillFeedWidget->SetText("You died.\n");
                 }
+                ShootDown();
             }
-            ShootDown();
+            else if(killerId == networkId && networkId == app->networkManager.localClientId) {
+                if(tempKillFeedWidget != nullptr && app->networkManager.networkGameState.clientStates.contains(victimId)) {
+                    std::string victimName = app->networkManager.networkGameState.clientStates[victimId].name;
+                    tempKillFeedWidget->fontColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+                    tempKillFeedWidget->SetText("You killed " + victimName + "\n");
+                }
+                else if(tempKillFeedWidget != nullptr) {
+                    tempKillFeedWidget->fontColor.value = glm::vec4(0.3, 1.0, 0.4, 1.0);
+                    tempKillFeedWidget->SetText("You got a kill!!!\n");
+                }
+
+
+                Timer timer;
+                timer.endTime = 2.0f;
+                timer.callback = [this, tempKillFeedWidget]() {
+                    tempKillFeedWidget->fontColor.value = glm::vec4(0.0f);
+                };
+
+                app->clock.timers.push_back(timer);
+            }
         };
         app->networkManager.onExplodeDemand = [this]() {
             Explode();

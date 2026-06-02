@@ -17,8 +17,8 @@
 #include <iostream>
 #include "../application.hpp"
 
-#define SERVER_URL "wss://webdogfightserver.onrender.com"
-//#define SERVER_URL "ws://127.0.0.1:1234/"
+//#define SERVER_URL "wss://webdogfightserver.onrender.com"
+#define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
 #define STATE_SEND_INTERVAL 0.05
 
@@ -132,11 +132,12 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             hasPendingStateChange = true;
             break;
         }
-        case PacketType::SHOOT_DOWN_DEMAND:
+        case PacketType::ON_KILL:
         {
-            if(onShotDownDemand != nullptr){
+            if(onKill != nullptr){
                 uint32_t killerId = packet.ReadU32();
-                onShotDownDemand(killerId);
+                uint32_t victimId = packet.ReadU32();
+                onKill(killerId, victimId);
             }
             break;
         }

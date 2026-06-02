@@ -70,7 +70,7 @@ class NetworkManager {
         return state->connected;
     }
 
-    std::function<void(uint32_t killerId)> onShotDownDemand = nullptr;
+    std::function<void(uint32_t killerId, uint32_t victimId)> onKill = nullptr;
     std::function<void()> onExplodeDemand = nullptr;
 
     void RequestFireGun(uint32_t targetNetworkID);

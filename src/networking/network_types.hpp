@@ -26,7 +26,7 @@ enum class PacketType : uint8_t {
 
     LOBBY_STATE_UPDATED = 0x0C,
 
-    SHOOT_DOWN_DEMAND = 0x0D,
+    ON_KILL = 0x0D,
     EXPLODE_DEMAND = 0x0E,
 };
 
