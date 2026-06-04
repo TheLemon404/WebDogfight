@@ -254,6 +254,7 @@ class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
     Sound engineSound = Sound();
     float shotNetworkCountDown = 0.0f;
     float shotTracerCountDown = 0.0f;
+    float missileLaunchCoolDown = 0.0f;
 
     glm::vec3 ComputeTargetLeadPoint();
 

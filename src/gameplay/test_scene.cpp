@@ -1,5 +1,6 @@
 #include "test_scene.hpp"
 #include "GLFW/glfw3.h"
+#include "aircraft.hpp"
 #include "scene.hpp"
 #include "scene_manager.hpp"
 #include "widget.hpp"
@@ -258,10 +259,35 @@ void SettingsWidgetLayer::CreateWidgets() {
     settingsRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
     settingsRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
     settingsRect->z_distance = -0.5f;
+
+    std::shared_ptr<TextButtonWidget> returnToMenuButton = CreateWidget<TextButtonWidget>("returnToMenuButton", app->graphicsBackend.globalFonts.defaultFont);
+    returnToMenuButton->stretchWithAspectRatio = false;
+    returnToMenuButton->moveWithAspectRatio = true;
+    returnToMenuButton->centerText = true;
+    returnToMenuButton->SetText("Return To Menu");
+    returnToMenuButton->font.fontScale = 2.0;
+    returnToMenuButton->scale = glm::vec2(0.45, 0.09);
+    returnToMenuButton->position.y = -0.4f;
+    returnToMenuButton->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    returnToMenuButton->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    returnToMenuButton->onPressed = [this, &app]{
+        for(std::shared_ptr<Aircraft> a : app->sceneManager.currentScene->GetEntitiesByType<Aircraft>()) {
+            if(a->networkId == app->networkManager.localClientId) {
+                a->Explode();
+            }
+        }
+    };
+    returnToMenuButton->z_distance = -0.1f;
 }
 
 void SettingsWidgetLayer::UpdateLayer() {
-    if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT)) {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    bool inGame = app->networkManager.networkGameState.clientStates[app->networkManager.localClientId].inGame;
+    if(InputManager::IsKeyJustPressed(GLFW_KEY_LEFT_ALT) && inGame) {
         invisible = !invisible;
+    }
+    else if (!inGame) {
+        invisible = true;
     }
 }

@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v5.0.21",
+		"generator":"Khronos glTF Blender I/O v5.1.18",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -199,9 +199,7 @@
 					"index":1
 				},
 				"metallicFactor":0,
-				"metallicRoughnessTexture":{
-					"index":2
-				}
+				"roughnessFactor":0.5
 			}
 		}
 	],
@@ -231,14 +229,6 @@
 		{
 			"sampler":0,
 			"source":1
-		},
-		{
-			"sampler":0,
-			"source":2
-		},
-		{
-			"sampler":0,
-			"source":3
 		}
 	],
 	"images":[
@@ -246,16 +236,6 @@
 			"mimeType":"image/png",
 			"name":"emmission",
 			"uri":"emmission.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"ao",
-			"uri":"ao.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"roughness",
-			"uri":"roughness.png"
 		},
 		{
 			"mimeType":"image/png",
@@ -284,11 +264,11 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1432,
+			"count":1508,
 			"max":[
 				6.706422805786133,
 				1.1560333967208862,
-				5.441501140594482
+				4.930315971374512
 			],
 			"min":[
 				-6.706422805786133,
@@ -300,31 +280,31 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1432,
+			"count":1508,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1432,
+			"count":1508,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5121,
-			"count":1432,
+			"count":1508,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":1432,
+			"count":1508,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":5,
 			"componentType":5123,
-			"count":3822,
+			"count":4014,
 			"type":"SCALAR"
 		},
 		{
@@ -337,44 +317,44 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":17184,
+			"byteLength":18096,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":17184,
-			"byteOffset":17184,
+			"byteLength":18096,
+			"byteOffset":18096,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11456,
-			"byteOffset":34368,
+			"byteLength":12064,
+			"byteOffset":36192,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5728,
-			"byteOffset":45824,
+			"byteLength":6032,
+			"byteOffset":48256,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":22912,
-			"byteOffset":51552,
+			"byteLength":24128,
+			"byteOffset":54288,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7644,
-			"byteOffset":74464,
+			"byteLength":8028,
+			"byteOffset":78416,
 			"target":34963
 		},
 		{
 			"buffer":0,
 			"byteLength":576,
-			"byteOffset":82108
+			"byteOffset":86444
 		}
 	],
 	"samplers":[
@@ -385,7 +365,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":82684,
+			"byteLength":87020,
 			"uri":"demo_jet.bin"
 		}
 	]

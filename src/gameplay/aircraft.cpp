@@ -71,6 +71,8 @@
 
 #define FONT_CHAR_WIDTH_PIXELS 0.0175f
 
+#define MISSILE_LAUNCH_COOLDOWN 1.0f
+
 using json = nlohmann::json;
 
 void CompassWidget::LoadResources() {
@@ -989,6 +991,7 @@ void Aircraft::Update() {
             FOX2_PROFILE_SCOPE("Shooting Gun")
             shotNetworkCountDown -= app->clock.deltaTime;
             shotTracerCountDown -= app->clock.deltaTime;
+            missileLaunchCoolDown -= app->clock.deltaTime;
 
             if(deployingFlares && flareCooldown <= 0.0f && numFlares > 0) {
                 app->sceneManager.currentScene->GetEntityByName<FlareSystemEntity>("flareSystem")->SpawnFlare(transform.position, transform.rotation, velocity);
@@ -1036,7 +1039,7 @@ void Aircraft::Update() {
                     shotNetworkCountDown = NETWORK_FIRE_RATE;
                 }
             }
-            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER && numHeatSeekers > 0) {
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == HEAT_SEEKER && numHeatSeekers > 0 && missileLaunchCoolDown <= 0.0f) {
                 if(lockedAircraft != nullptr && missileSeekerLockStatus == 1) {
                     app->networkManager.RequestLaunchHeatSeekingMissile(lockedAircraft->networkId);
                 }
@@ -1045,8 +1048,9 @@ void Aircraft::Update() {
                 }
 
                 numHeatSeekers--;
+                missileLaunchCoolDown = MISSILE_LAUNCH_COOLDOWN;
             }
-            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == RADAR_GUIDED && numRadarGuided > 0) {
+            else if(InputManager::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_1) && !shotDown && weaponMode == RADAR_GUIDED && numRadarGuided > 0 && missileLaunchCoolDown <= 0.0f) {
                 if(lockedAircraft != nullptr && missileSeekerLockStatus == 1) {
                     app->networkManager.RequestLaunchRadarGuidedMissile(lockedAircraft->networkId);
                 }
@@ -1054,6 +1058,7 @@ void Aircraft::Update() {
                     app->networkManager.RequestLaunchRadarGuidedMissile(0);
                 }
                 numRadarGuided--;
+                missileLaunchCoolDown = MISSILE_LAUNCH_COOLDOWN;
             }
             else if(InputManager::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_1) || numRounds <= 0) {
                 app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
@@ -1203,6 +1208,12 @@ void Aircraft::Explode() {
 
     app->sceneManager.currentScene->GetEntityByName<ExplosionSystemEntity>("explosionSystem")->SpawnExplosion(transform.position, EXPLODE_EXPLOSION_SIZE, 0.5f);
 
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.tone);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.launch);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.engineSound);
+
     if(networkId == app->networkManager.localClientId) {
         exploded = true;
         app->sceneManager.currentScene->RuntimeDespawn(shared_from_this());
@@ -1238,6 +1249,8 @@ void Aircraft::ShootDown() {
     app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.lockAlert);
     app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.tone);
     app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.launch);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.shot);
+    app->audioBackend.EndSoundAsset(app->audioBackend.globalSounds.engineSound);
 
     if(networkId == app->networkManager.localClientId) {
         smokeParticles.emitting = true;
