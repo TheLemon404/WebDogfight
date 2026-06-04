@@ -229,22 +229,35 @@ void SettingsWidgetLayer::CreateWidgets() {
     background->cornerColor.value = glm::vec4(0.1, 0.1, 0.1, 1.0);
     background->z_distance = -0.5f;
 
-    std::shared_ptr<TextRectWidget> rect = CreateWidget<TextRectWidget>("rect", app->graphicsBackend.globalFonts.defaultFont);
-    rect->SetText(
-                "Controls:\n"
-                "- Shift: Thottle Up\n"
-                "- Ctrl: Thottle Down\n"
-                "- T: Toggle Radar Lock\n"
-                "- C: Free Look\n"
-                "- V: Air Brake\n"
-                "- Alt: Free Mouse\n"
+    std::shared_ptr<TextRectWidget> infoRect = CreateWidget<TextRectWidget>("infoRect", app->graphicsBackend.globalFonts.defaultFont);
+    infoRect->SetText(
+                "Info:\n"
+                "- Get Heat Seeker lock by\n pointing nose at target\n"
+                "- Get Radar Seeker lock by\n looking at target\n"
     );
-    rect->position = glm::vec2(0.0, 0.0);
-    rect->moveWithAspectRatio = true;
-    rect->scale = glm::vec2(0.4, 0.35);
-    rect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
-    rect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
-    rect->z_distance = -0.5f;
+    infoRect->position = glm::vec2(-0.3, 0.0);
+    infoRect->moveWithAspectRatio = true;
+    infoRect->scale = glm::vec2(0.4, 0.25);
+    infoRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    infoRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    infoRect->z_distance = -0.5f;
+
+    std::shared_ptr<TextRectWidget> settingsRect = CreateWidget<TextRectWidget>("settingsRect", app->graphicsBackend.globalFonts.defaultFont);
+    settingsRect->SetText(
+                "Controls:\n"
+                "- Thottle Up: L-Shift\n"
+                "- Thottle Down: L-Ctrl\n"
+                "- Toggle Radar Lock: T\n"
+                "- Free Look: C\n"
+                "- Air Brake: V\n"
+                "- Settings: L-Alt\n"
+    );
+    settingsRect->position = glm::vec2(0.3, 0.0);
+    settingsRect->moveWithAspectRatio = true;
+    settingsRect->scale = glm::vec2(0.4, 0.25);
+    settingsRect->color.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+    settingsRect->borderColor.value = glm::vec4(1.0, 1.0, 1.0, 0.5);
+    settingsRect->z_distance = -0.5f;
 }
 
 void SettingsWidgetLayer::UpdateLayer() {

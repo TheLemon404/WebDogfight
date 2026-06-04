@@ -18,6 +18,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
+#include "inputMapping.hpp"
 #include "missile.hpp"
 #include "test_scene.hpp"
 #include "widget.hpp"
@@ -653,7 +654,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     float yawDelta = MathUtils::Clamp<float>(eulerAngles.y, -1.0, 1.0);
 
     //testing for flaps
-    if(!InputManager::IsKeyPressed(GLFW_KEY_C)) {
+    if(!InputManager::IsKeyPressed(InputMappings::freeLook)) {
         skeleton.bones[resource.description.boneMappings.wingL].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), resource.settings.flapsMaxAngle * rollDelta);
         skeleton.bones[resource.description.boneMappings.wingR].SetLocalRotation(glm::vec3(1.0, 0.0, 0.0), -resource.settings.flapsMaxAngle * rollDelta);
     }
@@ -662,7 +663,7 @@ void Aircraft::ApplyControlSurfaces(float roll) {
     skeleton.bones[resource.description.boneMappings.tailL].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (-resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
     skeleton.bones[resource.description.boneMappings.tailR].SetLocalRotation(glm::vec3(0.0, 1.0, 0.0), (resource.settings.tailMaxAngle * pitchDelta) + (-resource.settings.rudderMaxAngle * yawDelta));
 
-    if(InputManager::IsKeyPressed(GLFW_KEY_V)) {
+    if(InputManager::IsKeyPressed(InputMappings::brake)) {
         targetBrakeAngle = MathUtils::Lerp<float>(targetBrakeAngle, resource.settings.brakeMaxAngle, app->clock.deltaTime * BRAKE_ANGLE_LERP_TIME);
     }
     else {
@@ -740,10 +741,10 @@ void Aircraft::Update() {
             aircraftLeft = glm::normalize(glm::rotate(transform.rotation, GLOBAL_LEFT));
 
             //because chris insisted
-            glm::vec2 inputAxis = InputManager::GetAxis(GLFW_KEY_Q, GLFW_KEY_E, GLFW_KEY_W, GLFW_KEY_S);
-            float rollInput = InputManager::IsKeyPressed(GLFW_KEY_D) - InputManager::IsKeyPressed(GLFW_KEY_A);
+            glm::vec2 inputAxis = InputManager::GetAxis(InputMappings::rollRight, InputMappings::rollRight, InputMappings::axisYPlus, InputMappings::axisYMinus);
+            float rollInput = InputManager::IsKeyPressed(InputMappings::axisXPlus) - InputManager::IsKeyPressed(InputMappings::axisXMinus);
 
-            if(!InputManager::IsKeyPressed(GLFW_KEY_C) && InputManager::mouseHidden && !shotDown){
+            if(!InputManager::IsKeyPressed(InputMappings::freeLook) && InputManager::mouseHidden && !shotDown){
                 uiDiff = MathUtils::Lerp<float>(uiDiff, aimWidget->position.x - mouseWidget->position.x, app->clock.deltaTime * 10.0f);
                 targetRotation = glm::quatLookAt(-cameraForward, GLOBAL_UP);
             }
@@ -785,10 +786,10 @@ void Aircraft::Update() {
         }
         {
             FOX2_PROFILE_SCOPE("Throttle Controls and Audio")
-            if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            if(InputManager::IsKeyPressed(InputMappings::throttleUp)) {
                 controls.throttle += resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
-            else if(InputManager::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+            else if(InputManager::IsKeyPressed(InputMappings::throttleDown)) {
                 controls.throttle -= resource.settings.throttleIncreaseRate * app->clock.deltaTime;
             }
 
@@ -798,11 +799,6 @@ void Aircraft::Update() {
             }
 
             controls.throttle = MathUtils::Clamp<float>(controls.throttle, 0.0f, 1.0f);
-
-            //DEBUGGING FOR SHOOT DOWN
-            if(InputManager::IsKeyJustPressed(GLFW_KEY_I)) {
-                ShootDown();
-            }
 
             app->audioBackend.SoundAssetSetPitch(app->audioBackend.globalSounds.engineSound, controls.throttle);
         }
@@ -901,7 +897,7 @@ void Aircraft::Update() {
                     }
                 }
             }
-            else if(InputManager::IsKeyJustPressed(GLFW_KEY_T)) {
+            else if(InputManager::IsKeyJustPressed(InputMappings::toggleRadarTarget)) {
                 lockedAircraft = nullptr;
                 lockedAircraftNetworkId = 0;
 
@@ -1067,7 +1063,7 @@ void Aircraft::Update() {
         }
         {
             FOX2_PROFILE_SCOPE("Deploying Flares")
-            if(InputManager::IsKeyPressed(GLFW_KEY_SPACE)) {
+            if(InputManager::IsKeyPressed(InputMappings::flare)) {
                 deployingFlares = true;
             }
             else {
