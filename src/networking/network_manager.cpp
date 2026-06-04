@@ -17,8 +17,8 @@
 #include <iostream>
 #include "../application.hpp"
 
-//#define SERVER_URL "wss://webdogfightserver.onrender.com"
-#define SERVER_URL "ws://127.0.0.1:1234/"
+#define SERVER_URL "wss://webdogfightserver.onrender.com"
+//#define SERVER_URL "ws://127.0.0.1:1234/"
 #define HEARTBEAT_PING_INTERVAL 45
 #define STATE_SEND_INTERVAL 0.05
 
@@ -100,6 +100,7 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             app->sceneManager.currentScene->LoadResources();
             app->sceneManager.currentScene->Initialize();
 
+            preservedClientState.kills = networkGameState.clientStates[localClientId].kills;
             networkGameState.clientStates[localClientId] = preservedClientState;
             app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
@@ -125,9 +126,12 @@ void NetworkManager::OnMessageRecieved(const std::string& msg) {
             //this nasty code ensures we cannot overwrite our being shot down by the server
             bool externalShotDownCommand = networkGameState.clientStates[localClientId].shotDown;
             bool externalExplodedCommand = networkGameState.clientStates[localClientId].exploded;
+            uint8_t externalKillCount = networkGameState.clientStates[localClientId].kills;
+            std::cout << (int)externalKillCount << std::endl;
             networkGameState.clientStates[localClientId] = preservedClientState;
             networkGameState.clientStates[localClientId].shotDown = externalShotDownCommand;
             networkGameState.clientStates[localClientId].exploded = externalExplodedCommand;
+            networkGameState.clientStates[localClientId].kills = externalKillCount;
             app->sceneManager.currentScene->SpawnAndDespawnNetworkEntities(lastNetworkGameState, networkGameState);
             hasPendingStateChange = true;
             break;

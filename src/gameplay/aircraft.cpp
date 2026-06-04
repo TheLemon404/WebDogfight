@@ -60,6 +60,7 @@
 #define PITCH_ROTATION 25
 
 #define FLARE_COOLDOWN_TIME 0.2f
+#define PERIODIC_LEADERBOARD_UPDATE_TIME 2.0f
 
 #define GRAVITY 200.0f
 #define GFORCE_COEFFICIENT 0.01f
@@ -110,7 +111,6 @@ void CompassWidget::Draw() {
     app->graphicsBackend.UploadShaderUniformVec4(*textShader, fontColor.value, "uColor");
     app->graphicsBackend.UseTextureIDSlot(font.atlasTextureID, 0);
     app->graphicsBackend.EndDrawMesh2D(textMesh);
-
     app->graphicsBackend.SetDepthTest(true);
 }
 
@@ -192,6 +192,25 @@ glm::vec2 AircraftWidgetLayer::UIAlignmentWithRotation(glm::vec3 origin, glm::qu
         return glm::clamp(glm::vec2(clipPosition.x, clipPosition.y), glm::vec2(-1.5f), glm::vec2(1.5f));
     }
     return glm::clamp(glm::vec2(clipPosition.x, clipPosition.y) / clipPosition.w, glm::vec2(-1.5f), glm::vec2(1.5f));
+}
+
+void AircraftWidgetLayer::UpdateLeaderBoard() {
+    std::unique_ptr<Application>& app = Application::GetInstance();
+
+    if(leaderBoardWidget) {
+        leaderBoardWidget->ClearText();
+        leaderBoardWidget->SetText("LeaderBoard--->\n");
+
+        std::vector<std::pair<uint32_t, ClientState>> clientStates (app->networkManager.networkGameState.clientStates.begin(), app->networkManager.networkGameState.clientStates.end());
+
+        std::sort(clientStates.begin(), clientStates.end(), [&app](std::pair<uint32_t, ClientState>& a, std::pair<uint32_t, ClientState>& b) {
+            return a.second.kills > b.second.kills;
+        });
+
+        for(const std::pair<uint32_t, ClientState>& clientState : clientStates) {
+            leaderBoardWidget->SetText(leaderBoardWidget->GetText() + clientState.second.name + ": " + std::to_string(clientState.second.kills) + " kills" + "\n");
+        }
+    }
 }
 
 void AircraftWidgetLayer::CreateWidgets() {
@@ -335,6 +354,15 @@ void AircraftWidgetLayer::CreateWidgets() {
     killFeedWidget->borderColor.value = glm::vec4(0.0f);
     killFeedWidget->cornerColor.value = glm::vec4(0.0f);
     killFeedWidget->fontColor.value = glm::vec4(1.0, 0.4, 0.4, 1.0);
+
+    leaderBoardWidget = CreateWidget<TextRectWidget>("killFeedWidget", app->graphicsBackend.globalFonts.defaultFont);
+    leaderBoardWidget->moveWithAspectRatio = true;
+    leaderBoardWidget->scale = glm::vec2(0.375, 0.16);
+    leaderBoardWidget->position = glm::vec2(0.7, 0.0);
+    leaderBoardWidget->color.value = glm::vec4(0.3, 0.3, 0.3, 0.3);
+    leaderBoardWidget->borderColor.value = glm::vec4(0.3, 0.3, 0.3, 0.5);
+
+    UpdateLeaderBoard();
 }
 
 void AircraftWidgetLayer::UpdateLayer() {
@@ -419,6 +447,14 @@ void AircraftWidgetLayer::UpdateLayer() {
         "Radar Guided Missiles: " + std::to_string(aircraftProps.numRadarGuided) + "\n"
         "Flares: " + std::to_string(aircraftProps.numFlares) + "\n"
     );
+
+    if(timeSinceLeaderBoardUpdate > PERIODIC_LEADERBOARD_UPDATE_TIME) {
+        timeSinceLeaderBoardUpdate = 0.0f;
+        UpdateLeaderBoard();
+    }
+    else {
+        timeSinceLeaderBoardUpdate += app->clock.deltaTime;
+    }
 }
 
 Aircraft::Aircraft(const std::string& name, const std::string& aircraftResourcePath, uint32_t networkId) : Entity(name), resourcePath(aircraftResourcePath), networkId(networkId) {
@@ -555,8 +591,9 @@ void Aircraft::Initialize() {
         app->audioBackend.StartSoundAsset(app->audioBackend.globalSounds.engineSound, true, 0.3f);
 
         std::shared_ptr<TextRectWidget> tempKillFeedWidget = killFeedWidget;
+        std::shared_ptr<AircraftWidgetLayer> tempAircraftWidgetLayer = aircraftWidgetLayer;
 
-        app->networkManager.onKill = [this, &app, tempKillFeedWidget](uint32_t killerId, uint32_t victimId) {
+        app->networkManager.onKill = [this, &app, tempKillFeedWidget, tempAircraftWidgetLayer](uint32_t killerId, uint32_t victimId) {
             if(victimId == networkId && networkId == app->networkManager.localClientId) {
                 if(tempKillFeedWidget != nullptr && app->networkManager.networkGameState.clientStates.contains(killerId)) {
                     std::string killerName = app->networkManager.networkGameState.clientStates[killerId].name;
@@ -588,6 +625,10 @@ void Aircraft::Initialize() {
                 };
 
                 app->clock.timers.push_back(timer);
+            }
+
+            if(networkId == app->networkManager.localClientId) {
+                tempAircraftWidgetLayer->UpdateLeaderBoard();
             }
         };
         app->networkManager.onExplodeDemand = [this]() {

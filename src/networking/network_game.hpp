@@ -170,10 +170,10 @@ struct GameState {
                 return "resources/maps/mountain.json";
         }
 
-        return "resources/maps/mountain.json";
+        return "resources/maps/canyon.json";
     }
 
-    MAP_TYPE mapType = MOUNTAIN;
+    MAP_TYPE mapType = CANYON;
 
     std::string Serialize() {
         Packet packet = Packet();

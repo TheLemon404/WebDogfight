@@ -182,6 +182,8 @@ class RadarWidget : public RectWidget {
 };
 
 class AircraftWidgetLayer : public WidgetLayer {
+    float timeSinceLeaderBoardUpdate = 0.0f;
+
     public:
     AircraftWidgetLayerNeededProps aircraftProps;
     std::shared_ptr<CircleWidget> aim = nullptr;
@@ -198,16 +200,19 @@ class AircraftWidgetLayer : public WidgetLayer {
     std::shared_ptr<RadarWidget> radar = nullptr;
     std::shared_ptr<CompassWidget> compass = nullptr;
     std::shared_ptr<TextRectWidget> killFeedWidget = nullptr;
+    std::shared_ptr<TextRectWidget> leaderBoardWidget = nullptr;
 
     glm::vec2 UIAlignmentWithWorldPosition(glm::vec3 worldPosition);
     glm::vec2 UIAlignmentWithRotation(glm::vec3 origin, glm::quat rotation);
+
+    void UpdateLeaderBoard();
 
     void CreateWidgets() override;
     void UpdateLayer() override;
 };
 
 class Aircraft : public Entity, public std::enable_shared_from_this<Aircraft> {
-    std::unique_ptr<AircraftWidgetLayer> aircraftWidgetLayer = nullptr;
+    std::shared_ptr<AircraftWidgetLayer> aircraftWidgetLayer = nullptr;
 
     const std::string resourcePath;
     AircraftResource resource;
