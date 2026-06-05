@@ -1,4 +1,4 @@
-# Working Title: Fox2.io
+# Fox-2.live
   A web game centered around multiplayer dogfighting.
 
 # Details
