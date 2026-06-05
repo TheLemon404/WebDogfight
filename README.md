@@ -1,4 +1,4 @@
-# Fox-2.live
+# [Fox-2.live](https://fox2-io-flight-demo.vercel.app/)
 ## A web-based multiplayer combat flight simulator
 
 # Details
