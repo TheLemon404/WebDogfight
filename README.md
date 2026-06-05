@@ -1,14 +1,14 @@
 # Fox-2.live
-  A web game centered around multiplayer dogfighting.
+## A web-based multiplayer combat flight simulator
 
 # Details
-* Built with OpenGL|ES, C++, and Web Assembly (emscripten)
-* Desktop Version is currently in parallel development
-* Uses dedicated server networking
+* Built with C++ and WebAssembly (emscripten)
+* Custom OpenGL|ES renderer
+* Custom websocket-based networking stack
+* Desktop build in parallel development
 
 > [!IMPORTANT]  
-> This project is actively in development. This is not the finished project, and I am currently building this demo in my free time. Tune into the livestreams to watch development!
-> 
+> This project is in active development; everything is subject to change.
 > YouTube Channel Link: https://www.youtube.com/@thelemon9300
 
 # Screenshots
